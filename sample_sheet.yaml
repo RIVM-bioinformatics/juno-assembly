@@ -1,0 +1,31 @@
+'1071900063':
+  R1: raw_data/1071900063_R1.fastq
+  R2: raw_data/1071900063_R2.fastq
+'1171900012':
+  R1: raw_data/1171900012_R1.fastq
+  R2: raw_data/1171900012_R2.fastq
+'1171900016':
+  R1: raw_data/1171900016_R1.fastq
+  R2: raw_data/1171900016_R2.fastq
+'1171900024':
+  R1: raw_data/1171900024_R1.fastq
+  R2: raw_data/1171900024_R2.fastq
+'1171900044':
+  R1: raw_data/1171900044_R1.fastq
+  R2: raw_data/1171900044_R2.fastq
+1171900048_S6:
+  R1: raw_data/1171900048_S6_R1.fastq
+  R2: raw_data/1171900048_S6_R2.fastq
+CIP57_28_S6_L001:
+  R1: raw_data/CIP57_28_S6_L001_R1.fastq
+  R2: raw_data/CIP57_28_S6_L001_R2.fastq
+CIP82_48_S7_L001:
+  R1: raw_data/CIP82_48_S7_L001_R1.fastq
+  R2: raw_data/CIP82_48_S7_L001_R2.fastq
+CIP82_49_S8_L001:
+  R1: raw_data/CIP82_49_S8_L001_R1.fastq
+  R2: raw_data/CIP82_49_S8_L001_R2.fastq
+CIP82_50_S9_L001:
+  R1: raw_data/CIP82_50_S9_L001_R1.fastq
+  R2: raw_data/CIP82_50_S9_L001_R2.fastq
+

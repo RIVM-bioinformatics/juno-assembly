@@ -1,0 +1,36 @@
+######################################
+### Software parameters            ###
+######################################
+
+Trimmomatic:
+    # For the Nextera PE lib prep adapters
+    adapter_removal_config: ILLUMINACLIP:files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa:2:30:10:8:true
+    # ! test settings for best "relaxed" mode
+    # Default: 5 nucleotides window size, minimum average Phred score of 30
+    quality_trimming_config: SLIDINGWINDOW:5:30
+    # Default: Remove anything smaller than 50 nucleotides
+    minimum_length_config: MINLEN:50
+
+
+SPAdes:
+    #use the pipeline for short Illumina reads (<250 nt in length).
+    kmersizes: 21,33,55,77,99
+
+
+scaffold_minLen_filter:
+    # Minimum allowed scaffold size to be allowed for downstream processessing. 
+    # Advice, use a minimum length that is atleast 1nt greater than your Illumina read length
+    minlen: 500
+
+
+######################################
+### Technical parameters           ###
+######################################
+
+threads:
+    Clean_the_data: 4
+    De_novo_assembly: 12
+    Taxonomic_classification_of_scaffolds: 12
+    SNP_calling: 12
+    Fragment_length_analysis: 4
+    quantify_output: 4

@@ -1,0 +1,14 @@
+# Default profile for running pipeline on a computer cluster via DRMAA
+# interface. See: https://snakemake.readthedocs.io/en/stable/executable.html#profiles
+# Usage: e.g. on linux, copy or link this directory under 
+# configuration options below.
+use-conda: true
+jobs: "999"
+latency-wait: "120"
+printshellcmds: true
+keep-going: true
+config: 
+  - "out=out"
+  - "sample_sheet=sample_sheet.yaml"
+drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
+drmaa-log-dir: out/log/drmaa

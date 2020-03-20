@@ -1,0 +1,10 @@
+name: bac_gastro_master
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - snakemake==5.4.3
+  - drmaa==0.7.9
+  - pyyaml==5.3   # deze doet het volgens mij niet....  -> misschien pip install gebruiken?
+# add more as needed

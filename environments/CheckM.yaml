@@ -1,0 +1,13 @@
+name: scaffold_analyses
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+    - HMMER==3.3
+    - prodigal==2.6.3
+    - pplacer==1.1.alpha19
+    - numpy== 1.18.1
+    - matplotlib== 3.2.0
+    - pysam==0.15.4
+    - checkm-genome==1.1.2
