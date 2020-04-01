@@ -30,16 +30,17 @@ with open(config["sample_sheet"]) as sample_sheet_file:
 
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
+#GENUS = pathlib.Path(genus_CheckM["genus"])
+GENUS = "Listeria"
 
 
 #################################################################################
 ##### Specify final output:                                                 #####
 #################################################################################
 
-localrules: 
+localrules:
     all,
     cat_unpaired,
-
 
 
 rule all:
@@ -50,8 +51,10 @@ rule all:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),                                                 # SPAdes assembly     
         expand(str(OUT / "QUAST/per_sample/{sample}/report.html"), sample=SAMPLES),                                             # Quast per sample
         str(OUT / "QUAST/combined/report.tsv"),                                                                                 # Quast combined
+        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES),                                               # CheckM report
+        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),                                                                   # CheckM combined       
         str(OUT / "MultiQC/multiqc.html"),                                                                                      # MultiQC report
-        expand(str(OUT / "CheckM/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES),                                               # CheckM report
+
 
 
 #################################################################################
@@ -64,7 +67,7 @@ rule all:
 
 rule QC_raw_data:
     input:
-        lambda wildcards: SAMPLES[wildcards.sample][wildcards.read]
+        lambda wildcards: SAMPLES[wildcards.sample][wildcards.read],
     output:
         html=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.html"),
         zip=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip")
@@ -236,27 +239,39 @@ rule run_CheckM:
     input:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES)
     output:
-        str(OUT / "CheckM/{sample}/CheckM_{sample}.tsv"),
+        str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"),
     conda:
         "environments/CheckM.yaml"
     threads: 4
     params:
         input_dir=str(OUT / "SPAdes/{sample}/"),
-        output_dir=str(OUT / "CheckM/{sample}/"),
-        GENUS="Shigella" #TODO get info from irods
+        output_dir=str(OUT / "CheckM/per_sample/{sample}"),
+        genus=GENUS
     log:
         str(OUT / "log/checkm/run_CheckM_{sample}.log")
     shell:
         """
-        checkm taxonomy_wf genus "{params.GENUS}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
+        checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
         mv {params.output_dir}/checkm.log {log}
         """
+rule parse_CheckM:
+    input:
+        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES)
+    output:
+        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv")
+    threads: 1
+    params:
+    log:
+        str(OUT / "log/checkm/CheckM_combined.log")
+    script:
+        "bin/parse_checkM.py"
 
 rule MultiQC_report:
     input:
         expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "R1 R2".split()),
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "pR1 pR2 uR1 uR2".split()),
         str( OUT / "QUAST/combined/report.tsv"),
+        str( OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),
         expand(str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log"), sample = SAMPLES),
     output:
         str(OUT / "MultiQC/multiqc.html"),
