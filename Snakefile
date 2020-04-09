@@ -55,6 +55,9 @@ rule all:
         str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),                                                                   # CheckM combined       
         str(OUT / "MultiQC/multiqc.html"),                                                                                      # MultiQC report
 
+        expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
+        expand(str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"), sample = SAMPLES),
+
 
 
 #################################################################################
@@ -167,7 +170,7 @@ rule run_SPAdes:
         fastq_unpaired=str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq")
     output:
         all_scaffolds=str(OUT / "SPAdes/{sample}/scaffolds.fasta"),
-        filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500snt.fasta")
+        filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta")
         # % config["scaffold_minLen_filter"]["minlen"],
     conda:
         "environments/de_novo_assembly.yaml"
@@ -220,7 +223,7 @@ rule run_QUAST:
 rule run_QUAST_combined:
     input:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES),
-        expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500snt.fasta"), sample=SAMPLES)
+        expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"), sample=SAMPLES)
     output:
         str(OUT / "QUAST/combined/report.tsv")
     conda:
@@ -249,6 +252,8 @@ rule run_CheckM:
         genus=GENUS
     log:
         str(OUT / "log/checkm/run_CheckM_{sample}.log")
+    benchmark:
+        str(OUT / "log/benchmark/CheckM_{sample}.txt")
     shell:
         """
         checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
@@ -260,11 +265,71 @@ rule parse_CheckM:
     output:
         str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv")
     threads: 1
-    params:
     log:
         str(OUT / "log/checkm/CheckM_combined.log")
     script:
         "bin/parse_checkM.py"
+
+
+rule Fragment_length_analysis:
+    input:
+        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
+        pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
+        pR2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
+    output:
+        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
+        bam_bai=str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai"),
+        txt=str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"),
+        pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
+    conda:
+        "environments/scaffold_analyses.yaml"
+    log:
+        str(OUT / "log/Fragment_length_analysis_{sample}.log")
+    benchmark:
+        str(OUT / "log/benchmark/Fragment_length_analysis_{sample}.txt")
+    threads: config["threads"]["Fragment_length_analysis"]
+    shell:
+        """
+bwa index {input.fasta} > {log} 2>&1
+bwa mem -t {threads} {input.fasta} \
+{input.pR1} \
+{input.pR2} 2>> {log} |\
+samtools view -@ {threads} -uS - 2>> {log} |\
+samtools sort -@ {threads} - -o {output.bam} >> {log} 2>&1
+samtools index -@ {threads} {output.bam} >> {log} 2>&1
+picard -Dpicard.useLegacyParser=false CollectInsertSizeMetrics \
+-I {output.bam} \
+-O {output.txt} \
+-H {output.pdf} >> {log} 2>&1
+        """
+
+rule Generate_contigs_metrics:
+    input:
+        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
+        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
+        #ORF_NT_fasta=str(OUT / "scaffolds_filtered/{sample}_ORF_NT.fa"),
+    output:
+        summary=str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"),
+        perScaffold=str(OUT / "scaffolds_filtered/{sample}_perMinLenFiltScaffold.stats"),
+        perORFcoverage=str(OUT / "scaffolds_filtered/{sample}_perORFcoverage.stats"),
+    conda:
+        "environments/scaffold_analyses.yaml"
+    log:
+        str(OUT / "log/Generate_contigs_metrics_{sample}.log")
+    benchmark:
+        str(OUT / "log/benchmark/Generate_contigs_metrics_{sample}.txt")
+    threads: 1
+    shell:
+        """
+pileup.sh in={input.bam} \
+ref={input.fasta} \
+outorf={output.perORFcoverage} \
+out={output.perScaffold} \
+secondary=f \
+samstreamer=t \
+2> {output.summary} 1> {log}
+        """
+      #  fastaorf={input.ORF_NT_fasta} \
 
 rule MultiQC_report:
     input:
