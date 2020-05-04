@@ -10,5 +10,6 @@ keep-going: true
 config: 
   - "out=out"
   - "sample_sheet=sample_sheet.yaml"
+  - "genus_file=/data/BioGrid/hamere/TEST_in_house_NGS_selectie_2020.xlsx"
 drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
 drmaa-log-dir: out/log/drmaa

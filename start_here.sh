@@ -104,10 +104,9 @@ Input:
   -i, --input [DIR]                 This is the folder containing your input fastq files.
                                     Default is 'raw_data/' and only relative paths are accepted.
 Output (automatically generated):
-  data/                             Contains detailed intermediate files.
+  out/                             Contains detailed intermediate files.
   logs/                             Contains all log files.
-  results/                          Contains all final results, these are visualized via the
-                                    web-report (Notebook_report.ipynb).
+
 Parameters:
   -h, --help                        Print the help document.
   -sh, --snakemake-help             Print the Snakemake help document.

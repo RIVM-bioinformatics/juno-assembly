@@ -6,7 +6,9 @@
 #   4 spades # Perform assembly with SPAdes.
 #   5 quast # Run quality control tool QUAST on contigs/scaffolds.
 #   6 checkM
-#   7 multiQC
+#   7 piccard
+#   8 bbmap
+#   9 multiQC
 #
 # Custom configuration options (passed via config.yaml or via 
 # `--config` command line option):
@@ -18,6 +20,7 @@
 configfile: "profile/pipeline_parameters.yaml"
 configfile: "profile/variables.yaml"
 
+from pandas import *
 import pathlib
 import pprint
 import yaml
@@ -30,8 +33,18 @@ with open(config["sample_sheet"]) as sample_sheet_file:
 
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
-#GENUS = pathlib.Path(genus_CheckM["genus"])
-GENUS = "Escherichia"
+
+#GENUS dict
+xls = ExcelFile(pathlib.Path(config["genus_file"]))
+df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
+genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist())) 
+
+#search samples in genus dict and add genus to sample
+for sample, value in SAMPLES.items():
+    if int(sample) in genus_dict:
+        SAMPLES[sample] = [value,genus_dict[int(sample)]]
+    else:
+        SAMPLES[sample] = ["nan",genus_dict[int(sample)]]
 
 
 #################################################################################
@@ -51,7 +64,7 @@ rule all:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),                                                 # SPAdes assembly     
         expand(str(OUT / "QUAST/per_sample/{sample}/report.html"), sample=SAMPLES),                                             # Quast per sample
         str(OUT / "QUAST/combined/report.tsv"),                                                                                 # Quast combined
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES),                                    # CheckM report
+        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),                   # CheckM report
         str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),                                                                  # CheckM combined       
         str(OUT / "MultiQC/multiqc.html"),                                                                                      # MultiQC report
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
@@ -69,7 +82,7 @@ rule all:
 
 rule QC_raw_data:
     input:
-        lambda wildcards: SAMPLES[wildcards.sample][wildcards.read],
+        lambda wildcards: SAMPLES[wildcards.sample][0][wildcards.read],
     output:
         html=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.html"),
         zip=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip")
@@ -89,7 +102,7 @@ rule QC_raw_data:
 
 rule Clean_the_data:
     input:
-        lambda wildcards: (SAMPLES[wildcards.sample][i] for i in ("R1", "R2"))
+        lambda wildcards: (SAMPLES[wildcards.sample][0][i] for i in ("R1", "R2"))
     output:
         r1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
         r2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
@@ -248,7 +261,7 @@ rule run_CheckM:
     params:
         input_dir=str(OUT / "SPAdes/{sample}/"),
         output_dir=str(OUT / "CheckM/per_sample/{sample}"),
-        genus=GENUS
+        genus = lambda wildcards: SAMPLES[wildcards.sample][1],
     log:
         str(OUT / "log/checkm/run_CheckM_{sample}.log")
     benchmark:
@@ -326,7 +339,8 @@ ref={input.fasta} \
 out={output.perScaffold} \
 secondary=f \
 samstreamer=t \
-2> {output.summary} 1> {log}
+> {log} 2>&1
+cp {log} {output.summary}
         """
 
 rule MultiQC_report:
