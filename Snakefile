@@ -31,7 +31,7 @@ with open(config["sample_sheet"]) as sample_sheet_file:
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
 #GENUS = pathlib.Path(genus_CheckM["genus"])
-GENUS = "Listeria"
+GENUS = "Escherichia"
 
 
 #################################################################################
@@ -51,10 +51,9 @@ rule all:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),                                                 # SPAdes assembly     
         expand(str(OUT / "QUAST/per_sample/{sample}/report.html"), sample=SAMPLES),                                             # Quast per sample
         str(OUT / "QUAST/combined/report.tsv"),                                                                                 # Quast combined
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES),                                               # CheckM report
-        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),                                                                   # CheckM combined       
+        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES),                                    # CheckM report
+        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),                                                                  # CheckM combined       
         str(OUT / "MultiQC/multiqc.html"),                                                                                      # MultiQC report
-
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"), sample = SAMPLES),
 
@@ -222,7 +221,7 @@ rule run_QUAST:
 
 rule run_QUAST_combined:
     input:
-        expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES),
+        #expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES),
         expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"), sample=SAMPLES)
     output:
         str(OUT / "QUAST/combined/report.tsv")
@@ -259,6 +258,7 @@ rule run_CheckM:
         checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
         mv {params.output_dir}/checkm.log {log}
         """
+        
 rule parse_CheckM:
     input:
         expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES)
@@ -284,7 +284,7 @@ rule Fragment_length_analysis:
     conda:
         "environments/scaffold_analyses.yaml"
     log:
-        str(OUT / "log/Fragment_length_analysis_{sample}.log")
+        str(OUT / "log/Fragment_length_analysis/Fragment_length_analysis_{sample}.log")
     benchmark:
         str(OUT / "log/benchmark/Fragment_length_analysis_{sample}.txt")
     threads: config["threads"]["Fragment_length_analysis"]
@@ -311,11 +311,11 @@ rule Generate_contigs_metrics:
     output:
         summary=str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"),
         perScaffold=str(OUT / "scaffolds_filtered/{sample}_perMinLenFiltScaffold.stats"),
-        perORFcoverage=str(OUT / "scaffolds_filtered/{sample}_perORFcoverage.stats"),
+        #perORFcoverage=str(OUT / "scaffolds_filtered/{sample}_perORFcoverage.stats"),
     conda:
         "environments/scaffold_analyses.yaml"
     log:
-        str(OUT / "log/Generate_contigs_metrics_{sample}.log")
+        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_{sample}.log")
     benchmark:
         str(OUT / "log/benchmark/Generate_contigs_metrics_{sample}.txt")
     threads: 1
@@ -323,13 +323,11 @@ rule Generate_contigs_metrics:
         """
 pileup.sh in={input.bam} \
 ref={input.fasta} \
-outorf={output.perORFcoverage} \
 out={output.perScaffold} \
 secondary=f \
 samstreamer=t \
 2> {output.summary} 1> {log}
         """
-      #  fastaorf={input.ORF_NT_fasta} \
 
 rule MultiQC_report:
     input:
@@ -338,6 +336,8 @@ rule MultiQC_report:
         str( OUT / "QUAST/combined/report.tsv"),
         str( OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),
         expand(str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log"), sample = SAMPLES),
+        expand(str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"), sample = SAMPLES),
+        expand(str(OUT / "scaffolds_filtered/{sample}_perMinLenFiltScaffold.stats"), sample = SAMPLES),
     output:
         str(OUT / "MultiQC/multiqc.html"),
     conda:

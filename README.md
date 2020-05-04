@@ -1,35 +1,27 @@
 ## Assembly pipeline
 
-(example)Make samplesheet:
-```
-[verhager@rivm-biohn-l01p assemble_spades]$ source activate default
+W.I.P
 
-(default) [verhager@rivm-biohn-l01p assemble_spades]$ python --version
-Python 3.6.8 :: Anaconda, Inc.
+To derive valuable information and quality metrics from the paired end Illumina data, the data are analyzed in a sequential order using various algorithms to assemble the genome and to decide which samples can participate in analysis of antimicrobial resistance genes, virulence genes and perform cluster analyses and which samples are excluded from further analysis due low quality or contaminated isolates.
 
-(default) [verhager@rivm-biohn-l01p assemble_spades]$ python scripts/generate_sample_sheet.py /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/
-'1121800847':
-  R1: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800847_R1.fastq.gz
-  R2: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800847_R2.fastq.gz
-'1121800852':
-  R1: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800852_R1.fastq.gz
-  R2: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800852_R2.fastq.gz
-'1121800853':
-  R1: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800853_R1.fastq.gz
-  R2: /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/1121800853_R2.fastq.gz
+First FastQC (Andrews, et al.,2010) is performed to assess the quality of the raw Illumina reads. Trimmomatic (Bolger, et al., 2014) is used to remove poor quality data and adapter sequences. The Trimmomatic parameters used are a sliding window of 5:30 and a minlen config value of 50. FastQC is used once more to assess the quality of the trimmed reads. And Picard (https://broadinstitute.github.io/picard/) determines the library fragment lengths.
 
-(default) [verhager@rivm-biohn-l01p assemble_spades]$ python scripts/generate_sample_sheet.py /data/BioGrid/verhager/Gastro/2018_test/2018-11_106934/ > sample_sheet.yaml
+These reads are assembled into scaffolds by SPAdes (Nurk, et al., 2017) by means of de novo assembly of the genome. For de novo assembly the SPAdes Isolate option was used and Kmer sizes of 21,33,55,77 and 99 were used. The scaffolds that are lower than the threshold of 500 nucleotides are filtered out. Scaffolds with the length of 500 or more continue in the upstream analysis. 
 
-(default) [verhager@rivm-biohn-l01p assemble_spades]$ cat profile/config.yaml| grep sample_sheet.yaml
-  - "sample_sheet=sample_sheet.yaml"
+QUAST (Gurevich, et al., 2013) is performed to assess the quality of the filtered scaffolds. To assess the quality of the microbial genomes recovered from isolate CheckM (Parks, et al., 2014) is used. CheckM gives scores for completeness, contamination and strain heterogeneity. Bbtools (Bushnell, 2014) is performed to generate scaffold alignment metrics. 
+
+As the last step of the pipeline MultiQC (Ewels, et al., 2016) is used to fit and summarize analysis results and quality assessments in a single report for dynamic visualization.
+
+
+
 ```
 
 Dry run:
 ```
-snakemake --profile profile -n
+bash start_here.sh -n
 ```
 
 Start pipeline:
 ```
-snakemake --profile profile
+bash start_here.sh
 ```

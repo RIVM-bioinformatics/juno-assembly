@@ -15,7 +15,6 @@ MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda en
 
 ### Default values for CLI parameters
 INPUT_DIR="raw_data/"
-GENUS="FALSE"
 SKIP_CONFIRMATION="FALSE"
 SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
@@ -31,11 +30,6 @@ do
     case $key in
         -i|--input)
         INPUT_DIR="$2"
-        shift # Next
-        shift # Next
-        ;;
-        -g| --genus)
-        GENUS="$2"
         shift # Next
         shift # Next
         ;;
@@ -230,13 +224,6 @@ else
     exit 1
 fi
 
-### Genus user input for CheckM rule
-if [ "$GENUS" = "FALSE" ]; then
-    echo -e "please use -g option to specify a GENUS for the checkM run"
-    exit 0
-else
-    echo -e "genus is "${GENUS}""
-fi
 
 if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
     echo -e "bac_gastro_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
