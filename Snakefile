@@ -16,7 +16,7 @@
 #   * runsheet (YAML file with sample info, see format below)
 #   * out (Directory where output is written to)
 
-
+#config files
 configfile: "profile/pipeline_parameters.yaml"
 configfile: "profile/variables.yaml"
 
@@ -69,6 +69,8 @@ rule all:
         str(OUT / "MultiQC/multiqc.html"),                                                                                      # MultiQC report
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"), sample = SAMPLES),
+        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
+        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv")
 
 
 
@@ -320,11 +322,9 @@ rule Generate_contigs_metrics:
     input:
         bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
         fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
-        #ORF_NT_fasta=str(OUT / "scaffolds_filtered/{sample}_ORF_NT.fa"),
     output:
-        summary=str(OUT / "scaffolds_filtered/{sample}_MinLenFiltSummary.stats"),
-        perScaffold=str(OUT / "scaffolds_filtered/{sample}_perMinLenFiltScaffold.stats"),
-        #perORFcoverage=str(OUT / "scaffolds_filtered/{sample}_perORFcoverage.stats"),
+        summary=str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"),
+        perScaffold=str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"),
     conda:
         "environments/scaffold_analyses.yaml"
     log:
@@ -338,10 +338,32 @@ pileup.sh in={input.bam} \
 ref={input.fasta} \
 out={output.perScaffold} \
 secondary=f \
-samstreamer=t \
-> {log} 2>&1
+samstreamer=t > {log} 2>&1
 cp {log} {output.summary}
         """
+
+rule parse_bbtools:
+    input:
+        expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"), sample=SAMPLES),
+    output:
+        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
+    threads: 1
+    log:
+        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_combined.log")
+    script:
+        "bin/parse_bbtools.py"
+
+rule parse_bbtools_summary:
+    input:
+        expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample=SAMPLES)
+    output:
+        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv")
+    threads: 1
+    log:
+        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_combined.log")
+    script:
+        "bin/parse_bbtools_summary.py"
+
 
 rule MultiQC_report:
     input:
@@ -351,7 +373,6 @@ rule MultiQC_report:
         str( OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),
         expand(str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log"), sample = SAMPLES),
         expand(str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"), sample = SAMPLES),
-        expand(str(OUT / "scaffolds_filtered/{sample}_perMinLenFiltScaffold.stats"), sample = SAMPLES),
     output:
         str(OUT / "MultiQC/multiqc.html"),
     conda:

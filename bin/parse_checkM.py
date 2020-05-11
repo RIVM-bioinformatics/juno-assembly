@@ -1,8 +1,9 @@
+# extract completeness, contamination and Strain heterogeneity from each checkM output
+
 def parse_checkM(input_checkm, output_checkm):
-    #extract completeness, contamination and Strain heterogeneity from each checkM output
     checkm_dict = {}
     for input_file in str(input_checkm).split():
-        dict_key = input_file.split("_")[-1].split(".")[0]
+        dict_key = input_file.split("_")[-1].split(".")[0] #get sample name
         infile = open(input_file, "r")
         for line in infile:
             if "scaffolds " in line:
@@ -13,10 +14,13 @@ def parse_checkM(input_checkm, output_checkm):
         infile.close()
     
     
-    #write output to file used for multiQC input
+    # write output to file used for multiQC input
     outfile = open(str(output_checkm),"w")
 
+    # write headers to file
     outfile.write("sample\tcompleteness\tcontamination\tstrain_heterogeneity\n")
+    
+    # write CheckM stats to file
     for x, y in checkm_dict.items():
         outfile.write(x +"\t")
         for item in y:
