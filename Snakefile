@@ -52,7 +52,13 @@ with open(config["sample_sheet"]) as sample_sheet_file:
 
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
-genuslist = (config["genuslist"]).split(",")
+
+# make a list of all genera supported by the current version of CheckM
+genuslist = []
+with open(config["genuslist"]) as file_in:
+    for line in file_in:
+        if "genus" in line:
+            genuslist.append((line.split()[1].lower().strip()))
 
 #GENUS added to samplesheet dict (for CheckM)
 xls = ExcelFile(pathlib.Path(config["genus_file"]))
@@ -64,14 +70,24 @@ for sample, value in SAMPLES.items():
     if int(sample) in genus_dict:
         if genus_dict[int(sample)].lower() in genuslist:
             SAMPLES[sample] = [value,genus_dict[int(sample)]]
-        # if genus is not listeria, shigella, salmonella or escherichia:
-        else:
-            SAMPLES[sample] = [value,"nan"]
-            print(f"Sample {sample} is not supplied with a genus supported by this version of the pipeline")
-    # if 
-    else:
-        SAMPLES[sample] = [value,"nan"]
-        print(f"Sample {sample} is not supplied with a genus supported by this version of the pipeline")
+
+        # Genus not recognized
+        else: 
+            print(f""" \nERROR:  The genus supplied with sample: {sample} was not recognized by CheckM\n
+        Please supply the sample row in the Excel file{ pathlib.Path(config["genus_file"])}
+        with a correct genus. If you are unsure what genera are accepted by the current
+        version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n""")
+            
+        #proper way to exit snakemake
+
+    # Sample not found in Excel file
+    else: 
+        print(f""" \nERROR:  sample: {sample} was not found in the Excel file {pathlib.Path(config["genus_file"])}. 
+        Please insert the sample with it’s corresponding genus in the Excel file before starting the pipeline.\n\
+        It is also possible to remove the sample that causes the error form the samplesheet, and run the analys without this sample""")
+        
+        #proper way to exit snakemake
+        
         
 
 
@@ -227,7 +243,7 @@ rule run_SPAdes:
         str(OUT / "log/spades/{sample}_SPAdes_assembly.log")
     shell:
         """
-        spades.py --isolate\
+        spades.py --isolate --only-assembler\
             -1 {input.r1:q} -2 {input.r2:q} \
             -s {input.fastq_unpaired} \
             -o {params.output_dir:q} \

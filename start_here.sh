@@ -12,6 +12,8 @@ SET_HOSTNAME=$(bin/gethostname.sh)
 ### conda environment
 PATH_MASTER_YAML="environments/master_env.yaml"
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
+PATH_CHECKM_YAML="environments/CheckM.yaml"
+CHECKM_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
 
 ### Default values for CLI parameters
 INPUT_DIR="raw_data/"
@@ -21,6 +23,7 @@ CLEAN="FALSE"
 HELP="FALSE"
 MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
+UPDATE_GENUS="TRUE"
 
 ### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
 POSITIONAL=()
@@ -102,20 +105,20 @@ Bac_gastro pipeline, version $VERSION, built with Snakemake
 
 Input:
   -i, --input [DIR]                 This is the folder containing your input fastq files.
-                                    Default is 'raw_data/' and only relative paths are accepted.
+                                    Default iSNAKEMAKE_UNLOCKaw_data/' and only relative paths are accepted.
 Output (automatically generated):
-  out/                             Contains detailed intermediate files.
-  logs/                             Contains all log files.
+  out/                             Contains dSNAKEMAKE_UNLOCKled intermediate files.
+  logs/                             Contains SNAKEMAKE_UNLOCKlog files.
 
 Parameters:
-  -h, --help                        Print the help document.
-  -sh, --snakemake-help             Print the Snakemake help document.
-  --clean (-y)                      Removes output. (-y forces "Yes" on all prompts)
-  -n, --dry-run                     Useful snakemake command: Do not execute anything, and
-                                    display what would be done.
-  -u, --unlock                      Removes the lock on the working directory. This happens when
-                                    a run ends abruptly and prevents you from doing subsequent
-                                    analyses.
+  -h, --help                        Print theSNAKEMAKE_UNLOCKp document.
+  -sh, --snakemake-help             Print theSNAKEMAKE_UNLOCKkemake help document.
+  --clean (-y)                      Removes oSNAKEMAKE_UNLOCKt. (-y forces "Yes" on all prompts)
+  -n, --dry-run                     Useful snSNAKEMAKE_UNLOCKake command: Do not execute anything, and
+                                    display wSNAKEMAKE_UNLOCKwould be done.
+  -u, --unlock                      Removes tSNAKEMAKE_UNLOCKock on the working directory. This happens when
+                                    a run endSNAKEMAKE_UNLOCKruptly and prevents you from doing subsequent
+                                    analyses.SNAKEMAKE_UNLOCK
   -q, --quiet                       Useful snakemake command: Do not output any progress or
                                     rule information.
 
@@ -229,6 +232,20 @@ if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     echo -e "The sample sheet and variables file has now been created, you can now run the snakefile manually"
     exit 0
+fi
+
+
+if [ "${UPDATE_GENUS}" == "TRUE" ]; then
+    printf "\ncollecting available genera from CheckM...\n"
+    set +ue # Turn bash strict mode off because that breaks conda
+    source activate "${CHECKM_NAME}" # Try to activate checkM env
+    if [ ! $? -eq 0 ]; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling master environment..." 
+        conda env create -f ${PATH_CHECKM_YAML} 
+        source activate "${CHECKM_NAME}"
+        echo -e "DONE"
+    fi
+    checkm taxon_list > checkm_taxon_list.txt  
 fi
 
 ### Actual snakemake command with checkers for required files. N.B. here the UNIQUE_ID and SET_HOSTNAME variables are set!
