@@ -1,6 +1,6 @@
 """
 Bac_Gastro pipeline
-Authors: Ernst Hamer, Robert Verhagen, Diogo Borst, Tom van Wijk
+Authors: Ernst Hamer, Dennis Schmitz, Robert Verhagen, Diogo Borst, Tom van Wijk
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
 Department: IDS - BPD - Bacteriology
 Date: 24-02-2020
@@ -38,7 +38,9 @@ configfile: "profile/variables.yaml"
 from pandas import *
 import pathlib
 import pprint
+import os
 import yaml
+import json
 
 
 #################################################################################
@@ -63,31 +65,47 @@ with open(config["genuslist"]) as file_in:
 #GENUS added to samplesheet dict (for CheckM)
 xls = ExcelFile(pathlib.Path(config["genus_file"]))
 df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
-genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist())) 
+genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
+genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
+
+
+#################################################################################
+##### Catch sample and genus errors, when not specified by the user         #####
+#################################################################################
+
+error_samples_genus = []
+error_samples_sample = []
 
 #search samples in genus dict and add genus to the SAMPLES dict
 for sample, value in SAMPLES.items():
-    if int(sample) in genus_dict:
-        if genus_dict[int(sample)].lower() in genuslist:
-            SAMPLES[sample] = [value,genus_dict[int(sample)]]
+    if str(sample) in genus_dict:
+        if str(genus_dict[sample]).lower() in genuslist:
+            SAMPLES[sample] = [value,genus_dict[sample]]
 
-        # Genus not recognized
+        # Genus not recognized by checkM
         else: 
-            print(f""" \nERROR:  The genus supplied with sample: {sample} was not recognized by CheckM\n
-        Please supply the sample row in the Excel file{ pathlib.Path(config["genus_file"])}
-        with a correct genus. If you are unsure what genera are accepted by the current
-        version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n""")
-            
-        #proper way to exit snakemake
+            error_samples_genus.append(sample)
 
     # Sample not found in Excel file
     else: 
-        print(f""" \nERROR:  sample: {sample} was not found in the Excel file {pathlib.Path(config["genus_file"])}. 
-        Please insert the sample with it’s corresponding genus in the Excel file before starting the pipeline.\n\
-        It is also possible to remove the sample that causes the error form the samplesheet, and run the analys without this sample""")
+        error_samples_sample.append(sample)
+
+
+
+if error_samples_sample:
+    print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
+    Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
+    Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
+    When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
+    It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
+    sys.exit(1)
         
-        #proper way to exit snakemake
-        
+if error_samples_genus:
+    print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
+    Please supply the sample row in the Excel file{ pathlib.Path(config["genus_file"])}
+    with a correct genus. If you are unsure what genera are accepted by the current
+    version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n\n""")
+    sys.exit(1)
         
 
 
