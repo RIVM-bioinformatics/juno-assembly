@@ -3,7 +3,11 @@
 def parse_checkM(input_checkm, output_checkm):
     checkm_dict = {}
     for input_file in str(input_checkm).split():
-        dict_key = input_file.split("_")[-1].split(".")[0] #get sample name
+        dict_key = "_".join(input_file.split("/")[-1].split(".")[0].split("_")[1:]) #get sample name
+        
+        # add a letter to every sample name so that multiqc will see the name as a string
+        dict_key = dict_key + "L"
+
         infile = open(input_file, "r")
         for line in infile:
             if "scaffolds " in line:

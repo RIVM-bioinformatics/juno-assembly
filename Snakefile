@@ -16,7 +16,7 @@ Snakemake rules (in order of execution):
     4 spades        # Perform assembly with SPAdes.
     5 quast         # Run quality control tool QUAST on contigs/scaffolds.
     6 checkM        # Gives scores for completeness, contamination and strain heterogeneity.
-    7 piccard       # Determines library fragment lengths.
+    7 picard        # Determines library fragment lengths.
     8 bbmap         # Generate scaffold alignment metrics.
     9 multiQC       # Summarize analysis results and quality assessments in a single report 
 
@@ -102,7 +102,7 @@ if error_samples_sample:
         
 if error_samples_genus:
     print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-    Please supply the sample row in the Excel file{ pathlib.Path(config["genus_file"])}
+    Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
     with a correct genus. If you are unsure what genera are accepted by the current
     version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n\n""")
     sys.exit(1)
@@ -124,8 +124,7 @@ rule all:
         expand(str(OUT / "trimmomatic/{sample}_{read}.fastq"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
-        expand(str(OUT / "QUAST/per_sample/{sample}/report.html"), sample=SAMPLES),
-        str(OUT / "QUAST/combined/report.tsv"),
+        str(OUT / "QUAST/report.tsv"),
         expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
         str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
@@ -269,7 +268,6 @@ rule run_SPAdes:
             -m {params.max_GB_RAM} > {log:q}
             seqtk seq {output.all_scaffolds} 2>> {log} |\
             gawk -F "_" '/^>/ {{if ($4 >= {params.minlength}) {{print $0; getline; print $0}};}}' 2>> {log} 1> {output.filt_scaffolds} 
-
         """
     
     
@@ -277,34 +275,17 @@ rule run_SPAdes:
     ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
     #############################################################################
 
-rule run_QUAST:
-    input:
-        str(OUT / "SPAdes/{sample}/scaffolds.fasta")
-    output:
-        str(OUT / "QUAST/per_sample/{sample}/report.html")
-    conda:
-        "environments/QUAST.yaml"
-    threads: 4
-    params:
-        output_dir = str(OUT / "QUAST/per_sample/{sample}"),
-    log:
-        str(OUT / "log/quast/{sample}_QUAST_quality.log")
-    shell:
-        """
-        quast --threads {threads} {input} --output-dir {params.output_dir} > {log:q}
-        """
-
 
 rule run_QUAST_combined:
     input:
         expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"), sample=SAMPLES)
     output:
-        str(OUT / "QUAST/combined/report.tsv")
+        str(OUT / "QUAST/report.tsv")
     conda:
         "environments/QUAST.yaml"
     threads: 4
     params:
-        output_dir = str(OUT / "QUAST/combined"),
+        output_dir = str(OUT / "QUAST"),
     log:
         str(OUT / "log/quast/quast_combined_quality.log")
     shell:
@@ -429,7 +410,7 @@ rule MultiQC_report:
     input:
         expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "R1 R2".split()),
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "pR1 pR2 uR1 uR2".split()),
-        str( OUT / "QUAST/combined/report.tsv"),
+        str( OUT / "QUAST/report.tsv"),
         str( OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),
         expand(str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log"), sample = SAMPLES),
         expand(str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"), sample = SAMPLES),
