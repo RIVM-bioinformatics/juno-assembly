@@ -14,8 +14,6 @@ config:
   - "sample_sheet=sample_sheet.yaml"
   # Excel file that describes samples and genus, used for CheckM:
   - "genus_file=/data/BioGrid/hamere/TEST_in_house_NGS_selectie_2020.xlsx"
-  # The four genera accepted on this version of the pipeline:
-  - "genuslist=listeria,shigella,salmonella,escherichia" 
 
 # settings for running on the grid
 drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
