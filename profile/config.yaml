@@ -17,3 +17,6 @@ config:
   - "genus_file=/PATH/TO/SHEET.xlsx"
   # The four genera accepted on this version of the pipeline:
   - "genuslist=checkm_taxon_list.txt" 
+# settings for running on the grid
+drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
+drmaa-log-dir: out/log/drmaa
