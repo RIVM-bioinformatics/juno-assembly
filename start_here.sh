@@ -13,7 +13,7 @@ SET_HOSTNAME=$(bin/gethostname.sh)
 PATH_MASTER_YAML="environments/master_env.yaml"
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
 PATH_CHECKM_YAML="environments/CheckM.yaml"
-CHECKM_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
+CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
 
 ### Default values for CLI parameters
 INPUT_DIR="raw_data/"
@@ -143,13 +143,13 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
     line
     spacer
     set +ue # Turn bash strict mode off because that breaks conda
-    source activate "${MASTER_NAME}" # Try to activate this env
+    conda activate "${MASTER_NAME}" # Try to activate this env
     if [ ! $? -eq 0 ]; then # If exit statement is not 0, i.e. master conda env hasn't been installed yet, do...
         installer_intro
         if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
             echo -e "\tInstalling master environment..." 
             conda env create -f ${PATH_MASTER_YAML} 
-            source activate "${MASTER_NAME}"
+            conda activate "${MASTER_NAME}"
             echo -e "DONE"
         else
             while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/N] " envanswer
@@ -158,7 +158,7 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
                 if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
                     echo -e "\tInstalling master environment..." 
                     conda env create -f ${PATH_MASTER_YAML}
-                    source activate "${MASTER_NAME}"
+                    conda activate "${MASTER_NAME}"
                     echo -e "DONE"
                     break
                 elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
@@ -204,7 +204,7 @@ if [ -n "$(ls -A "${INPUT_DIR}")" ]; then
     minispacer
     echo -e "Files in input directory (${INPUT_DIR}) are present"
     echo -e "Generating sample sheet..."
-    bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
+    python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
     SHEET_SUCCESS="TRUE"
 else
     minispacer
@@ -238,14 +238,15 @@ fi
 if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     printf "\ncollecting available genera from CheckM...\n"
     set +ue # Turn bash strict mode off because that breaks conda
-    source activate "${CHECKM_NAME}" # Try to activate checkM env
-    if [ ! $? -eq 0 ]; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling master environment..." 
+    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling checkm environment..." 
         conda env create -f ${PATH_CHECKM_YAML} 
-        source activate "${CHECKM_NAME}"
+        conda activate "${CHECKM_NAME}"
         echo -e "DONE"
     fi
     checkm taxon_list > checkm_taxon_list.txt  
+    conda deactivate
+    set -ue
 fi
 
 ### Actual snakemake command with checkers for required files. N.B. here the UNIQUE_ID and SET_HOSTNAME variables are set!
