@@ -43,6 +43,7 @@ import yaml
 import json
 
 
+yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
 #################################################################################
 ##### Load samplesheet, load genus dict and define output directory         #####
 #################################################################################
