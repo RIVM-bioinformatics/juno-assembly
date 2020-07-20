@@ -126,7 +126,51 @@ HELP_USAGE
     exit 0
 fi
 
+#### MAKE SURE CONDA WORKS ON ALL SYSTEMS
+rcfile="${HOME}/.bac_gastro_src"
+conda_loc=$(which conda)
 
+
+if [ -f "${rcfile}" ]; then
+    exit 
+fi
+
+
+if [ ! -z "${conda_loc}" ]; then
+
+    #> I ripped this block from jovian
+    #> Check https://github.com/DennisSchmitz/Jovian for the source code
+    #> The specific file is bin/includes/Install_miniconda
+    #> relevant lines are FROM line #51
+    #>
+
+    condadir="${conda_loc}"
+    basedir=$(echo "${condadir}" | rev | cut -d'/' -f3- | rev)
+    etcdir="${basedir}/etc/profile.d/conda.sh"
+    bindir="${basedir}/bin"
+
+    touch "${rcfile}"
+    cat << EOF >> "${rcfile}"
+if [ -f "${etcdir}" ]; then
+    . "${etcdir}"
+else
+    export PATH="${bindir}:$PATH"
+fi
+
+export -f conda
+export -f __conda_activate
+export -f __conda_reactivate
+export -f __conda_hashr
+export -f __add_sys_prefix_to_path
+EOF
+
+    cat << EOF >> "${rcfile}"
+if [ -f "${rcfile}" ]; then
+    . "${rcfile}"
+fi
+EOF
+
+fi
 ###############################################################################################################
 ##### Installation block                                                                                  #####
 ###############################################################################################################
