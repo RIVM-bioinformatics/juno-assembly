@@ -131,12 +131,8 @@ rcfile="${HOME}/.bac_gastro_src"
 conda_loc=$(which conda)
 
 
-if [ -f "${rcfile}" ]; then
-    exit 
-fi
-
-
-if [ ! -z "${conda_loc}" ]; then
+if [ ! -f "${rcfile}" ]; then
+    if [ ! -z "${conda_loc}" ]; then
 
     #> I ripped this block from jovian
     #> Check https://github.com/DennisSchmitz/Jovian for the source code
@@ -164,16 +160,18 @@ export -f __conda_hashr
 export -f __add_sys_prefix_to_path
 EOF
 
-    cat << EOF >> "${rcfile}"
+    cat << EOF >> "${HOME}/.bashrc"
 if [ -f "${rcfile}" ]; then
     . "${rcfile}"
 fi
 EOF
 
+    fi 
+
 fi
 
 
-source "${rcfile}"
+source "${HOME}"/.bashrc
 ###############################################################################################################
 ##### Installation block                                                                                  #####
 ###############################################################################################################
