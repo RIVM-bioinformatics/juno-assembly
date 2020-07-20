@@ -1,3 +1,13 @@
+  # Location and name of the sample_sheet:
+sample_sheet: sample_sheet.yaml
+  # Excel file that describes samples and genus, used for CheckM:
+genus_file: /PATH/TO/SHEET.xlsx
+  # The four genera accepted on this version of the pipeline:
+genuslist: checkm_taxon_list.txt
+
+out: out
+
+
 ######################################
 ### Software parameters            ###
 ######################################
