@@ -2,19 +2,12 @@
 # interface. See: https://snakemake.readthedocs.io/en/stable/executable.html#profiles
 # Usage: e.g. on linux, copy or link this directory under 
 # configuration options below.
+cores: 12
 use-conda: true
 jobs: "999"
 latency-wait: "120"
-printshellcmds: true
+printshellcmds: false
 keep-going: true # Go on with independent jobs if a job fails.
-config: 
-  # Directory where output is written to:
-  - "out=out"
-  # Location and name of the sample_sheet:
-  - "sample_sheet=sample_sheet.yaml"
-  # Excel file that describes samples and genus, used for CheckM:
-  - "genus_file=/data/BioGrid/hamere/TEST_in_house_NGS_selectie_2020.xlsx"
-
 # settings for running on the grid
 drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
 drmaa-log-dir: out/log/drmaa
