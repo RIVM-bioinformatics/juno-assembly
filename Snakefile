@@ -261,7 +261,7 @@ rule run_SPAdes:
         str(OUT / "log/spades/{sample}_SPAdes_assembly.log")
     shell:
         """
-        spades.py --isolate --only-assembler\
+        spades.py --isolate \
             -1 {input.r1:q} -2 {input.r2:q} \
             -s {input.fastq_unpaired} \
             -o {params.output_dir:q} \
