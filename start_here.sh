@@ -1,9 +1,11 @@
 #!/bin/bash
 
 #load in functions
+set -o allexport
 source bin/functions.sh
 eval "$(parse_yaml profile/pipeline_parameters.yaml "params_")"
 eval "$(parse_yaml profile/config.yaml "configuration_")"
+set +o allexport
 
 UNIQUE_ID=$(bin/generate_id.sh)
 SET_HOSTNAME=$(bin/gethostname.sh)
@@ -69,32 +71,6 @@ done
 set -- "${POSITIONAL[@]:-}" # Restores the positional arguments (i.e. without the case arguments above) which then can be called via `$@` or `$[0-9]` etc. These parameters are send to Snakemake.
 
 
-### Remove all output
-if [ "${CLEAN:-}" == "TRUE" ]; then
-    line
-    spacer
-    echo -e "The following files and folders will be deleted:\ndata/\nlogs/\nresults/\nprofile/variables.yaml\nsample_sheet.yaml\n\n"
-    if [ "${SKIP_CONFIRMATION}" == "TRUE" ]; then
-        echo -e "Removing output: data/ logs/ results/ profile/variables.yaml sample_sheet.yaml"
-            rm -rf data/
-            rm -rf logs/
-            rm -rf out/
-            #rm -f sample_sheet.yaml
-            rm -f profile/variables.yaml
-
-            ## clean the yaml files
-            sed -i '\|databases|d' profile/pipeline_parameters.yaml
-            sed -i '\|background_ref|d' profile/pipeline_parameters.yaml
-            sed -i '\|Krona_taxonomy|d' profile/pipeline_parameters.yaml
-            sed -i '\|virusHostDB|d' profile/pipeline_parameters.yaml
-            sed -i '\|NCBI_new_taxdump_rankedlineage|d' profile/pipeline_parameters.yaml
-            sed -i '\|NCBI_new_taxdump_host|d' profile/pipeline_parameters.yaml
-            #sed -i '\|drmaa|d' profile/config.yaml
-    fi
-    exit 0
-fi
-
-
 ### Print bac_gastro help message
 if [ "${HELP:-}" == "TRUE" ]; then
     line
@@ -123,6 +99,13 @@ Parameters:
                                     rule information.
 
 HELP_USAGE
+    exit 0
+fi
+
+### Remove all output
+###> Remove all Jovian output
+if [ "${CLEAN:-}" == "TRUE" ]; then
+    bash bin/Clean
     exit 0
 fi
 
