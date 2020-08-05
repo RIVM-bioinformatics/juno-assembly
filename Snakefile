@@ -144,10 +144,7 @@ include: "bin/rules/multiqc_report.smk"
 
 localrules:
     all,
-    cat_unpaired,
-    parse_checkm,
-    parse_bbtools,
-    parase_bbtools_summary
+    cat_unpaired
 
 
 rule all:
