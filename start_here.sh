@@ -245,15 +245,17 @@ if [ ! -d "${INPUT_DIR}" ]; then
 fi
 
 ### Generate sample sheet
-if [ -n "$(ls -A "${INPUT_DIR}")" ]; then
+if [  `ls -A "${INPUT_DIR}" | grep 'R[0-9]\{1\}.*\.f[ast]\{0,3\}q\.\?[gz]\{0,2\}$' | wc -l` -gt 0 ]; then
     minispacer
     echo -e "Files in input directory (${INPUT_DIR}) are present"
     echo -e "Generating sample sheet..."
     python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
-    SHEET_SUCCESS="TRUE"
+    if [ $(wc -l sample_sheet.yaml | awk '{ print $1 }') -gt 2 ]; then
+        SHEET_SUCCESS="TRUE"
+    fi
 else
     minispacer
-    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty...\nPlease specify a directory with input-data."
+    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty or does not contain the expected input files...\nPlease specify a directory with input-data."
     exit 0
 fi
 
