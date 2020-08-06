@@ -23,6 +23,7 @@ SKIP_CONFIRMATION="FALSE"
 SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
 HELP="FALSE"
+HELP_GENERA="FALSE"
 MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
 UPDATE_GENUS="TRUE"
@@ -40,6 +41,10 @@ do
         ;;
         -h|--help)
         HELP="TRUE"
+        shift # Next
+        ;;
+        --help_genera)
+        HELP_GENERA="TRUE"
         shift # Next
         ;;
         -sh|--snakemake-help)
@@ -69,6 +74,8 @@ do
     esac
 done
 set -- "${POSITIONAL[@]:-}" # Restores the positional arguments (i.e. without the case arguments above) which then can be called via `$@` or `$[0-9]` etc. These parameters are send to Snakemake.
+
+
 
 
 ### Print bac_gastro help message
@@ -102,12 +109,34 @@ HELP_USAGE
     exit 0
 fi
 
+
+
+
+### Genus help
+### Display all the genera accepted by CheckM
+if [ "${HELP_GENERA:-}" == "TRUE" ]; then
+    spacer
+    line
+    echo -e "The genera that CheckM accepts are: "
+    minispacer
+    GENERA=`grep genus checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
+    pr -4 -t -w 120 <<eof
+$GENERA
+eof
+    exit 0
+fi
+
+
+
 ### Remove all output
 ###> Remove all Jovian output
 if [ "${CLEAN:-}" == "TRUE" ]; then
     bash bin/Clean
     exit 0
 fi
+
+
+
 
 #### MAKE SURE CONDA WORKS ON ALL SYSTEMS
 rcfile="${HOME}/.bac_gastro_src"
