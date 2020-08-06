@@ -112,21 +112,6 @@ fi
 
 
 
-### Genus help
-### Display all the genera accepted by CheckM
-if [ "${HELP_GENERA:-}" == "TRUE" ]; then
-    spacer
-    line
-    echo -e "The genera that CheckM accepts are: "
-    minispacer
-    GENERA=`grep genus checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
-    pr -4 -t -w 120 <<eof
-$GENERA
-eof
-    exit 0
-fi
-
-
 
 ### Remove all output
 ###> Remove all Jovian output
@@ -134,7 +119,6 @@ if [ "${CLEAN:-}" == "TRUE" ]; then
     bash bin/Clean
     exit 0
 fi
-
 
 
 
@@ -183,7 +167,38 @@ EOF
 fi
 
 
+
+### Genus help
+### Display all the genera accepted by CheckM
+if [ "${HELP_GENERA:-}" == "TRUE" ]; then
+    printf "\nCollecting available genera from CheckM...\n"
+    set +ue # Turn bash strict mode off because that breaks conda
+    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling checkm environment..." 
+        conda env create -f ${PATH_CHECKM_YAML} 
+        conda activate "${CHECKM_NAME}"
+        echo -e "DONE"
+    fi
+    spacer
+    GENERA=`checkm taxon_list | grep genus | awk -F ' ' '{print $2}'`
+    line
+    echo -e "The genera that CheckM accepts are: "
+    minispacer
+    pr -4 -t -w 120 <<eof
+$GENERA
+eof
+    conda deactivate
+    set -ue
+    exit 0
+fi
+
+
+
+
 source "${HOME}"/.bashrc
+
+
+
 ###############################################################################################################
 ##### Installation block                                                                                  #####
 ###############################################################################################################
@@ -293,20 +308,6 @@ if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
     exit 0
 fi
 
-
-if [ "${UPDATE_GENUS}" == "TRUE" ]; then
-    printf "\ncollecting available genera from CheckM...\n"
-    set +ue # Turn bash strict mode off because that breaks conda
-    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling checkm environment..." 
-        conda env create -f ${PATH_CHECKM_YAML} 
-        conda activate "${CHECKM_NAME}"
-        echo -e "DONE"
-    fi
-    checkm taxon_list > checkm_taxon_list.txt  
-    conda deactivate
-    set -ue
-fi
 
 ### Actual snakemake command with checkers for required files. N.B. here the UNIQUE_ID and SET_HOSTNAME variables are set!
 if [ -e sample_sheet.yaml ]; then
