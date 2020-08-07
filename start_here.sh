@@ -168,33 +168,6 @@ fi
 
 
 
-### Genus help
-### Display all the genera accepted by CheckM
-if [ "${HELP_GENERA:-}" == "TRUE" ]; then
-    printf "\nCollecting available genera from CheckM...\n"
-    set +ue # Turn bash strict mode off because that breaks conda
-    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling checkm environment..." 
-        conda env create -f ${PATH_CHECKM_YAML} 
-        conda activate "${CHECKM_NAME}"
-        echo -e "DONE"
-    fi
-    spacer
-    GENERA=`checkm taxon_list | grep genus | awk -F ' ' '{print $2}'`
-    line
-    echo -e "The genera that CheckM accepts are: "
-    minispacer
-    pr -4 -t -w 120 <<eof
-$GENERA
-eof
-    conda deactivate
-    set -ue
-    exit 0
-fi
-
-
-
-
 source "${HOME}"/.bashrc
 
 
@@ -268,8 +241,42 @@ if [ ! -d "${INPUT_DIR}" ]; then
     minispacer
     echo -e "The input directory specified (${INPUT_DIR}) does not exist"
     echo -e "Please specify an existing input directory"
+    minispacer
     exit 1
 fi
+
+
+# Download and update genus list
+if [ "${UPDATE_GENUS}" == "TRUE" ]; then
+    printf "\nCollecting available genera from CheckM...\n"
+    set +ue # Turn bash strict mode off because that breaks conda
+    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling checkM environment..." 
+        conda env create -f ${PATH_CHECKM_YAML} 
+        conda activate "${CHECKM_NAME}"
+        echo -e "DONE"
+    fi
+    checkm taxon_list > checkm_taxon_list.txt  
+    ### Genus help
+    ### Display all the genera accepted by CheckM
+    if [ "${HELP_GENERA:-}" == "TRUE" ]; then
+        spacer
+        GENERA=`grep genus checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
+        line
+        echo -e "The genera that CheckM currently accepts are: "
+        minispacer
+        pr -4 -t -w 120 <<eof
+$GENERA
+eof
+        conda deactivate
+        set -ue
+        exit 0
+    fi
+    conda deactivate
+    set -ue
+fi
+
+
 
 ### Generate sample sheet
 if [  `ls -A "${INPUT_DIR}" | grep 'R[0-9]\{1\}.*\.f[ast]\{0,3\}q\.\?[gz]\{0,2\}$' | wc -l` -gt 0 ]; then
