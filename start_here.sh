@@ -86,24 +86,39 @@ Bac_gastro pipeline, version $VERSION, built with Snakemake
   Usage: bash $0 -i <INPUT_DIR> <parameters>
   N.B. it is designed for Illumina paired-end data only
 
+
 Input:
   -i, --input [DIR]                 This is the folder containing your input fastq files.
-                                    Default iSNAKEMAKE_UNLOCKaw_data/' and only relative paths are accepted.
+                                    Default is raw_data/' and only relative paths are accepted.
+
 Output (automatically generated):
-  out/                             Contains dSNAKEMAKE_UNLOCKled intermediate files.
-  logs/                             Contains SNAKEMAKE_UNLOCKlog files.
+  out/                              Contains dir contains the results of every step of the pipeline.
+
+  out/log/                          Contains the log files for every step of the pipeline
+
+  out/log/drmaa			    Contains the .out and .err files of every job sent to the grid/cluster.
+
+  out/log/results		    Contains the log files and parameters that the pipeline used for the current run
+
 
 Parameters:
-  -h, --help                        Print theSNAKEMAKE_UNLOCKp document.
-  -sh, --snakemake-help             Print theSNAKEMAKE_UNLOCKkemake help document.
-  --clean (-y)                      Removes oSNAKEMAKE_UNLOCKt. (-y forces "Yes" on all prompts)
-  -n, --dry-run                     Useful snSNAKEMAKE_UNLOCKake command: Do not execute anything, and
-                                    display wSNAKEMAKE_UNLOCKwould be done.
-  -u, --unlock                      Removes tSNAKEMAKE_UNLOCKock on the working directory. This happens when
-                                    a run endSNAKEMAKE_UNLOCKruptly and prevents you from doing subsequent
-                                    analyses.SNAKEMAKE_UNLOCK
-  -q, --quiet                       Useful snakemake command: Do not output any progress or
-                                    rule information.
+  -h, --help                        Print the help document.
+
+  --help_genera			    Prints list of accepted genera for this pipeline (based on CheckM list).
+
+  -sh, --snakemake-help             Print the snakemake help document.
+
+  --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
+
+  -n, --dry-run                     Useful snakemake command that displays the steps to be performed without actually 
+				    executing them. Useful to spot any potential issues while running the pipeline.
+
+  -u, --unlock                      Unlocks the working directory. A directory is locked when a run ends abruptly and 
+				    it prevents you from doing subsequent analyses on that directory until it gets unlocked.
+
+  Other snakemake parameters	    Any other parameters will be passed to snakemake. Read snakemake help (-sh) to see
+				    the options.
+
 
 HELP_USAGE
     exit 0
