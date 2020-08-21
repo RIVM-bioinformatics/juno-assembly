@@ -52,62 +52,70 @@ yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
 # SAMPLES is a dict with sample in the form sample > read number > file. E.g.: SAMPLES["sample_1"]["R1"] = "x_R1.gz"
 SAMPLES = {}
 with open(config["sample_sheet"]) as sample_sheet_file:
-    SAMPLES = yaml.load(sample_sheet_file) 
+    SAMPLES = yaml.safe_load(sample_sheet_file) 
 
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
 
-# make a list of all genera supported by the current version of CheckM
-genuslist = []
-with open(config["genuslist"]) as file_in:
-    for line in file_in:
-        if "genus" in line:
-            genuslist.append((line.split()[1].lower().strip()))
+# Decision whether to run checkm or not
+checkm_decision = config["checkm"]
 
-#GENUS added to samplesheet dict (for CheckM)
-xls = ExcelFile(pathlib.Path(config["genus_file"]))
-df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
-genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
-genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
-
-
-#################################################################################
-##### Catch sample and genus errors, when not specified by the user         #####
-#################################################################################
-
-error_samples_genus = []
-error_samples_sample = []
-
-#search samples in genus dict and add genus to the SAMPLES dict
-for sample, value in SAMPLES.items():
-    if str(sample) in genus_dict:
-        if str(genus_dict[sample]).lower() in genuslist:
-            SAMPLES[sample] = [value,genus_dict[sample]]
-
-        # Genus not recognized by checkM
+if checkm_decision == 'TRUE':
+    # make a list of all genera supported by the current version of CheckM
+    genuslist = []
+    with open(config["genuslist"]) as file_in:
+        for line in file_in:
+            if "genus" in line:
+                genuslist.append((line.split()[1].lower().strip()))
+    
+    #GENUS added to samplesheet dict (for CheckM)
+    xls = ExcelFile(pathlib.Path(config["genus_file"]))
+    df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
+    genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
+    genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
+    
+    
+    #################################################################################
+    ##### Catch sample and genus errors, when not specified by the user         #####
+    #################################################################################
+    
+    error_samples_genus = []
+    error_samples_sample = []
+    
+    #search samples in genus dict and add genus to the SAMPLES dict
+    for sample, value in SAMPLES.items():
+        if str(sample) in genus_dict:
+            if str(genus_dict[sample]).lower() in genuslist:
+                SAMPLES[sample] = [value,genus_dict[sample]]
+    
+            # Genus not recognized by checkM
+            else: 
+                error_samples_genus.append(sample)
+    
+        # Sample not found in Excel file
         else: 
-            error_samples_genus.append(sample)
+            error_samples_sample.append(sample)
+    
 
-    # Sample not found in Excel file
-    else: 
-        error_samples_sample.append(sample)
+    
+    if error_samples_sample:
+        print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
+        Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
+        Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
+        When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
+        It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
+        sys.exit(1)
+            
+    if error_samples_genus:
+        print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
+        Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
+        with a correct genus. If you are unsure what genera are accepted by the current
+        version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
+        sys.exit(1)
+else:
+    for sample, value in SAMPLES.items():
+        SAMPLES[sample] = [value, 'checkm_deactivated']
 
-
-
-if error_samples_sample:
-    print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
-    Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
-    Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
-    When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
-    It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
-    sys.exit(1)
-        
-if error_samples_genus:
-    print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-    Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
-    with a correct genus. If you are unsure what genera are accepted by the current
-    version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n\n""")
-    sys.exit(1)
         
 
 #@################################################################################
@@ -130,13 +138,17 @@ include: "bin/rules/run_spades.smk"
     ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
     #############################################################################
 include: "bin/rules/run_quast.smk"
-include: "bin/rules/run_checkm.smk"
+if checkm_decision == 'TRUE':
+    include: "bin/rules/run_checkm.smk"
 include: "bin/rules/parse_checkm.smk"
 include: "bin/rules/fragment_length_analysis.smk"
 include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
 include: "bin/rules/parse_bbtools_summary.smk"
-include: "bin/rules/multiqc_report.smk"
+if checkm_decision == 'TRUE':
+    include: "bin/rules/multiqc_report.smk"
+else:
+    include: "bin/rules/multiqc_report_nocheckm.smk"
 
 
 
@@ -147,10 +159,15 @@ include: "bin/rules/multiqc_report.smk"
 onstart:
     try:
         print("Checking if all specified files are accessible...")
-        for filename in [ config["sample_sheet"],
+        if checkm_decision == 'TRUE':
+            important_files = [ config["sample_sheet"],
                          config["genus_file"],
                          config["genuslist"],
-                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]:
+                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+        else:
+            important_files = [ config["sample_sheet"],
+                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+        for filename in important_files:
             if not os.path.exists(filename):
                 raise FileNotFoundError(filename)
     except FileNotFoundError as e:
@@ -190,10 +207,9 @@ onsuccess:
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
         snakemake --unlock
-        snakemake --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm={checkm_decision} --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
-
 
 
 #################################################################################
@@ -212,8 +228,8 @@ rule all:
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
         str(OUT / "QUAST/report.tsv"),
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
-        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
+        #expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
+        #str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),

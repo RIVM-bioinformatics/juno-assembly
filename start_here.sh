@@ -26,6 +26,7 @@ HELP="FALSE"
 HELP_GENERA="FALSE"
 MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
+CHECKM="TRUE"
 UPDATE_GENUS="TRUE"
 
 ### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
@@ -43,7 +44,7 @@ do
         HELP="TRUE"
         shift # Next
         ;;
-        --help_genera)
+        --help-genera)
         HELP_GENERA="TRUE"
         shift # Next
         ;;
@@ -57,6 +58,11 @@ do
         ;;
         --make-sample-sheet)
         MAKE_SAMPLE_SHEET="TRUE"
+        shift # Next
+        ;;
+        --no-checkm)
+        CHECKM="FALSE"
+        UPDATE_GENUS="FALSE"
         shift # Next
         ;;
         -y)
@@ -104,11 +110,15 @@ Output (automatically generated):
 Parameters:
   -h, --help                        Print the help document.
 
-  --help_genera			    Prints list of accepted genera for this pipeline (based on CheckM list).
+  --help-genera			    Prints list of accepted genera for this pipeline (based on CheckM list).
 
   -sh, --snakemake-help             Print the snakemake help document.
 
   --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
+  
+  --no-checkm			    Not run CheckM or update the genus database from CheckM
+
+  --no-genus-update		    Not update the genus database from CheckM
 
   -n, --dry-run                     Useful snakemake command that displays the steps to be performed without actually 
 				    executing them. Useful to spot any potential issues while running the pipeline.
@@ -237,7 +247,7 @@ fi
 
 if [ "${SNAKEMAKE_UNLOCK}" == "TRUE" ]; then
     printf "\nUnlocking working directory...\n"
-    snakemake -s Snakefile --profile profile --unlock
+    snakemake -s Snakefile --config checkm=$CHECKM --profile profile --unlock
     printf "\nDone.\n"
     exit 0
 fi
@@ -338,7 +348,7 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
-    snakemake -s Snakefile --profile profile ${@}
+    snakemake -s Snakefile --config checkm=$CHECKM --profile profile ${@}
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "bac gastro run complete"
     set -ue #turn bash strict mode back on
