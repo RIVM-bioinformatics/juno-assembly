@@ -116,7 +116,6 @@ else:
     for sample, value in SAMPLES.items():
         SAMPLES[sample] = [value, 'checkm_deactivated']
 
-        
 
 #@################################################################################
 #@#### 				Processes                                    #####
@@ -140,7 +139,7 @@ include: "bin/rules/run_spades.smk"
 include: "bin/rules/run_quast.smk"
 if checkm_decision == 'TRUE':
     include: "bin/rules/run_checkm.smk"
-include: "bin/rules/parse_checkm.smk"
+    include: "bin/rules/parse_checkm.smk"
 include: "bin/rules/fragment_length_analysis.smk"
 include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
@@ -149,7 +148,6 @@ if checkm_decision == 'TRUE':
     include: "bin/rules/multiqc_report.smk"
 else:
     include: "bin/rules/multiqc_report_nocheckm.smk"
-
 
 
 #@################################################################################
@@ -206,8 +204,8 @@ onsuccess:
     shell("""
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
-        snakemake --unlock
-        snakemake --config checkm={checkm_decision} --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm="{checkm_decision}" --unlock
+        snakemake --config checkm="{checkm_decision}" --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
 
@@ -234,7 +232,7 @@ rule all:
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),
-        str(OUT / "MultiQC/multiqc.html") 
+        str(OUT / "MultiQC/multiqc.html")
 
 
 
