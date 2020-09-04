@@ -17,8 +17,8 @@ Trimmomatic:
     # For the Nextera PE lib prep adapters
     adapter_removal_config: ILLUMINACLIP:files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa:2:30:10:8:true
     # ! test settings for best "relaxed" mode
-    # Default: 5 nucleotides window size, minimum average Phred score of 30
-    quality_trimming_config: SLIDINGWINDOW:5:30
+    # Default: 5 nucleotides window size, minimum average Phred score of 28
+    quality_trimming_config: SLIDINGWINDOW:5:28
     # Default: Remove anything smaller than 50 nucleotides
     minimum_length_config: MINLEN:50
 
