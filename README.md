@@ -69,8 +69,11 @@ For other parameters, see the folloing table of options or call the `--help` opt
 | out/log/results | Contains the log files and parameters that the pipeline used for the current run |
 | __Parameters:__ | |
 | -h, --help | Print the help document |
+| --help-genera | Prints list of accepted genera for this pipeline (based on CheckM list) |
 | -sh, --snakemake-help | Print the snakemake help document |
 | --clean (-y) | Removes output (-y forces "Yes" on all prompts) |
+| --no-checkm	|	Not run CheckM or update the genus database from CheckM |
+| --no-genus-update	|	Not update the genus database from CheckM |
 | -n, --dry-run | Useful snakemake command that displays the steps to be performed without actually executing them. Useful to spot any potential issues while running the pipeline |
 | -u, --unlock | Unlocks the working directory. A directory is locked when a run ends abruptly and it prevents you from doing subsequent analyses on that directory until it gets unlocked |
 | Other snakemake parameters | Any other parameters will be passed to snakemake. Read snakemake help (-sh) to see the options |
