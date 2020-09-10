@@ -28,6 +28,7 @@ MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
 CHECKM="TRUE"
 UPDATE_GENUS="TRUE"
+LOCAL="FALSE"
 
 ### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
 POSITIONAL=()
@@ -67,6 +68,10 @@ do
         ;;
         -y)
         SKIP_CONFIRMATION="TRUE"
+        shift # Next
+        ;;
+        -l|--local)
+        LOCAL="TRUE"
         shift # Next
         ;;
         -u|--unlock)
@@ -348,7 +353,11 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
-    snakemake -s Snakefile --config checkm=$CHECKM --profile profile ${@}
+    if [ $LOCAL == "TRUE" ]; then
+        snakemake -s Snakefile --config checkm=$CHECKM --profile profile ${@}
+    else
+        snakemake -s Snakefile --config checkm=$CHECKM --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir out/log/drmaa ${@}
+    fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "bac gastro run complete"
     set -ue #turn bash strict mode back on

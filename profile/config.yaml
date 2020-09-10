@@ -2,12 +2,12 @@
 # interface. See: https://snakemake.readthedocs.io/en/stable/executable.html#profiles
 # Usage: e.g. on linux, copy or link this directory under 
 # configuration options below.
-cores: 12
+local-cores: 8
+cores: 300
+latency-wait: 60
 use-conda: true
-jobs: "999"
-latency-wait: "120"
-printshellcmds: false
-keep-going: true # Go on with independent jobs if a job fails.
+jobname: BACgastro_{name}.jobid{jobid}
+jobs: "99"
 # settings for running on the grid
-drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
-drmaa-log-dir: out/log/drmaa
+#drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
+#drmaa-log-dir: out/log/drmaa
