@@ -1,9 +1,11 @@
 #!/bin/bash
 
 #load in functions
+set -o allexport
 source bin/functions.sh
 eval "$(parse_yaml profile/pipeline_parameters.yaml "params_")"
 eval "$(parse_yaml profile/config.yaml "configuration_")"
+set +o allexport
 
 UNIQUE_ID=$(bin/generate_id.sh)
 SET_HOSTNAME=$(bin/gethostname.sh)
@@ -21,9 +23,12 @@ SKIP_CONFIRMATION="FALSE"
 SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
 HELP="FALSE"
+HELP_GENERA="FALSE"
 MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
+CHECKM="TRUE"
 UPDATE_GENUS="TRUE"
+LOCAL="FALSE"
 
 ### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
 POSITIONAL=()
@@ -40,6 +45,10 @@ do
         HELP="TRUE"
         shift # Next
         ;;
+        --help-genera)
+        HELP_GENERA="TRUE"
+        shift # Next
+        ;;
         -sh|--snakemake-help)
         SNAKEMAKE_HELP="TRUE"
         shift # Next
@@ -52,8 +61,17 @@ do
         MAKE_SAMPLE_SHEET="TRUE"
         shift # Next
         ;;
+        --no-checkm)
+        CHECKM="FALSE"
+        UPDATE_GENUS="FALSE"
+        shift # Next
+        ;;
         -y)
         SKIP_CONFIRMATION="TRUE"
+        shift # Next
+        ;;
+        -l|--local)
+        LOCAL="TRUE"
         shift # Next
         ;;
         -u|--unlock)
@@ -69,30 +87,6 @@ done
 set -- "${POSITIONAL[@]:-}" # Restores the positional arguments (i.e. without the case arguments above) which then can be called via `$@` or `$[0-9]` etc. These parameters are send to Snakemake.
 
 
-### Remove all output
-if [ "${CLEAN:-}" == "TRUE" ]; then
-    line
-    spacer
-    echo -e "The following files and folders will be deleted:\ndata/\nlogs/\nresults/\nprofile/variables.yaml\nsample_sheet.yaml\n\n"
-    if [ "${SKIP_CONFIRMATION}" == "TRUE" ]; then
-        echo -e "Removing output: data/ logs/ results/ profile/variables.yaml sample_sheet.yaml"
-            rm -rf data/
-            rm -rf logs/
-            rm -rf out/
-            #rm -f sample_sheet.yaml
-            rm -f profile/variables.yaml
-
-            ## clean the yaml files
-            sed -i '\|databases|d' profile/pipeline_parameters.yaml
-            sed -i '\|background_ref|d' profile/pipeline_parameters.yaml
-            sed -i '\|Krona_taxonomy|d' profile/pipeline_parameters.yaml
-            sed -i '\|virusHostDB|d' profile/pipeline_parameters.yaml
-            sed -i '\|NCBI_new_taxdump_rankedlineage|d' profile/pipeline_parameters.yaml
-            sed -i '\|NCBI_new_taxdump_host|d' profile/pipeline_parameters.yaml
-            #sed -i '\|drmaa|d' profile/config.yaml
-    fi
-    exit 0
-fi
 
 
 ### Print bac_gastro help message
@@ -103,28 +97,60 @@ Bac_gastro pipeline, version $VERSION, built with Snakemake
   Usage: bash $0 -i <INPUT_DIR> <parameters>
   N.B. it is designed for Illumina paired-end data only
 
+
 Input:
   -i, --input [DIR]                 This is the folder containing your input fastq files.
-                                    Default iSNAKEMAKE_UNLOCKaw_data/' and only relative paths are accepted.
+                                    Default is raw_data/' and only relative paths are accepted.
+
 Output (automatically generated):
-  out/                             Contains dSNAKEMAKE_UNLOCKled intermediate files.
-  logs/                             Contains SNAKEMAKE_UNLOCKlog files.
+  out/                              Contains dir contains the results of every step of the pipeline.
+
+  out/log/                          Contains the log files for every step of the pipeline
+
+  out/log/drmaa			    Contains the .out and .err files of every job sent to the grid/cluster.
+
+  out/log/results		    Contains the log files and parameters that the pipeline used for the current run
+
 
 Parameters:
-  -h, --help                        Print theSNAKEMAKE_UNLOCKp document.
-  -sh, --snakemake-help             Print theSNAKEMAKE_UNLOCKkemake help document.
-  --clean (-y)                      Removes oSNAKEMAKE_UNLOCKt. (-y forces "Yes" on all prompts)
-  -n, --dry-run                     Useful snSNAKEMAKE_UNLOCKake command: Do not execute anything, and
-                                    display wSNAKEMAKE_UNLOCKwould be done.
-  -u, --unlock                      Removes tSNAKEMAKE_UNLOCKock on the working directory. This happens when
-                                    a run endSNAKEMAKE_UNLOCKruptly and prevents you from doing subsequent
-                                    analyses.SNAKEMAKE_UNLOCK
-  -q, --quiet                       Useful snakemake command: Do not output any progress or
-                                    rule information.
+  -h, --help                        Print the help document.
+
+  --help-genera			    Prints list of accepted genera for this pipeline (based on CheckM list).
+
+  -sh, --snakemake-help             Print the snakemake help document.
+
+  --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
+  
+  --no-checkm			    Not run CheckM or update the genus database from CheckM
+
+  --no-genus-update		    Not update the genus database from CheckM
+
+  -n, --dry-run                     Useful snakemake command that displays the steps to be performed without actually 
+				    executing them. Useful to spot any potential issues while running the pipeline.
+
+  -u, --unlock                      Unlocks the working directory. A directory is locked when a run ends abruptly and 
+				    it prevents you from doing subsequent analyses on that directory until it gets unlocked.
+
+  Other snakemake parameters	    Any other parameters will be passed to snakemake. Read snakemake help (-sh) to see
+				    the options.
+
 
 HELP_USAGE
     exit 0
 fi
+
+
+
+
+
+### Remove all output
+###> Remove all Jovian output
+if [ "${CLEAN:-}" == "TRUE" ]; then
+    bash bin/Clean
+    exit 0
+fi
+
+
 
 #### MAKE SURE CONDA WORKS ON ALL SYSTEMS
 rcfile="${HOME}/.bac_gastro_src"
@@ -171,7 +197,11 @@ EOF
 fi
 
 
+
 source "${HOME}"/.bashrc
+
+
+
 ###############################################################################################################
 ##### Installation block                                                                                  #####
 ###############################################################################################################
@@ -222,7 +252,7 @@ fi
 
 if [ "${SNAKEMAKE_UNLOCK}" == "TRUE" ]; then
     printf "\nUnlocking working directory...\n"
-    snakemake -s Snakefile --profile profile --unlock
+    snakemake -s Snakefile --config checkm=$CHECKM --profile profile --unlock
     printf "\nDone.\n"
     exit 0
 fi
@@ -241,19 +271,55 @@ if [ ! -d "${INPUT_DIR}" ]; then
     minispacer
     echo -e "The input directory specified (${INPUT_DIR}) does not exist"
     echo -e "Please specify an existing input directory"
+    minispacer
     exit 1
 fi
 
+
+# Download and update genus list
+if [ "${UPDATE_GENUS}" == "TRUE" ]; then
+    printf "\nCollecting available genera from CheckM...\n"
+    set +ue # Turn bash strict mode off because that breaks conda
+    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling checkM environment..." 
+        conda env create -f ${PATH_CHECKM_YAML} 
+        conda activate "${CHECKM_NAME}"
+        echo -e "DONE"
+    fi
+    checkm taxon_list > checkm_taxon_list.txt  
+    ### Genus help
+    ### Display all the genera accepted by CheckM
+    if [ "${HELP_GENERA:-}" == "TRUE" ]; then
+        spacer
+        GENERA=`grep genus checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
+        line
+        echo -e "The genera that CheckM currently accepts are: "
+        minispacer
+        pr -4 -t -w 120 <<eof
+$GENERA
+eof
+        conda deactivate
+        set -ue
+        exit 0
+    fi
+    conda deactivate
+    set -ue
+fi
+
+
+
 ### Generate sample sheet
-if [ -n "$(ls -A "${INPUT_DIR}")" ]; then
+if [  `ls -A "${INPUT_DIR}" | grep 'R[0-9]\{1\}.*\.f[ast]\{0,3\}q\.\?[gz]\{0,2\}$' | wc -l` -gt 0 ]; then
     minispacer
     echo -e "Files in input directory (${INPUT_DIR}) are present"
     echo -e "Generating sample sheet..."
     python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
-    SHEET_SUCCESS="TRUE"
+    if [ $(wc -l sample_sheet.yaml | awk '{ print $1 }') -gt 2 ]; then
+        SHEET_SUCCESS="TRUE"
+    fi
 else
     minispacer
-    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty...\nPlease specify a directory with input-data."
+    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty or does not contain the expected input files...\nPlease specify a directory with input-data."
     exit 0
 fi
 
@@ -280,20 +346,6 @@ if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
 fi
 
 
-if [ "${UPDATE_GENUS}" == "TRUE" ]; then
-    printf "\ncollecting available genera from CheckM...\n"
-    set +ue # Turn bash strict mode off because that breaks conda
-    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling checkm environment..." 
-        conda env create -f ${PATH_CHECKM_YAML} 
-        conda activate "${CHECKM_NAME}"
-        echo -e "DONE"
-    fi
-    checkm taxon_list > checkm_taxon_list.txt  
-    conda deactivate
-    set -ue
-fi
-
 ### Actual snakemake command with checkers for required files. N.B. here the UNIQUE_ID and SET_HOSTNAME variables are set!
 if [ -e sample_sheet.yaml ]; then
     echo -e "Starting snakemake"
@@ -301,7 +353,11 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
-    snakemake -s Snakefile --profile profile ${@}
+    if [ $LOCAL == "TRUE" ]; then
+        snakemake -s Snakefile --config checkm=$CHECKM --profile profile ${@}
+    else
+        snakemake -s Snakefile --config checkm=$CHECKM --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir out/log/drmaa ${@}
+    fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "bac gastro run complete"
     set -ue #turn bash strict mode back on

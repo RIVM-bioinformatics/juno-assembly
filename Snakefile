@@ -44,6 +44,7 @@ import json
 
 
 yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
+
 #################################################################################
 ##### Load samplesheet, load genus dict and define output directory         #####
 #################################################################################
@@ -51,63 +52,162 @@ yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
 # SAMPLES is a dict with sample in the form sample > read number > file. E.g.: SAMPLES["sample_1"]["R1"] = "x_R1.gz"
 SAMPLES = {}
 with open(config["sample_sheet"]) as sample_sheet_file:
-    SAMPLES = yaml.load(sample_sheet_file) 
+    SAMPLES = yaml.safe_load(sample_sheet_file) 
 
 # OUT defines output directory for most rules.
 OUT = pathlib.Path(config["out"])
 
-# make a list of all genera supported by the current version of CheckM
-genuslist = []
-with open(config["genuslist"]) as file_in:
-    for line in file_in:
-        if "genus" in line:
-            genuslist.append((line.split()[1].lower().strip()))
+# Decision whether to run checkm or not
+checkm_decision = config["checkm"]
 
-#GENUS added to samplesheet dict (for CheckM)
-xls = ExcelFile(pathlib.Path(config["genus_file"]))
-df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
-genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
-genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
-
-
-#################################################################################
-##### Catch sample and genus errors, when not specified by the user         #####
-#################################################################################
-
-error_samples_genus = []
-error_samples_sample = []
-
-#search samples in genus dict and add genus to the SAMPLES dict
-for sample, value in SAMPLES.items():
-    if str(sample) in genus_dict:
-        if str(genus_dict[sample]).lower() in genuslist:
-            SAMPLES[sample] = [value,genus_dict[sample]]
-
-        # Genus not recognized by checkM
+if checkm_decision == 'TRUE':
+    # make a list of all genera supported by the current version of CheckM
+    genuslist = []
+    with open(config["genuslist"]) as file_in:
+        for line in file_in:
+            if "genus" in line:
+                genuslist.append((line.split()[1].lower().strip()))
+    
+    #GENUS added to samplesheet dict (for CheckM)
+    xls = ExcelFile(pathlib.Path(config["genus_file"]))
+    df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
+    genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
+    genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
+    
+    
+    #################################################################################
+    ##### Catch sample and genus errors, when not specified by the user         #####
+    #################################################################################
+    
+    error_samples_genus = []
+    error_samples_sample = []
+    
+    #search samples in genus dict and add genus to the SAMPLES dict
+    for sample, value in SAMPLES.items():
+        if str(sample) in genus_dict:
+            if str(genus_dict[sample]).lower() in genuslist:
+                SAMPLES[sample] = [value,genus_dict[sample]]
+    
+            # Genus not recognized by checkM
+            else: 
+                error_samples_genus.append(sample)
+    
+        # Sample not found in Excel file
         else: 
-            error_samples_genus.append(sample)
+            error_samples_sample.append(sample)
+    
 
-    # Sample not found in Excel file
-    else: 
-        error_samples_sample.append(sample)
+    
+    if error_samples_sample:
+        print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
+        Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
+        Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
+        When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
+        It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
+        sys.exit(1)
+            
+    if error_samples_genus:
+        print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
+        Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
+        with a correct genus. If you are unsure what genera are accepted by the current
+        version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
+        sys.exit(1)
+else:
+    for sample, value in SAMPLES.items():
+        SAMPLES[sample] = [value, 'checkm_deactivated']
 
 
+#@################################################################################
+#@#### 				Processes                                    #####
+#@################################################################################
 
-if error_samples_sample:
-    print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
-    Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
-    Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
-    When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
-    It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
-    sys.exit(1)
-        
-if error_samples_genus:
-    print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-    Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
-    with a correct genus. If you are unsure what genera are accepted by the current
-    version of the pipeline, please consult the checkm_taxon_list.txt for available genera.\n\n""")
-    sys.exit(1)
-        
+    #############################################################################
+    ##### Data quality control and cleaning                                 #####
+    #############################################################################
+include: "bin/rules/qc_raw_data.smk"
+include: "bin/rules/clean_data.smk"
+include: "bin/rules/qc_clean_data.smk"
+include: "bin/rules/cat_unpaired.smk"
+    #############################################################################
+    ##### De novo assembly                                                  #####
+    #############################################################################
+include: "bin/rules/run_spades.smk"
+
+    #############################################################################
+    ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
+    #############################################################################
+include: "bin/rules/run_quast.smk"
+if checkm_decision == 'TRUE':
+    include: "bin/rules/run_checkm.smk"
+    include: "bin/rules/parse_checkm.smk"
+include: "bin/rules/fragment_length_analysis.smk"
+include: "bin/rules/generate_contig_metrics.smk"
+include: "bin/rules/parse_bbtools.smk"
+include: "bin/rules/parse_bbtools_summary.smk"
+if checkm_decision == 'TRUE':
+    include: "bin/rules/multiqc_report.smk"
+else:
+    include: "bin/rules/multiqc_report_nocheckm.smk"
+
+
+#@################################################################################
+#@#### The `onstart` checker codeblock                                       #####
+#@################################################################################
+
+onstart:
+    try:
+        print("Checking if all specified files are accessible...")
+        if checkm_decision == 'TRUE':
+            important_files = [ config["sample_sheet"],
+                         config["genus_file"],
+                         config["genuslist"],
+                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+        else:
+            important_files = [ config["sample_sheet"],
+                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+        for filename in important_files:
+            if not os.path.exists(filename):
+                raise FileNotFoundError(filename)
+    except FileNotFoundError as e:
+        print("This file is not available or accessible: %s" % e)
+        sys.exit(1)
+    else:
+        print("\tAll specified files are present!")
+    shell("""
+        mkdir -p {OUT}
+        mkdir -p {OUT}/results
+        echo -e "\nLogging pipeline settings..."
+        echo -e "\tGenerating methodological hash (fingerprint)..."
+        echo -e "This is the link to the code used for this analysis:\thttps://github.com/DennisSchmitz/BAC_gastro/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
+        echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
+        echo -e "\tGenerating full software list of current Conda environment (\"bac_gastro_master\")..."
+        conda list > '{OUT}/results/log_conda.txt'
+        echo -e "\tGenerating config file log..."
+        rm -f '{OUT}/results/log_config.txt'
+        for file in profile/*.yaml
+        do
+            echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/results/log_config.txt'
+            cat ${{file}} >> '{OUT}/results/log_config.txt'
+            echo -e "\n\n" >> '{OUT}/results/log_config.txt'
+        done
+    """)
+
+#@################################################################################
+#@#### These are the conditional cleanup rules                               #####
+#@################################################################################
+
+#onerror:
+ #   shell("""""")
+
+
+onsuccess:
+    shell("""
+        echo -e "\tGenerating HTML index of log files..."
+        echo -e "\tGenerating Snakemake report..."
+        snakemake --config checkm="{checkm_decision}" --unlock
+        snakemake --config checkm="{checkm_decision}" --report '{OUT}/results/snakemake_report.html'
+        echo -e "Finished"
+    """)
 
 
 #################################################################################
@@ -116,7 +216,7 @@ if error_samples_genus:
 
 localrules:
     all,
-    cat_unpaired,
+    cat_unpaired
 
 
 rule all:
@@ -126,309 +226,10 @@ rule all:
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
         str(OUT / "QUAST/report.tsv"),
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
-        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
+        #expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
+        #str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
         expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),
-        str(OUT / "MultiQC/multiqc.html"),
-
-
-#################################################################################
-##### sub-processes                                                         #####
-#################################################################################
-
-    #############################################################################
-    ##### Data quality control and cleaning                                 #####
-    #############################################################################
-
-rule QC_raw_data:
-    input:
-        lambda wildcards: SAMPLES[wildcards.sample][0][wildcards.read],
-    output:
-        html=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.html"),
-        zip=str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip")
-    conda:
-        "environments/QC_and_clean.yaml"
-    benchmark:
-        str(OUT / "log/benchmark/QC_raw_data_{sample}_{read}.txt")
-    threads: 1
-    log:
-        str(OUT / "log/fastqc/QC_raw_data_{sample}_{read}.log")
-    params:
-        output_dir=str(OUT / "FastQC_pretrim/")
-    shell:
-        """
-        bash bin/fastqc_wrapper.sh {input} {params.output_dir} {output.html} {output.zip} {log} 
-        """
-
-rule Clean_the_data:
-    input:
-        lambda wildcards: (SAMPLES[wildcards.sample][0][i] for i in ("R1", "R2"))
-    output:
-        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
-        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
-        r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq"),
-        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq"),
-    conda:
-        "environments/QC_and_clean.yaml"
-    benchmark:
-        str(OUT / "log/benchmark/Clean_the_data_{sample}.txt")
-    threads: config["threads"]["Clean_the_data"]
-    log:
-        str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log")
-    params:
-        adapter_removal_config=config["Trimmomatic"]["adapter_removal_config"],
-        quality_trimming_config=config["Trimmomatic"]["quality_trimming_config"],
-        minimum_length_config=config["Trimmomatic"]["minimum_length_config"],
-    shell:
-        """
-trimmomatic PE -threads {threads} \
-{input[0]:q} {input[1]:q} \
-{output.r1} {output.r1_unpaired} \
-{output.r2} {output.r2_unpaired} \
-{params.adapter_removal_config} \
-{params.quality_trimming_config} \
-{params.minimum_length_config} > {log} 2>&1
-touch -r {output.r1} {output.r1_unpaired}
-touch -r {output.r2} {output.r2_unpaired}
-        """
-# touch the output in the case 100% of the reads are trimmed and no file is created
-
-rule QC_clean_data:
-    input:
-        str(OUT / "trimmomatic/{sample}_{read}.fastq")
-    output:
-        html=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.html"),
-        zip=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip")
-    conda:
-        "environments/QC_and_clean.yaml"
-    benchmark:
-        str(OUT / "log/benchmark/QC_clean_data_{sample}_{read}.txt")
-    threads: 1
-    log:
-        str(OUT / "log/fastqc/QC_clean_data_{sample}_{read}.log")
-    params:
-        output_dir=str(OUT / "FastQC_posttrim/")
-    shell:
-        """
-if [ -s "{input}" ] # If file exists and is NOT empty (i.e. filesize > 0) do...
-then
-    fastqc --quiet --outdir {params.output_dir} {input} > {log}
-else
-    touch {output.html}
-    touch {output.zip}
-fi
-    """
-
-# Create a concatenated unpaired fastq file to support SPAdes de novo assembly
-rule cat_unpaired:
-    input:
-        r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq"),
-        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq"),
-    output:
-        str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq")
-    shell:
-        """
-        cat {input.r1_unpaired} {input.r2_unpaired} > {output}
-        """
-
-
-    #############################################################################
-    ##### De novo assembly                                                  #####
-    #############################################################################
-
-rule run_SPAdes:
-    input:
-        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),        
-        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
-        fastq_unpaired=str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq")
-    output:
-        all_scaffolds=str(OUT / "SPAdes/{sample}/scaffolds.fasta"),
-        filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta")
-    conda:
-        "environments/de_novo_assembly.yaml"
-    benchmark:
-        str(OUT / "log/benchmark/De_novo_assembly_{sample}.txt")
-    threads: config["threads"]["De_novo_assembly"]
-    params:
-        output_dir = str(OUT / "SPAdes/{sample}"),
-        max_GB_RAM="100",
-        kmersizes=config["SPAdes"]["kmersizes"],
-        minlength=config["scaffold_minLen_filter"]["minlen"],
-    log:
-        str(OUT / "log/spades/{sample}_SPAdes_assembly.log")
-    shell:
-        """
-        spades.py --isolate \
-            -1 {input.r1:q} -2 {input.r2:q} \
-            -s {input.fastq_unpaired} \
-            -o {params.output_dir:q} \
-            -k {params.kmersizes} \
-            -m {params.max_GB_RAM} > {log:q}
-            seqtk seq {output.all_scaffolds} 2>> {log} |\
-            gawk -F "_" '/^>/ {{if ($4 >= {params.minlength}) {{print $0; getline; print $0}};}}' 2>> {log} 1> {output.filt_scaffolds} 
-        """
-    
-    
-    #############################################################################
-    ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
-    #############################################################################
-
-
-rule run_QUAST_combined:
-    input:
-        expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"), sample=SAMPLES)
-    output:
-        str(OUT / "QUAST/report.tsv")
-    conda:
-        "environments/QUAST.yaml"
-    threads: 4
-    params:
-        output_dir = str(OUT / "QUAST"),
-    log:
-        str(OUT / "log/quast/quast_combined_quality.log")
-    shell:
-        """
-        quast --threads {threads} {input:q} --output-dir {params.output_dir:q} > {log:q}
-        """
-
-rule run_CheckM:
-    input:
-        expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES)
-    output:
-        str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"),
-    conda:
-        "environments/CheckM.yaml"
-    threads: 4
-    params:
-        input_dir=str(OUT / "SPAdes/{sample}/"),
-        output_dir=str(OUT / "CheckM/per_sample/{sample}"),
-        genus = lambda wildcards: SAMPLES[wildcards.sample][1],
-    log:
-        str(OUT / "log/checkm/run_CheckM_{sample}.log")
-    benchmark:
-        str(OUT / "log/benchmark/CheckM_{sample}.txt")
-    shell:
-        """
-        checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
-        mv {params.output_dir}/checkm.log {log}
-        """
-        
-rule parse_CheckM:
-    input:
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES)
-    output:
-        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv")
-    threads: 1
-    log:
-        str(OUT / "log/checkm/CheckM_combined.log")
-    script:
-        "bin/parse_checkM.py"
-
-
-rule Fragment_length_analysis:
-    input:
-        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
-        pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
-        pR2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
-    output:
-        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
-        bam_bai=str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai"),
-        txt=str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"),
-        pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
-    conda:
-        "environments/scaffold_analyses.yaml"
-    log:
-        str(OUT / "log/Fragment_length_analysis/Fragment_length_analysis_{sample}.log")
-    benchmark:
-        str(OUT / "log/benchmark/Fragment_length_analysis_{sample}.txt")
-    threads: config["threads"]["Fragment_length_analysis"]
-    shell:
-        """
-bwa index {input.fasta} > {log} 2>&1
-bwa mem -t {threads} {input.fasta} \
-{input.pR1} \
-{input.pR2} 2>> {log} |\
-samtools view -@ {threads} -uS - 2>> {log} |\
-samtools sort -@ {threads} - -o {output.bam} >> {log} 2>&1
-samtools index -@ {threads} {output.bam} >> {log} 2>&1
-picard -Dpicard.useLegacyParser=false CollectInsertSizeMetrics \
--I {output.bam} \
--O {output.txt} \
--H {output.pdf} >> {log} 2>&1
-        """
-
-rule Generate_contigs_metrics:
-    input:
-        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
-        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
-    output:
-        summary=str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"),
-        perScaffold=str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"),
-    conda:
-        "environments/scaffold_analyses.yaml"
-    log:
-        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_{sample}.log")
-    benchmark:
-        str(OUT / "log/benchmark/Generate_contigs_metrics_{sample}.txt")
-    threads: 1
-    shell:
-        """
-pileup.sh in={input.bam} \
-ref={input.fasta} \
-out={output.perScaffold} \
-secondary=f \
-samstreamer=t > {log} 2>&1
-cp {log} {output.summary}
-        """
-
-rule parse_bbtools:
-    input:
-        expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"), sample=SAMPLES),
-    output:
-        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
-    threads: 1
-    log:
-        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_combined.log")
-    script:
-        "bin/parse_bbtools.py"
-
-rule parse_bbtools_summary:
-    input:
-        expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample=SAMPLES)
-    output:
-        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv")
-    threads: 1
-    log:
-        str(OUT / "log/contigs_metrics/Generate_contigs_metrics_combined.log")
-    script:
-        "bin/parse_bbtools_summary.py"
-
-
-rule MultiQC_report:
-    input:
-        expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "R1 R2".split()),
-        expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = "pR1 pR2 uR1 uR2".split()),
-        str( OUT / "QUAST/report.tsv"),
-        str( OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),
-        expand(str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log"), sample = SAMPLES),
-        expand(str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"), sample = SAMPLES),
-    output:
-        str(OUT / "MultiQC/multiqc.html"),
-    conda:
-        "environments/MultiQC_report.yaml"
-    benchmark:
-        str(OUT / "log/benchmark/MultiQC_report.txt")
-    threads: 1
-    params:
-        config_file="files/multiqc_config.yaml",
-        output_dir=str(OUT / "MultiQC")
-    log:
-        str(OUT / "log/multiqc/MultiQC_report.log")
-    shell:
-        """
-multiqc --force --config {params.config_file} \
--o {params.output_dir} -n multiqc.html {input} > {log} 2>&1
-    """
+        str(OUT / "MultiQC/multiqc.html")
