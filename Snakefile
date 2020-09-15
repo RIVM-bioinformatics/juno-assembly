@@ -233,27 +233,3 @@ rule all:
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),
         str(OUT / "MultiQC/multiqc.html")
-
-
-
-
-
-
-
-    
-    
-    
-    
-
-
-        
-
-
-
-
-
-
-
-
-
-
