@@ -5,7 +5,7 @@
 
 rule run_QUAST_combined:
     input:
-        expand(str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"), sample=SAMPLES)
+        expand(str(OUT / "scaffolds_filtered/{sample}.fasta"), sample=SAMPLES)
     output:
         str(OUT / "QUAST/report.tsv")
     conda:

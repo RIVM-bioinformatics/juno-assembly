@@ -5,7 +5,7 @@
 rule Generate_contigs_metrics:
     input:
         bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
-        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
+        fasta=str(OUT / "scaffolds_filtered/{sample}.fasta"),
     output:
         summary=str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"),
         perScaffold=str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"),

@@ -9,7 +9,7 @@ rule run_SPAdes:
         fastq_unpaired=str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq")
     output:
         all_scaffolds=str(OUT / "SPAdes/{sample}/scaffolds.fasta"),
-        filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta")
+        filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}.fasta")
     conda:
         "../../environments/de_novo_assembly.yaml"
     benchmark:

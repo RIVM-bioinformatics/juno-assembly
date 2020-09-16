@@ -4,7 +4,7 @@
 
 rule Fragment_length_analysis:
     input:
-        fasta=str(OUT / "scaffolds_filtered/{sample}_scaffolds_ge500nt.fasta"),
+        fasta=str(OUT / "scaffolds_filtered/{sample}.fasta"),
         pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
         pR2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
     output:
