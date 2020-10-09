@@ -1,12 +1,11 @@
 """
-Bac_Gastro pipeline
-Authors: Ernst Hamer, Dennis Schmitz, Robert Verhagen, Diogo Borst, Tom van Wijk
+Juno pipeline
+Authors: Ernst Hamer, Alejandra Hernandez-Segura, Dennis Schmitz, Robert Verhagen, Diogo Borst, Tom van Wijk, Maaike van der Beld
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-Department: IDS - BPD - Bacteriology
-Date: 24-02-2020
+Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
+Date: 09-10-2020
 
-Changelog, examples, installation guide and explanation on:
-    https://github.com/ELAHamer/BAC_gastro
+Documentation: https://github.com/DennisSchmitz/BAC_gastro
 
 
 Snakemake rules (in order of execution):
@@ -15,17 +14,11 @@ Snakemake rules (in order of execution):
     3 fastQC        # Asses quality of trimmed reads.
     4 spades        # Perform assembly with SPAdes.
     5 quast         # Run quality control tool QUAST on contigs/scaffolds.
-    6 checkM        # Gives scores for completeness, contamination and strain heterogeneity.
+    6 checkM        # Gives scores for completeness, contamination and strain heterogeneity (optional).
     7 picard        # Determines library fragment lengths.
     8 bbmap         # Generate scaffold alignment metrics.
     9 multiQC       # Summarize analysis results and quality assessments in a single report 
 
-Custom configuration options (passed via config.yaml or via 
-    `--config` command line option):
-        * sourcedata (Directory where input files can be found)
-        * runsheet (YAML file with sample info, see format below)
-        * out (Directory where output is written to)
-        * excel file with genus for each sample
 """
 
 #################################################################################
@@ -180,7 +173,7 @@ onstart:
         echo -e "\tGenerating methodological hash (fingerprint)..."
         echo -e "This is the link to the code used for this analysis:\thttps://github.com/DennisSchmitz/BAC_gastro/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
         echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
-        echo -e "\tGenerating full software list of current Conda environment (\"bac_gastro_master\")..."
+        echo -e "\tGenerating full software list of current Conda environment (\"juno_master\")..."
         conda list > '{OUT}/results/log_conda.txt'
         echo -e "\tGenerating config file log..."
         rm -f '{OUT}/results/log_config.txt'
@@ -204,8 +197,8 @@ onsuccess:
     shell("""
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" --unlock
-        snakemake --config checkm="{checkm_decision}" --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
 

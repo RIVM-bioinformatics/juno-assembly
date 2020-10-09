@@ -1,4 +1,4 @@
-name: bac_gastro_master
+name: juno_master
 channels:
   - bioconda
   - conda-forge

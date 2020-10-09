@@ -34,7 +34,7 @@ spinner() {
 installer_intro() {
     tput reset
     line
-    echo -e "Welcome to the interactive installation process of bac_gastro"
+    echo -e "Welcome to the interactive installation process of Juno pipeline"
     echo -e "You are seeing this because one or multiple dependencies of the pipeline are missing on your system."
     echo -e "You are using $VERSION"
     spacer

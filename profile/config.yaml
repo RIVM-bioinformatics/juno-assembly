@@ -6,8 +6,5 @@ local-cores: 8
 cores: 300
 latency-wait: 60
 use-conda: true
-jobname: BACgastro_{name}.jobid{jobid}
-#jobs: "99"
-# settings for running on the grid
-#drmaa: " -q bio -n {threads} -R \"span[hosts=1]\""
-#drmaa-log-dir: out/log/drmaa
+jobname: Juno_{name}.jobid{jobid}
+

@@ -1,4 +1,4 @@
-"""Generate sample sheet for bac_gastro pipeline.
+"""Generate sample sheet for Juno pipeline.
 
 Usage:
   generate_sample_sheet.py <source_dir>
