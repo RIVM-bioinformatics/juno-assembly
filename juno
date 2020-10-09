@@ -129,7 +129,7 @@ Juno pipeline, version $VERSION, built with Snakemake
 
 Input:
   -i, --input [DIR]                 This is the folder containing your input fastq files.
-                                    Default is raw_data/' and only relative paths are accepted.
+                                    Default is raw_data/
   -o, --output [DIR]                This is the folder containing your output fastq files.
                                     Default is out/ 
 
