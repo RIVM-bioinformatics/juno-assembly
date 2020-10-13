@@ -33,7 +33,6 @@ set +o allexport
 UNIQUE_ID=$(bin/generate_id.sh)
 SET_HOSTNAME=$(bin/gethostname.sh)
 
-
 ### conda environment
 PATH_MASTER_YAML="environments/master_env.yaml"
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
@@ -231,7 +230,11 @@ fi
 
 source "${HOME}"/.bashrc
 
-
+###############################################################################################################
+##### Create mamba environment if it doesn exist                                                          #####
+###############################################################################################################
+conda env update -f environments/mamba.yaml -q -v
+source activate mamba
 
 ###############################################################################################################
 ##### Installation block                                                                                  #####
@@ -254,7 +257,7 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
         installer_intro
         if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
             echo -e "\tInstalling master environment..." 
-            conda env create -f ${PATH_MASTER_YAML} 
+            mamba env create -f ${PATH_MASTER_YAML} 
             conda activate "${MASTER_NAME}"
             echo -e "DONE"
         else
@@ -263,7 +266,7 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
                 envanswer=${envanswer,,}
                 if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
                     echo -e "\tInstalling master environment..." 
-                    conda env create -f ${PATH_MASTER_YAML}
+                    mamba env create -f ${PATH_MASTER_YAML}
                     conda activate "${MASTER_NAME}"
                     echo -e "DONE"
                     break
@@ -313,7 +316,7 @@ if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     set +ue # Turn bash strict mode off because that breaks conda
     if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
         echo -e "\tInstalling checkM environment..." 
-        conda env create -f ${PATH_CHECKM_YAML} 
+        mamba env create -f ${PATH_CHECKM_YAML} 
         conda activate "${CHECKM_NAME}"
         echo -e "DONE"
     fi
