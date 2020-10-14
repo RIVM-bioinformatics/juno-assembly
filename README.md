@@ -27,6 +27,12 @@ The pipeline guides you through the installation steps (if necessary). It first 
 
 The pipeline will run the different steps of the pipeline and store the results of each of them in the output folder (default: out/). The output folder also contains logging information for every step of the pipeline (out/log/), for the jobs submitted to the cluster in which it was run (out/log/drmaa) and for the pipeline in general (out/results/). 
 
+__Note:__ The pipeline uses CheckM to calculate the coverage of the assembly. This step needs to use the genus as an input and it assumes that the genus is in a file in a specific location (_/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2020.xlsx_) and that ont he first tab/sheet it contains at least 2 columns: "Monsternummer" (most coincide with the name of the samples that was used for demultiplexing) and "genus" (with the genus for that sample). If you do not get this to work or simply want to skip this step, then you can run the pipeline like this:
+
+```
+bash juno -i <INPUT_DIR> -o <OUTPUT_DIR> --no-checkm
+```
+
 ### Getting help
 
 For getting more information about the usage and see all the options accepted by this pipeline you can type:
