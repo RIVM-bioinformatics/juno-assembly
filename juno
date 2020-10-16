@@ -257,7 +257,7 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
         installer_intro
         if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
             echo -e "\tInstalling master environment..." 
-            mamba env create -f ${PATH_MASTER_YAML} 
+            conda env create -f ${PATH_MASTER_YAML} 
             conda activate "${MASTER_NAME}"
             echo -e "DONE"
         else
@@ -266,7 +266,7 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
                 envanswer=${envanswer,,}
                 if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
                     echo -e "\tInstalling master environment..." 
-                    mamba env create -f ${PATH_MASTER_YAML}
+                    conda env create -f ${PATH_MASTER_YAML}
                     conda activate "${MASTER_NAME}"
                     echo -e "DONE"
                     break
@@ -316,7 +316,7 @@ if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     set +ue # Turn bash strict mode off because that breaks conda
     if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
         echo -e "\tInstalling checkM environment..." 
-        mamba env create -f ${PATH_CHECKM_YAML} 
+        conda env create -f ${PATH_CHECKM_YAML} 
         conda activate "${CHECKM_NAME}"
         echo -e "DONE"
     fi
@@ -339,7 +339,6 @@ eof
     conda deactivate
     set -ue
 fi
-
 
 
 ### Generate sample sheet
