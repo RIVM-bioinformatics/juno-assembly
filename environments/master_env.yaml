@@ -8,4 +8,4 @@ dependencies:
   - drmaa==0.7.9
   - xlrd==1.2.0
   - pyyaml==5.3   # deze doet het volgens mij niet....  -> misschien pip install gebruiken?
-# add more as needed
+  - pandas==1.1.0
