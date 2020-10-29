@@ -4,7 +4,7 @@
 
 rule QC_clean_data:
     input:
-        str(OUT / "trimmomatic/{sample}_{read}.fastq")
+        str(OUT / "trimmomatic/{sample}_{read}.fastq.gz")
     output:
         html=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.html"),
         zip=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip")

@@ -42,6 +42,7 @@ CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') # Extract Conda en
 ### Default values for CLI parameters
 INPUT_DIR="raw_data/"
 OUTPUT_DIR="out/"
+GENUS_ALL="NotProvided"
 SKIP_CONFIRMATION="FALSE"
 SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
@@ -68,6 +69,11 @@ do
         OUTPUT_DIR="$2"
         shift # Next
         shift # Next
+        ;;
+        --genus)
+        GENUS_ALL="$2"
+        shift
+        shift
         ;;
         -h|--help)
         HELP="TRUE"
@@ -150,6 +156,10 @@ Parameters:
   -sh, --snakemake-help             Print the snakemake help document.
 
   --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
+
+  --genus                   Provide name of an approved genus to be used for CheckM. Please check --help-genera for a 
+                            list of approved genera). Only one name is allowed, so if multiple samples are included in 
+                            the input dir, it will be assumed that they all have the same genus. 
   
   --no-checkm			    Not run CheckM or update the genus database from CheckM
 
@@ -286,7 +296,7 @@ fi
 
 if [ "${SNAKEMAKE_UNLOCK}" == "TRUE" ]; then
     printf "\nUnlocking working directory...\n"
-    snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR --profile profile --unlock
+    snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --unlock
     printf "\nDone.\n"
     exit 0
 fi
@@ -387,9 +397,9 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
     if [ $LOCAL == "TRUE" ]; then
-        snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR --profile profile ${@}
+        snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile ${@}
     else
-        snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+        snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
     fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "Juno run complete"

@@ -52,6 +52,7 @@ OUT = pathlib.Path(config["out"])
 
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
+genus_all=config["genus"]
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
@@ -61,50 +62,61 @@ if checkm_decision == 'TRUE':
             if "genus" in line:
                 genuslist.append((line.split()[1].lower().strip()))
     
-    #GENUS added to samplesheet dict (for CheckM)
-    xls = ExcelFile(pathlib.Path(config["genus_file"]))
-    df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
-    genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
-    genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
+    # If genus for all samples was provided, use it. Otherwise read it from the In-house_NGS_selectie_2020.xlsx file
+    if genus_all != 'NotProvided':
+        if genus_all.lower() in genuslist: 
+            for sample, value in SAMPLES.items():
+                SAMPLES[sample] = [value, genus_all]
+        else:
+            print(f""" \n\nERROR: The genus supplied is not recognized by CheckM\n
+            If you are unsure what genera are accepted by the current version of the pipeline, 
+            please run the pipeline using the --help-genera command to see available genera.\n\n""")
+            sys.exit(1)
+    else:
+        #GENUS added to samplesheet dict (for CheckM)
+        xls = ExcelFile(pathlib.Path(config["genus_file"]))
+        df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
+        genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
+        genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
     
     
-    #################################################################################
-    ##### Catch sample and genus errors, when not specified by the user         #####
-    #################################################################################
+        #################################################################################
+        ##### Catch sample and genus errors, when not specified by the user         #####
+        #################################################################################
     
-    error_samples_genus = []
-    error_samples_sample = []
+        error_samples_genus = []
+        error_samples_sample = []
     
-    #search samples in genus dict and add genus to the SAMPLES dict
-    for sample, value in SAMPLES.items():
-        if str(sample) in genus_dict:
-            if str(genus_dict[sample]).lower() in genuslist:
-                SAMPLES[sample] = [value,genus_dict[sample]]
+        #search samples in genus dict and add genus to the SAMPLES dict
+        for sample, value in SAMPLES.items():
+            if str(sample) in genus_dict:
+                if str(genus_dict[sample]).lower() in genuslist:
+                    SAMPLES[sample] = [value,genus_dict[sample]]
     
-            # Genus not recognized by checkM
+                # Genus not recognized by checkM
+                else: 
+                    error_samples_genus.append(sample)
+    
+            # Sample not found in Excel file
             else: 
-                error_samples_genus.append(sample)
-    
-        # Sample not found in Excel file
-        else: 
-            error_samples_sample.append(sample)
+                error_samples_sample.append(sample)
     
 
     
-    if error_samples_sample:
-        print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
-        Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
-        Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
-        When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
-        It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
-        sys.exit(1)
+        if error_samples_sample:
+            print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
+            Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
+            Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
+            When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
+            It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
+            sys.exit(1)
             
-    if error_samples_genus:
-        print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-        Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
-        with a correct genus. If you are unsure what genera are accepted by the current
-        version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
-        sys.exit(1)
+        if error_samples_genus:
+            print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
+            Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
+            with a correct genus. If you are unsure what genera are accepted by the current
+            version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
+            sys.exit(1)
 else:
     for sample, value in SAMPLES.items():
         SAMPLES[sample] = [value, 'checkm_deactivated']
@@ -195,10 +207,15 @@ onstart:
 
 onsuccess:
     shell("""
+        echo -e "Removing temporary files..."
+        find {OUT}/SPAdes/ -type f -not -name '*.fasta' -delete
+        find {OUT}/scaffolds_filtered/ -type f -not -name '*.fasta' -delete
+        find {OUT}/CheckM/per_sample/ -type f -not -name '*.tsv' -delete
+        find {OUT} -type d -empty -delete
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" --unlock
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus={genus_all} --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus={genus_all} --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
 
@@ -215,7 +232,7 @@ localrules:
 rule all:
     input:
         expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['R1', 'R2']),   
-        expand(str(OUT / "trimmomatic/{sample}_{read}.fastq"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
+        expand(str(OUT / "trimmomatic/{sample}_{read}.fastq.gz"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
         str(OUT / "QUAST/report.tsv"),

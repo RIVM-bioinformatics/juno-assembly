@@ -4,9 +4,9 @@
 
 rule run_SPAdes:
     input:
-        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),        
-        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
-        fastq_unpaired=str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq")
+        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq.gz"),        
+        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq.gz"),
+        fastq_unpaired=str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq.gz")
     output:
         all_scaffolds=str(OUT / "SPAdes/{sample}/scaffolds.fasta"),
         filt_scaffolds=str(OUT / "scaffolds_filtered/{sample}.fasta")

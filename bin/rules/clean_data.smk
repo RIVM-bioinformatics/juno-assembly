@@ -6,10 +6,10 @@ rule Clean_the_data:
     input:
         lambda wildcards: (SAMPLES[wildcards.sample][0][i] for i in ("R1", "R2"))
     output:
-        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq"),
-        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq"),
-        r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq"),
-        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq"),
+        r1=str(OUT / "trimmomatic/{sample}_pR1.fastq.gz"),
+        r2=str(OUT / "trimmomatic/{sample}_pR2.fastq.gz"),
+        r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq.gz"),
+        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq.gz"),
     conda:
         "../../environments/QC_and_clean.yaml"
     benchmark:
