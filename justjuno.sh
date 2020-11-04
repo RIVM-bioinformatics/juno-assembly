@@ -3,11 +3,17 @@ set -x
 
 INPUT_DIR=$1
 OUTPUT_DIR=$2
-CHECKM="FALSE"
+
 if [ -z "$3" ]; then
     GENUS_ALL="NotProvided"
 else
     GENUS_ALL=$3
+fi
+
+if [ $GENUS_ALL == "NotProvided" ]; then
+    CHECKM="FALSE"
+else 
+    CHECKM="TRUE"
 fi
 
 conda env update -f environments/mamba.yaml -q -v
@@ -25,4 +31,4 @@ echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
 echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
 #eval $(parse_yaml profile/variables.yaml "config_")
 
-snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa

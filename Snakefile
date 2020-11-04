@@ -210,7 +210,9 @@ onsuccess:
         echo -e "Removing temporary files..."
         find {OUT}/SPAdes/ -type f -not -name '*.fasta' -delete
         find {OUT}/scaffolds_filtered/ -type f -not -name '*.fasta' -delete
-        find {OUT}/CheckM/per_sample/ -type f -not -name '*.tsv' -delete
+        if [ -d {OUT}/CheckM/per_sample/ ]; then
+            find {OUT}/CheckM/per_sample/ -type f -not -name '*.tsv' -delete
+        fi
         find {OUT} -type d -empty -delete
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
@@ -238,7 +240,7 @@ rule all:
         str(OUT / "QUAST/report.tsv"),
         #expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
         #str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
-        expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
+        #expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),

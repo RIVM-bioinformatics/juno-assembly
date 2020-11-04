@@ -8,8 +8,8 @@ rule Fragment_length_analysis:
         pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq.gz"),
         pR2=str(OUT / "trimmomatic/{sample}_pR2.fastq.gz"),
     output:
-        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
-        bam_bai=str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai"),
+        bam=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam")),
+        bam_bai=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai")),
         txt=str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"),
         pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
     conda:
