@@ -53,6 +53,7 @@ OUT = pathlib.Path(config["out"])
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
 genus_all=config["genus"]
+genus_file_1=str(config["genus_file"])
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
@@ -74,7 +75,7 @@ if checkm_decision == 'TRUE':
             sys.exit(1)
     else:
         #GENUS added to samplesheet dict (for CheckM)
-        xls = ExcelFile(pathlib.Path(config["genus_file"]))
+        xls = ExcelFile(pathlib.Path(genus_file_1))
         df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
         genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
         genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
@@ -105,15 +106,15 @@ if checkm_decision == 'TRUE':
     
         if error_samples_sample:
             print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
-            Not found in the Excel file: {pathlib.Path(config["genus_file"])}. 
-            Please insert the samples with it’s corresponding genus in the Excel file before starting the pipeline.
+            Not found in the Excel file: {pathlib.Path(genus_file_1)}. 
+            Please insert the samples with its corresponding genus in the Excel file before starting the pipeline.
             When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
             It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
             sys.exit(1)
             
         if error_samples_genus:
             print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-            Please supply the sample row in the Excel file {pathlib.Path(config["genus_file"])}
+            Please supply the sample row in the Excel file {pathlib.Path(genus_file_1)}
             with a correct genus. If you are unsure what genera are accepted by the current
             version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
             sys.exit(1)
@@ -164,7 +165,7 @@ onstart:
         print("Checking if all specified files are accessible...")
         if checkm_decision == 'TRUE':
             important_files = [ config["sample_sheet"],
-                         config["genus_file"],
+                         genus_file_1,
                          config["genuslist"],
                          'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         else:
@@ -216,8 +217,8 @@ onsuccess:
         find {OUT} -type d -empty -delete
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus={genus_all} --unlock
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus={genus_all} --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
 
@@ -238,9 +239,6 @@ rule all:
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
         str(OUT / "QUAST/report.tsv"),
-        #expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES, genus = "genus"),
-        #str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv"),   
-        #expand(str(OUT / "scaffolds_filtered/{sample}_sorted.bam"), sample = SAMPLES),
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),

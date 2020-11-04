@@ -245,6 +245,7 @@ source "${HOME}"/.bashrc
 ###############################################################################################################
 conda env update -f environments/mamba.yaml -q -v
 source activate mamba
+mamba env update -f ${PATH_CHECKM_YAML}
 
 ###############################################################################################################
 ##### Installation block                                                                                  #####
@@ -262,13 +263,13 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
     line
     spacer
     set +ue # Turn bash strict mode off because that breaks conda
-    conda activate "${MASTER_NAME}" # Try to activate this env
+    source activate "${MASTER_NAME}" # Try to activate this env
     if [ ! $? -eq 0 ]; then # If exit statement is not 0, i.e. master conda env hasn't been installed yet, do...
         installer_intro
         if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
             echo -e "\tInstalling master environment..." 
-            conda env create -f ${PATH_MASTER_YAML} 
-            conda activate "${MASTER_NAME}"
+            mamba env update -f ${PATH_MASTER_YAML} 
+            source activate "${MASTER_NAME}"
             echo -e "DONE"
         else
             while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/N] " envanswer
@@ -276,8 +277,8 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
                 envanswer=${envanswer,,}
                 if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
                     echo -e "\tInstalling master environment..." 
-                    conda env create -f ${PATH_MASTER_YAML}
-                    conda activate "${MASTER_NAME}"
+                    mamba env update -f ${PATH_MASTER_YAML}
+                    source activate "${MASTER_NAME}"
                     echo -e "DONE"
                     break
                 elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
@@ -324,10 +325,9 @@ fi
 if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     printf "\nCollecting available genera from CheckM...\n"
     set +ue # Turn bash strict mode off because that breaks conda
-    if ! conda activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling checkM environment..." 
-        conda env create -f ${PATH_CHECKM_YAML} 
-        conda activate "${CHECKM_NAME}"
+    if ! source activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
+        echo -e "\tInstalling checkM environment..."  
+        source activate "${CHECKM_NAME}"
         echo -e "DONE"
     fi
     checkm taxon_list > checkm_taxon_list.txt  
