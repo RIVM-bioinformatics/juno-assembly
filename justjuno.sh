@@ -30,6 +30,7 @@ if [ $CHECKM == "TRUE" ]; then
     mamba env update -f environments/CheckM.yaml -q -v
     source activate checkM
     checkm taxon_list > checkm_taxon_list.txt
+    source activate mamba # back to mamba again to start juno_master
 fi
 
 source activate juno_master
