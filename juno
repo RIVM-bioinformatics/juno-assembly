@@ -210,30 +210,33 @@ if [ ! -e "${PATH_MASTER_YAML}" ]; then # If this yaml file does not exist, give
     exit 1
 fi
 
-if [[ `conda env list | grep *${MASTER_NAME}* | wc -l`  -eq 0 ]]; then # If the master environment is not in your path (i.e. it is not currently active), do...
+if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in your path (i.e. it is not currently active), do...
     line
     spacer
-    set +ue # Turn bash strict mode off because that breaks conda
-    if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
-       echo -e "\tInstalling master environment..." 
-       mamba env update -f ${PATH_MASTER_YAML} 
-       echo -e "DONE"
-    else
-       while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/n] " envanswer
-       do
-            envanswer=${envanswer,,}
-            if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
-                echo -e "\tInstalling master environment..." 
-		mamba env update -f ${PATH_MASTER_YAML}
-                echo -e "DONE"
-                break
-            elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
-                echo -e "The master environment is a requirement. Exiting because Juno cannot continue without this environment"
-                exit 1
-            else
-                echo -e "Please answer with 'yes' or 'no'"
-            fi
-        done
+    source activate ${MASTER_NAME}
+    if [ ! $? -eq 0 ]; then
+    	set +ue # Turn bash strict mode off because that breaks conda
+    	if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
+       		echo -e "\tInstalling master environment..." 
+       		mamba env update -f ${PATH_MASTER_YAML} 
+       		echo -e "DONE"
+    	else
+       		while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/n] " envanswer
+       		do
+            		envanswer=${envanswer,,}
+            		if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
+                		echo -e "\tInstalling master environment..." 
+				mamba env update -f ${PATH_MASTER_YAML}
+                		echo -e "DONE"
+                		break
+            		elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
+                		echo -e "The master environment is a requirement. Exiting because Juno cannot continue without this environment"
+                		exit 1
+            		else
+                		echo -e "Please answer with 'yes' or 'no'"
+            		fi
+        	done
+    	fi
     fi
     source activate "${MASTER_NAME}"
     set -ue # Turn bash strict mode on again

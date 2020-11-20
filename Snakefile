@@ -217,7 +217,7 @@ onsuccess:
         find {OUT} -type d -empty -delete
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --profile profile --unlock
         snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
