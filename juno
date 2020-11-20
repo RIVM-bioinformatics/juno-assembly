@@ -196,7 +196,7 @@ fi
 ###############################################################################################################
 conda env update -f environments/mamba.yaml -q -v
 source activate mamba
-mamba env update -f ${PATH_CHECKM_YAML}
+#mamba env update -f ${PATH_CHECKM_YAML}
 
 ###############################################################################################################
 ##### Installation block                                                                                  #####
@@ -210,39 +210,33 @@ if [ ! -e "${PATH_MASTER_YAML}" ]; then # If this yaml file does not exist, give
     exit 1
 fi
 
-if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in your path (i.e. it is not currently active), do...
+if [[ `conda env list | grep *${MASTER_NAME}* | wc -l`  -eq 0 ]]; then # If the master environment is not in your path (i.e. it is not currently active), do...
     line
     spacer
     set +ue # Turn bash strict mode off because that breaks conda
-    source activate "${MASTER_NAME}" # Try to activate this env
-    if [ ! $? -eq 0 ]; then # If exit statement is not 0, i.e. master conda env hasn't been installed yet, do...
-        installer_intro
-        if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
-            echo -e "\tInstalling master environment..." 
-            mamba env update -f ${PATH_MASTER_YAML} 
-            source activate "${MASTER_NAME}"
-            echo -e "DONE"
-        else
-            while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/N] " envanswer
-            do
-                envanswer=${envanswer,,}
-                if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
-                    echo -e "\tInstalling master environment..." 
-                    mamba env update -f ${PATH_MASTER_YAML}
-                    source activate "${MASTER_NAME}"
-                    echo -e "DONE"
-                    break
-                elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
-                    echo -e "The master environment is a requirement. Exiting because Juno cannot continue without this environment"
-                    exit 1
-                else
-                    echo -e "Please answer with 'yes' or 'no'"
-                fi
-            done
-        fi
+    if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
+       echo -e "\tInstalling master environment..." 
+       mamba env update -f ${PATH_MASTER_YAML} 
+       echo -e "DONE"
+    else
+       while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/n] " envanswer
+       do
+            envanswer=${envanswer,,}
+            if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
+                echo -e "\tInstalling master environment..." 
+		mamba env update -f ${PATH_MASTER_YAML}
+                echo -e "DONE"
+                break
+            elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
+                echo -e "The master environment is a requirement. Exiting because Juno cannot continue without this environment"
+                exit 1
+            else
+                echo -e "Please answer with 'yes' or 'no'"
+            fi
+        done
     fi
+    source activate "${MASTER_NAME}"
     set -ue # Turn bash strict mode on again
-    echo -e "Succesfully activated master environment"
 fi
 
 
@@ -276,12 +270,12 @@ fi
 if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     printf "\nCollecting available genera from CheckM...\n"
     set +ue # Turn bash strict mode off because that breaks conda
-    if ! source activate "${CHECKM_NAME}"; then # If exit statement is not 0, i.e. checkM conda env hasn't been installed yet, do...
-        echo -e "\tInstalling checkM environment..."  
-        source activate "${CHECKM_NAME}"
-        echo -e "DONE"
-    fi
+    source activate mamba
+    mamba env update -f ${PATH_CHECKM_YAML}
+    source activate "${CHECKM_NAME}"
     checkm taxon_list > checkm_taxon_list.txt  
+    source activate mamba
+    source activate "${MASTER_NAME}"
     ### Genus help
     ### Display all the genera accepted by CheckM
     if [ "${HELP_GENERA:-}" == "TRUE" ]; then
@@ -293,11 +287,9 @@ if [ "${UPDATE_GENUS}" == "TRUE" ]; then
         pr -4 -t -w 120 <<eof
 $GENERA
 eof
-        conda deactivate
         set -ue
         exit 0
     fi
-    conda deactivate
     set -ue
 fi
 
