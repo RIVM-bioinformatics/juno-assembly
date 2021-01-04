@@ -53,7 +53,7 @@ OUT = pathlib.Path(config["out"])
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
 genus_all=config["genus"]
-genus_file_1=str(config["genus_file"])
+genus_file_1 = str(config["genus_file"])
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
@@ -74,6 +74,15 @@ if checkm_decision == 'TRUE':
             please run the pipeline using the --help-genera command to see available genera.\n\n""")
             sys.exit(1)
     else:
+        # Check genus file is available
+        try:
+            print("Checking if all specified files are accessible...")
+            if not os.path.exists( genus_file_1 ):
+                raise FileNotFoundError(filename)
+        except FileNotFoundError as err:
+            print("The genus file ({0}) does not exist. Please provide an existing file or provide the --genus while calling the Juno pipeline.".format(err) )
+            sys.exit(1)
+
         #GENUS added to samplesheet dict (for CheckM)
         xls = ExcelFile(pathlib.Path(genus_file_1))
         df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
@@ -165,7 +174,6 @@ onstart:
         print("Checking if all specified files are accessible...")
         if checkm_decision == 'TRUE':
             important_files = [ config["sample_sheet"],
-                         genus_file_1,
                          config["genuslist"],
                          'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         else:
@@ -209,12 +217,6 @@ onstart:
 onsuccess:
     shell("""
         echo -e "Removing temporary files..."
-        find {OUT}/SPAdes/ -type f -not -name '*.fasta' -delete
-        find {OUT}/scaffolds_filtered/ -type f -not -name '*.fasta' -delete
-        if [ -d {OUT}/CheckM/per_sample/ ]; then
-            find {OUT}/CheckM/per_sample/ -type f -not -name '*.tsv' -delete
-        fi
-        find {OUT} -type d -empty -delete
         echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
         snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --profile profile --unlock

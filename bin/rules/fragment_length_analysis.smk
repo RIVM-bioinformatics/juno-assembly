@@ -11,6 +11,11 @@ rule Fragment_length_analysis:
         bam=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam")),
         bam_bai=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai")),
         txt=str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"),
+        ann=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.ann")),
+        amb=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.amb")),
+        bwt=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.bwt")),
+        pac=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.pac")),
+        sa=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.sa")),
         pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
     conda:
         "../../environments/scaffold_analyses.yaml"
