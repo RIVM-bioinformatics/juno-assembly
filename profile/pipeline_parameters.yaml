@@ -1,7 +1,7 @@
   # Location and name of the sample_sheet:
 sample_sheet: sample_sheet.yaml
   # Excel file that describes samples and genus, used for CheckM:
-genus_file: /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2020.xlsx
+genus_file: /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx
   # The four genera accepted on this version of the pipeline:
 genuslist: checkm_taxon_list.txt
 

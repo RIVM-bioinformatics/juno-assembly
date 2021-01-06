@@ -6,7 +6,9 @@ rule run_CheckM:
     input:
         expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample=SAMPLES)
     output:
-        str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"),
+        result=str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"),
+        tmp_dir1=temp(directory(str(OUT / "CheckM/per_sample/{sample}/bins"))),
+        tmp_dir2=temp(directory(str(OUT / "CheckM/per_sample/{sample}/storage")))
     conda:
         "../../environments/CheckM.yaml"
     threads: 4
@@ -20,6 +22,6 @@ rule run_CheckM:
         str(OUT / "log/benchmark/CheckM_{sample}.txt")
     shell:
         """
-        checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output}
+        checkm taxonomy_wf genus "{params.genus}" {params.input_dir} {params.output_dir} -t {threads} -x scaffolds.fasta > {output.result}
         mv {params.output_dir}/checkm.log {log}
         """

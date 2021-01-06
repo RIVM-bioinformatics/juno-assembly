@@ -74,6 +74,17 @@ if checkm_decision == 'TRUE':
             please run the pipeline using the --help-genera command to see available genera.\n\n""")
             sys.exit(1)
     else:
+        # Check genus file is available
+        try:
+            print("Checking if genus file exists...")
+            if not os.path.exists( genus_file_1 ):
+                raise FileNotFoundError(genus_file_1)
+        except FileNotFoundError as err:
+            print("The genus file ({0}) does not exist. Please provide an existing file or provide the --genus while calling the Juno pipeline.".format(err) )
+            sys.exit(1)
+        else:
+            print("Genus file present.")
+        
         #GENUS added to samplesheet dict (for CheckM)
         xls = ExcelFile(pathlib.Path(genus_file_1))
         df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
@@ -165,7 +176,6 @@ onstart:
         print("Checking if all specified files are accessible...")
         if checkm_decision == 'TRUE':
             important_files = [ config["sample_sheet"],
-                         genus_file_1,
                          config["genuslist"],
                          'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         else:
@@ -184,7 +194,7 @@ onstart:
         mkdir -p {OUT}/results
         echo -e "\nLogging pipeline settings..."
         echo -e "\tGenerating methodological hash (fingerprint)..."
-        echo -e "This is the link to the code used for this analysis:\thttps://github.com/DennisSchmitz/BAC_gastro/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
+        echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
         echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
         echo -e "\tGenerating full software list of current Conda environment (\"juno_master\")..."
         conda list > '{OUT}/results/log_conda.txt'
@@ -208,14 +218,6 @@ onstart:
 
 onsuccess:
     shell("""
-        echo -e "Removing temporary files..."
-        find {OUT}/SPAdes/ -type f -not -name '*.fasta' -delete
-        find {OUT}/scaffolds_filtered/ -type f -not -name '*.fasta' -delete
-        if [ -d {OUT}/CheckM/per_sample/ ]; then
-            find {OUT}/CheckM/per_sample/ -type f -not -name '*.tsv' -delete
-        fi
-        find {OUT} -type d -empty -delete
-        echo -e "\tGenerating HTML index of log files..."
         echo -e "\tGenerating Snakemake report..."
         snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --profile profile --unlock
         snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --report '{OUT}/results/snakemake_report.html'
