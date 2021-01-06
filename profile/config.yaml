@@ -1,11 +1,9 @@
-# Default profile for running pipeline on a computer cluster via DRMAA
-# interface. See: https://snakemake.readthedocs.io/en/stable/executable.html#profiles
-# Usage: e.g. on linux, copy or link this directory under 
-# configuration options below.
 local-cores: 8
 cores: 300
 latency-wait: 60
 use-conda: true
 jobname: Juno_{name}.jobid{jobid}
 keep-going: true
+printshellcmds: true
+conda-frontend: mamba
 
