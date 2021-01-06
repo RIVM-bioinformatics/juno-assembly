@@ -43,6 +43,7 @@ CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') # Extract Conda en
 INPUT_DIR="raw_data/"
 OUTPUT_DIR="out/"
 GENUS_ALL="NotProvided"
+GENUS_FILE="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
 SKIP_CONFIRMATION="FALSE"
 SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
@@ -72,6 +73,11 @@ do
         ;;
         --genus)
         GENUS_ALL="$2"
+        shift
+        shift
+        ;;
+        --genus_file)
+        GENUS_FILE="$2"
         shift
         shift
         ;;
@@ -138,6 +144,17 @@ Input:
   -o, --output [DIR]                This is the folder containing your output fastq files.
                                     Default is out/ 
 
+  --genus                           Provide name of an approved genus to be used for CheckM. Please check --help-genera for a 
+                                    list of approved genera). Only one name is allowed, so if multiple samples are included in 
+                                    the input dir, it will be assumed that they all have the same genus. If different samples 
+                                    have different genus, then do not provide a --genus and use --genus_file instead
+
+  --genus_file                      Excel file (.xlsx) containing the information of the samples and their corresponding genus. It should 
+                                    contain at least a column called "Monsternummer" containing the sample ID (same name than fastq files but
+                                    removing the suffix _R1|2.fastq.gz) and another one called "genus" containing the name of the genus.
+                                    Mind the capital in the name "Monsternummer". Default is: 
+                                    /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx
+
 Output (automatically generated):
   out/                              Contains dir contains the results of every step of the pipeline.
 
@@ -156,10 +173,6 @@ Parameters:
   -sh, --snakemake-help             Print the snakemake help document.
 
   --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
-
-  --genus                   Provide name of an approved genus to be used for CheckM. Please check --help-genera for a 
-                            list of approved genera). Only one name is allowed, so if multiple samples are included in 
-                            the input dir, it will be assumed that they all have the same genus. 
   
   --no-checkm			    Not run CheckM or update the genus database from CheckM
 
@@ -343,9 +356,9 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
     if [ $LOCAL == "TRUE" ]; then
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile ${@}
+        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile ${@}
     else
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
     fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "Juno run complete"
