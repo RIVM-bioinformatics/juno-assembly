@@ -53,7 +53,7 @@ OUT = pathlib.Path(config["out"])
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
 genus_all=config["genus"]
-genus_file_1=str(config["genus_file"])
+genus_file_1 = str(config["genus_file"])
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
