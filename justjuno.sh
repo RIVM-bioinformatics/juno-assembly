@@ -24,7 +24,10 @@ fi
 conda env update -f environments/mamba.yaml -q -v
 source activate mamba
 
-mamba env update -f environments/master_env.yaml -q -v
+PATH_MASTER_YAML="environments/master_env.yaml"
+MASTER_NAME="$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')" # Extract Conda environment name as specified in yaml file
+
+mamba env update -f $PATH_MASTER_YAML -q -v
 
 if [ $CHECKM == "TRUE" ]; then
     mamba env update -f environments/CheckM.yaml -q -v
@@ -33,7 +36,7 @@ if [ $CHECKM == "TRUE" ]; then
     source activate mamba # back to mamba again to start juno_master
 fi
 
-source activate juno_master
+source activate $MASTER_NAME
 
 python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
 
