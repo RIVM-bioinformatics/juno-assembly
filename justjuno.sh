@@ -50,5 +50,6 @@ echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variable
 if [ -z $GENUS_FILE ]; then
     snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 else
+    echo "This is the genus file: $GENUS_FILE"
     snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
-fi
+fi 

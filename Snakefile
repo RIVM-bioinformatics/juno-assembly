@@ -52,8 +52,8 @@ OUT = pathlib.Path(config["out"])
 
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
-genus_all=config["genus"]
-genus_file_1 = str(config["genus_file"])
+genus_all = config["genus"]
+genus_file_1 = config["genus_file"]
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
@@ -76,7 +76,7 @@ if checkm_decision == 'TRUE':
     else:
         # Check genus file is available
         try:
-            print("Checking if genus file exists...")
+            print("Checking if genus file (%s) exists..." % genus_file_1)
             if not os.path.exists( genus_file_1 ):
                 raise FileNotFoundError(genus_file_1)
         except FileNotFoundError as err:
@@ -219,7 +219,7 @@ onstart:
 onsuccess:
     shell("""
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" --profile profile --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --unlock
         snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
