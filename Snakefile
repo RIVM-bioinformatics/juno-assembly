@@ -200,7 +200,6 @@ onstart:
         conda list > '{OUT}/results/log_conda.txt'
         echo -e "\tGenerating config file log..."
         rm -f '{OUT}/results/log_config.txt'
-        echo -e "Juno call: \n"
         cat "profile/juno_call.txt" > '{OUT}/results/log_config.txt'
         for file in profile/*.yaml
         do

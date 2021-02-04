@@ -294,10 +294,17 @@ if [ -e sample_sheet.yaml ]; then
     eval $(parse_yaml profile/variables.yaml "config_")
     if [ $LOCAL == "TRUE" ]; then
         snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile ${@}
-        echo -e 'snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile ${@}' > profile/juno_call.txt
+        echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
+        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA \
+--profile profile \
+${@} \n" >> profile/juno_call.txt
     else
         snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
-        echo -e 'snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}' > profile/juno_call.txt
+        echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
+        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA \
+--profile profile \
+--drmaa  -q bio -n {threads} -R \'span[hosts=1]\'' \
+--drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@} \n" >> profile/juno_call.txt
     fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "Juno run complete"
