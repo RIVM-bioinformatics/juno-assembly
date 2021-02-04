@@ -29,12 +29,12 @@ MASTER_NAME="$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')" # Extract Conda 
 
 mamba env update -f $PATH_MASTER_YAML -q -v
 
-if [ $CHECKM == "TRUE" ]; then
-    mamba env update -f envs/checkm.yaml -q -v
-    source activate checkM
-    checkm taxon_list > files/checkm_taxon_list.txt
-    source activate mamba # back to mamba again to start juno_master
-fi
+# if [ $CHECKM == "TRUE" ]; then
+#     mamba env update -f envs/checkm.yaml -q -v
+#     source activate checkM
+#     checkm taxon_list > files/checkm_taxon_list.txt
+#     source activate mamba # back to mamba again to start juno_master
+# fi
 
 source activate $MASTER_NAME
 
@@ -45,11 +45,12 @@ SET_HOSTNAME=$(bin/include/gethostname.sh)
 
 echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
 echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
-#eval $(parse_yaml profile/variables.yaml "config_")
 
 if [ -z $METADATA ]; then
     snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+    echo -e 'snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}' > profile/juno_call.txt
 else
     echo "This is the genus file: $METADATA"
     snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+    echo -e 'snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}' > profile/juno_call.txt
 fi 
