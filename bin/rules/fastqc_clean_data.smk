@@ -2,19 +2,20 @@
 ##### Data quality control and cleaning                                 #####
 #############################################################################
 
-rule QC_clean_data:
+rule fastqc_clean_data:
     input:
         str(OUT / "trimmomatic/{sample}_{read}.fastq.gz")
     output:
         html=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.html"),
         zip=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip")
     conda:
-        "../../environments/QC_and_clean.yaml"
+        "../../envs/fastqc_trimmomatic.yaml"
     benchmark:
-        str(OUT / "log/benchmark/QC_clean_data_{sample}_{read}.txt")
-    threads: 1
+        str(OUT / "log/benchmark/fastqc_clean_data_{sample}_{read}.txt")
+    threads: config["threads"]["fastqc"]
+    resources: mem_mb=config["mem_mb"]["fastqc"]
     log:
-        str(OUT / "log/fastqc/QC_clean_data_{sample}_{read}.log")
+        str(OUT / "log/fastqc/fastqc_clean_data_{sample}_{read}.log")
     params:
         output_dir=str(OUT / "FastQC_posttrim/")
     shell:

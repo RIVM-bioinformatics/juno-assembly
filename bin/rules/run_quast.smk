@@ -3,16 +3,17 @@
 #############################################################################
 
 
-rule run_QUAST_combined:
+rule run_quast_combined:
     input:
         expand(str(OUT / "scaffolds_filtered/{sample}.fasta"), sample=SAMPLES)
     output:
-        str(OUT / "QUAST/report.tsv")
+        str(OUT / "quast/report.tsv")
     conda:
-        "../../environments/QUAST.yaml"
-    threads: 4
+        "../../envs/quast.yaml"
+    threads: config["threads"]["quast"],
+    resources: mem_mb=config["mem_mb"]["quast"]
     params:
-        output_dir = str(OUT / "QUAST"),
+        output_dir = str(OUT / "quast"),
     log:
         str(OUT / "log/quast/quast_combined_quality.log")
     shell:

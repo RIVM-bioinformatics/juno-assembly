@@ -6,7 +6,9 @@
 rule cat_unpaired:
     input:
         r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq.gz"),
-        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq.gz"),
+        r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq.gz")
+    threads: config["threads"]["parsing"]
+    resources: mem_mb=config["mem_mb"]["parsing"]
     output:
         str(OUT / "trimmomatic/{sample}_unpaired_joined.fastq.gz")
     shell:

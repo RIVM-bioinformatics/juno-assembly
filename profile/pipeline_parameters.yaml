@@ -1,9 +1,9 @@
   # Location and name of the sample_sheet:
 sample_sheet: sample_sheet.yaml
   # Excel file that describes samples and genus, used for CheckM:
-genus_file: /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx
+metadata: /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx
   # The four genera accepted on this version of the pipeline:
-genuslist: checkm_taxon_list.txt
+genuslist: files/checkm_taxon_list.txt
 
 out: out
 checkm: 'TRUE'
@@ -22,7 +22,7 @@ Trimmomatic:
     minimum_length_config: MINLEN:50
 
 
-SPAdes:
+spades:
     #use the pipeline for short Illumina reads (<250 nt in length).
     kmersizes: 21,33,55,77,99
 
@@ -38,9 +38,23 @@ scaffold_minLen_filter:
 ######################################
 
 threads:
-    Clean_the_data: 4
-    De_novo_assembly: 12
-    Taxonomic_classification_of_scaffolds: 12
-    SNP_calling: 12
-    Fragment_length_analysis: 4
-    quantify_output: 4
+    parsing: 1
+    trimmomatic: 4
+    picard: 4
+    spades: 12
+    pileup: 1
+    multiqc: 1
+    checkm: 4
+    quast: 4
+    fastqc: 1
+
+mem_mb:
+    parsing: 4000
+    trimmomatic: 6000
+    picard: 60000
+    spades: 10000
+    pileup: 3000
+    multiqc: 4000
+    checkm: 5000
+    quast: 5000
+    fastqc: 4000

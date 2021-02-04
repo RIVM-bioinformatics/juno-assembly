@@ -1,4 +1,4 @@
-name: QUAST
+name: quast
 channels:
   - bioconda
   - conda-forge

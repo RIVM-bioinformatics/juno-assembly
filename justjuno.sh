@@ -17,22 +17,22 @@ else
 fi
 
 if [ ! -z "$4" ]; then
-    GENUS_FILE=$4
+    METADATA=$4
     CHECKM="TRUE"
 fi
 
-conda env update -f environments/mamba.yaml -q -v
+conda env update -f envs/mamba.yaml -q -v
 source activate mamba
 
-PATH_MASTER_YAML="environments/master_env.yaml"
+PATH_MASTER_YAML="envs/master_env.yaml"
 MASTER_NAME="$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')" # Extract Conda environment name as specified in yaml file
 
 mamba env update -f $PATH_MASTER_YAML -q -v
 
 if [ $CHECKM == "TRUE" ]; then
-    mamba env update -f environments/CheckM.yaml -q -v
+    mamba env update -f envs/checkm.yaml -q -v
     source activate checkM
-    checkm taxon_list > checkm_taxon_list.txt
+    checkm taxon_list > files/checkm_taxon_list.txt
     source activate mamba # back to mamba again to start juno_master
 fi
 
@@ -40,16 +40,16 @@ source activate $MASTER_NAME
 
 python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
 
-UNIQUE_ID=$(bin/generate_id.sh)
-SET_HOSTNAME=$(bin/gethostname.sh)
+UNIQUE_ID=$(bin/include/generate_id.sh)
+SET_HOSTNAME=$(bin/include/gethostname.sh)
 
 echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
 echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
 #eval $(parse_yaml profile/variables.yaml "config_")
 
-if [ -z $GENUS_FILE ]; then
+if [ -z $METADATA ]; then
     snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 else
-    echo "This is the genus file: $GENUS_FILE"
-    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+    echo "This is the genus file: $METADATA"
+    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 fi 

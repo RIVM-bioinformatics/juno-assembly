@@ -2,7 +2,7 @@
 ##### Data quality control and cleaning                                 #####
 #############################################################################
 
-rule Clean_the_data:
+rule trimmomatic:
     input:
         lambda wildcards: (SAMPLES[wildcards.sample][0][i] for i in ("R1", "R2"))
     output:
@@ -11,12 +11,13 @@ rule Clean_the_data:
         r1_unpaired=str(OUT / "trimmomatic/{sample}_uR1.fastq.gz"),
         r2_unpaired=str(OUT / "trimmomatic/{sample}_uR2.fastq.gz"),
     conda:
-        "../../environments/QC_and_clean.yaml"
+        "../../envs/fastqc_trimmomatic.yaml"
     benchmark:
-        str(OUT / "log/benchmark/Clean_the_data_{sample}.txt")
-    threads: config["threads"]["Clean_the_data"]
+        str(OUT / "log/benchmark/trimmomatic_{sample}.txt")
+    threads: config["threads"]["trimmomatic"]
+    resources: mem_mb=config["mem_mb"]["trimmomatic"]
     log:
-        str(OUT / "log/trimmomatic/Clean_the_data_{sample}.log")
+        str(OUT / "log/trimmomatic/trimmomatic_{sample}.log")
     params:
         adapter_removal_config=config["Trimmomatic"]["adapter_removal_config"],
         quality_trimming_config=config["Trimmomatic"]["quality_trimming_config"],

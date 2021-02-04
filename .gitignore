@@ -1,7 +1,6 @@
 .snakemake
 out
 raw_data
-checkm_taxon_list.txt
 sample_sheet.yaml
 profile/variables.yaml
-
+profile/juno_call.txt

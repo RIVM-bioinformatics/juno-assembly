@@ -1,4 +1,4 @@
-name: MultiQC_report
+name: multiqc
 channels:
   - bioconda
   - conda-forge

@@ -2,7 +2,7 @@
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
 
-rule Fragment_length_analysis:
+rule picard_insert_size:
     input:
         fasta=str(OUT / "scaffolds_filtered/{sample}.fasta"),
         pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq.gz"),
@@ -18,12 +18,13 @@ rule Fragment_length_analysis:
         sa=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.sa")),
         pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
     conda:
-        "../../environments/scaffold_analyses.yaml"
+        "../../envs/scaffold_analyses.yaml"
     log:
-        str(OUT / "log/Fragment_length_analysis/Fragment_length_analysis_{sample}.log")
+        str(OUT / "log/picard_insert_size/picard_insert_size_{sample}.log")
     benchmark:
-        str(OUT / "log/benchmark/Fragment_length_analysis_{sample}.txt")
-    threads: config["threads"]["Fragment_length_analysis"]
+        str(OUT / "log/benchmark/picard_insert_size_{sample}.txt")
+    threads: config["threads"]["picard"],
+    resources: mem_mb=config["mem_mb"]["picard"]
     shell:
         """
 bwa index {input.fasta} > {log} 2>&1

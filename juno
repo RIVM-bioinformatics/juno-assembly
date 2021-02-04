@@ -1,12 +1,12 @@
 #!/bin/bash
 ###############################################################################################################################################
-### Juno pipeline                                                                                                                     ### 
+### Juno pipeline                                                                                                                     	    ### 
 ### Authors: Ernst Hamer, Alejandra Hernandez-Segura, Dennis Schmitz, Robert Verhagen, Diogo Borst, Tom van Wijk, Maaike van der Beld       ### 
 ### Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)                                                                      ### 
 ### Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)                                ### 
 ### Date: 09-10-2020                                                                                                                        ### 
 ###                                                                                                                                         ### 
-### Documentation: https://github.com/DennisSchmitz/BAC_gastro                                                                                  ### 
+### Documentation: https://github.com/AleSR13/Juno_pipeline.git                                                                             ### 
 ###                                                                                                                                         ### 
 ###                                                                                                                                         ### 
 ### Snakemake rules (in order of execution):                                                                                                ### 
@@ -25,34 +25,33 @@
 
 #load in functions
 set -o allexport
-source bin/functions.sh
+source bin/include/functions.sh
 eval "$(parse_yaml profile/pipeline_parameters.yaml "params_")"
 eval "$(parse_yaml profile/config.yaml "configuration_")"
 set +o allexport
 
-UNIQUE_ID=$(bin/generate_id.sh)
-SET_HOSTNAME=$(bin/gethostname.sh)
+UNIQUE_ID=$(bin/include/generate_id.sh)
+SET_HOSTNAME=$(bin/include/gethostname.sh)
 
 ### conda environment
-PATH_MASTER_YAML="environments/master_env.yaml"
+PATH_MASTER_YAML="envs/master_env.yaml"
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
-PATH_CHECKM_YAML="environments/CheckM.yaml"
+PATH_CHECKM_YAML="envs/checkm.yaml"
 CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
 
 ### Default values for CLI parameters
 INPUT_DIR="raw_data/"
 OUTPUT_DIR="out/"
 GENUS_ALL="NotProvided"
-GENUS_FILE="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
+METADATA="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
 SKIP_CONFIRMATION="FALSE"
-SNAKEMAKE_UNLOCK="FALSE"
 CLEAN="FALSE"
 HELP="FALSE"
 HELP_GENERA="FALSE"
 MAKE_SAMPLE_SHEET="FALSE"
 SHEET_SUCCESS="FALSE"
 CHECKM="TRUE"
-UPDATE_GENUS="TRUE"
+UPDATE_GENUS="FALSE"
 LOCAL="FALSE"
 
 ### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
@@ -76,8 +75,8 @@ do
         shift
         shift
         ;;
-        --genus_file)
-        GENUS_FILE="$2"
+        --metadata)
+        METADATA="$2"
         shift
         shift
         ;;
@@ -86,6 +85,7 @@ do
         shift # Next
         ;;
         --help-genera)
+        UPDATE_GENUS="TRUE"
         HELP_GENERA="TRUE"
         shift # Next
         ;;
@@ -114,10 +114,6 @@ do
         LOCAL="TRUE"
         shift # Next
         ;;
-        -u|--unlock)
-        SNAKEMAKE_UNLOCK="TRUE"
-        shift # Next
-        ;;
         *) # Any other option
         POSITIONAL+=("$1") # save in array
         shift # Next
@@ -127,68 +123,10 @@ done
 set -- "${POSITIONAL[@]:-}" # Restores the positional arguments (i.e. without the case arguments above) which then can be called via `$@` or `$[0-9]` etc. These parameters are send to Snakemake.
 
 
-
-
 ### Print Juno help message
 if [ "${HELP:-}" == "TRUE" ]; then
     line
-    cat <<HELP_USAGE
-Juno pipeline, version $VERSION, built with Snakemake
-  Usage: bash $0 -i <INPUT_DIR> <parameters>
-  N.B. it is designed for Illumina paired-end data only
-
-
-Input:
-  -i, --input [DIR]                 This is the folder containing your input fastq files.
-                                    Default is raw_data/
-  -o, --output [DIR]                This is the folder containing your output fastq files.
-                                    Default is out/ 
-
-  --genus                           Provide name of an approved genus to be used for CheckM. Please check --help-genera for a 
-                                    list of approved genera). Only one name is allowed, so if multiple samples are included in 
-                                    the input dir, it will be assumed that they all have the same genus. If different samples 
-                                    have different genus, then do not provide a --genus and use --genus_file instead
-
-  --genus_file                      Excel file (.xlsx) containing the information of the samples and their corresponding genus. It should 
-                                    contain at least a column called "Monsternummer" containing the sample ID (same name than fastq files but
-                                    removing the suffix _R1|2.fastq.gz) and another one called "genus" containing the name of the genus.
-                                    Mind the capital in the name "Monsternummer". Default is: 
-                                    /data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx
-
-Output (automatically generated):
-  out/                              Contains dir contains the results of every step of the pipeline.
-
-  out/log/                          Contains the log files for every step of the pipeline
-
-  out/log/drmaa			    Contains the .out and .err files of every job sent to the grid/cluster.
-
-  out/log/results		    Contains the log files and parameters that the pipeline used for the current run
-
-
-Parameters:
-  -h, --help                        Print the help document.
-
-  --help-genera			    Prints list of accepted genera for this pipeline (based on CheckM list).
-
-  -sh, --snakemake-help             Print the snakemake help document.
-
-  --clean (-y)                      Removes output (-y forces "Yes" on all prompts).
-  
-  --no-checkm			    Not run CheckM or update the genus database from CheckM
-
-  --no-genus-update		    Not update the genus database from CheckM
-
-  -n, --dry-run                     Useful snakemake command that displays the steps to be performed without actually 
-				    executing them. Useful to spot any potential issues while running the pipeline.
-
-  -u, --unlock                      Unlocks the working directory. A directory is locked when a run ends abruptly and 
-				    it prevents you from doing subsequent analyses on that directory until it gets unlocked.
-
-  Other snakemake parameters	    Any other parameters will be passed to snakemake. Read snakemake help (-sh) to see
-				    the options.
-
-
-HELP_USAGE
+    cat bin/help.txt
     exit 0
 fi
 
@@ -197,9 +135,8 @@ fi
 
 
 ### Remove all output
-###> Remove all Jovian output
 if [ "${CLEAN:-}" == "TRUE" ]; then
-    bash bin/Clean
+    bash bin/include/Clean
     exit 0
 fi
 
@@ -207,7 +144,7 @@ fi
 ###############################################################################################################
 ##### Create mamba environment if it doesn exist                                                          #####
 ###############################################################################################################
-conda env update -f environments/mamba.yaml -q -v
+conda env update -f envs/mamba.yaml -q -v
 source activate mamba
 #mamba env update -f ${PATH_CHECKM_YAML}
 
@@ -256,14 +193,6 @@ if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in y
 fi
 
 
-if [ "${SNAKEMAKE_UNLOCK}" == "TRUE" ]; then
-    printf "\nUnlocking working directory...\n"
-    snakemake -s Snakefile --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --unlock
-    printf "\nDone.\n"
-    exit 0
-fi
-
-
 ### Print Snakemake help
 if [ "${SNAKEMAKE_HELP:-}" == "TRUE" ]; then
     line
@@ -272,11 +201,19 @@ if [ "${SNAKEMAKE_HELP:-}" == "TRUE" ]; then
 fi
 
 
-### Pass other CLI arguments along to Snakemake
+### Check input
 if [ ! -d "${INPUT_DIR}" ]; then
     minispacer
     echo -e "The input directory specified (${INPUT_DIR}) does not exist"
     echo -e "Please specify an existing input directory"
+    minispacer
+    exit 1
+fi
+
+if [[ ! $METADATA =~ xlsx$ ]]; then
+    minispacer
+    echo -e "The metadata file (${METADATA}) should have an xlsx extension."
+    echo -e "Please provide a metadata file with the appropriate extension."
     minispacer
     exit 1
 fi
@@ -289,14 +226,13 @@ if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     source activate mamba
     mamba env update -f ${PATH_CHECKM_YAML}
     source activate "${CHECKM_NAME}"
-    checkm taxon_list > checkm_taxon_list.txt  
+    checkm taxon_list > files/checkm_taxon_list.txt  
     source activate mamba
     source activate "${MASTER_NAME}"
     ### Genus help
-    ### Display all the genera accepted by CheckM
     if [ "${HELP_GENERA:-}" == "TRUE" ]; then
         spacer
-        GENERA=`grep genus checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
+        GENERA=`grep genus files/checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
         line
         echo -e "The genera that CheckM currently accepts are: "
         minispacer
@@ -306,6 +242,7 @@ eof
         set -ue
         exit 0
     fi
+    ### Display all the genera accepted by CheckM
     set -ue
 fi
 
@@ -356,9 +293,11 @@ if [ -e sample_sheet.yaml ]; then
     echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
     eval $(parse_yaml profile/variables.yaml "config_")
     if [ $LOCAL == "TRUE" ]; then
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile ${@}
+        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile ${@}
+        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile ${@}" >> profile/juno_call.txt
     else
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL genus_file=$GENUS_FILE --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}" >> profile/juno_call.txt
     fi
     #echo -e "\nUnique identifier for this run is: $config_run_identifier "
     echo -e "Juno run complete"

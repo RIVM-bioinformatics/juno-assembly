@@ -53,7 +53,7 @@ OUT = pathlib.Path(config["out"])
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
 genus_all = config["genus"]
-genus_file_1 = config["genus_file"]
+metadata = config["metadata"]
 
 if checkm_decision == 'TRUE':
     # make a list of all genera supported by the current version of CheckM
@@ -76,9 +76,9 @@ if checkm_decision == 'TRUE':
     else:
         # Check genus file is available
         try:
-            print("Checking if genus file (%s) exists..." % genus_file_1)
-            if not os.path.exists( genus_file_1 ):
-                raise FileNotFoundError(genus_file_1)
+            print("Checking if genus file (%s) exists..." % metadata)
+            if not os.path.exists( metadata ):
+                raise FileNotFoundError(metadata)
         except FileNotFoundError as err:
             print("The genus file ({0}) does not exist. Please provide an existing file or provide the --genus while calling the Juno pipeline.".format(err) )
             sys.exit(1)
@@ -86,7 +86,7 @@ if checkm_decision == 'TRUE':
             print("Genus file present.")
         
         #GENUS added to samplesheet dict (for CheckM)
-        xls = ExcelFile(pathlib.Path(genus_file_1))
+        xls = ExcelFile(pathlib.Path(metadata))
         df1 = xls.parse(xls.sheet_names[0])[['Monsternummer','genus']]
         genus_dict = dict(zip(df1['Monsternummer'].values.tolist(), df1['genus'].values.tolist()))
         genus_dict = json.loads(json.dumps(genus_dict), parse_int=str) # Convert all dict values and keys to strings
@@ -117,7 +117,7 @@ if checkm_decision == 'TRUE':
     
         if error_samples_sample:
             print(f""" \n\nERROR: The sample(s):\n\n{chr(10).join(error_samples_sample)} \n
-            Not found in the Excel file: {pathlib.Path(genus_file_1)}. 
+            Not found in the Excel file: {pathlib.Path(metadata)}. 
             Please insert the samples with its corresponding genus in the Excel file before starting the pipeline.
             When the samples are in the Excel file, checkM can asses the quality of the microbial genomes. \n
             It is also possible to remove the sample that causes the error from the samplesheet, and run the analysis without this sample.\n\n""")
@@ -125,7 +125,7 @@ if checkm_decision == 'TRUE':
             
         if error_samples_genus:
             print(f""" \n\nERROR:  The genus supplied with the sample(s):\n\n{chr(10).join(error_samples_genus)}\n\nWhere not recognized by CheckM\n
-            Please supply the sample row in the Excel file {pathlib.Path(genus_file_1)}
+            Please supply the sample row in the Excel file {pathlib.Path(metadata)}
             with a correct genus. If you are unsure what genera are accepted by the current
             version of the pipeline, please run the pipeline using the --help-genera command to see available genera.\n\n""")
             sys.exit(1)
@@ -141,9 +141,9 @@ else:
     #############################################################################
     ##### Data quality control and cleaning                                 #####
     #############################################################################
-include: "bin/rules/qc_raw_data.smk"
-include: "bin/rules/clean_data.smk"
-include: "bin/rules/qc_clean_data.smk"
+include: "bin/rules/fastqc_raw_data.smk"
+include: "bin/rules/trimmomatic.smk"
+include: "bin/rules/fastqc_clean_data.smk"
 include: "bin/rules/cat_unpaired.smk"
     #############################################################################
     ##### De novo assembly                                                  #####
@@ -157,14 +157,14 @@ include: "bin/rules/run_quast.smk"
 if checkm_decision == 'TRUE':
     include: "bin/rules/run_checkm.smk"
     include: "bin/rules/parse_checkm.smk"
-include: "bin/rules/fragment_length_analysis.smk"
+include: "bin/rules/picard_insert_size.smk"
 include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
 include: "bin/rules/parse_bbtools_summary.smk"
 if checkm_decision == 'TRUE':
-    include: "bin/rules/multiqc_report.smk"
+    include: "bin/rules/multiqc.smk"
 else:
-    include: "bin/rules/multiqc_report_nocheckm.smk"
+    include: "bin/rules/multiqc_nocheckm.smk"
 
 
 #@################################################################################
@@ -196,10 +196,12 @@ onstart:
         echo -e "\tGenerating methodological hash (fingerprint)..."
         echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
         echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
-        echo -e "\tGenerating full software list of current Conda environment (\"juno_master\")..."
+        echo -e "\tGenerating full software list of current conda environment..."
         conda list > '{OUT}/results/log_conda.txt'
         echo -e "\tGenerating config file log..."
         rm -f '{OUT}/results/log_config.txt'
+        echo -e "Juno call: \n"
+        cat "profile/juno_call.txt" > '{OUT}/results/log_config.txt'
         for file in profile/*.yaml
         do
             echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/results/log_config.txt'
@@ -219,8 +221,8 @@ onstart:
 onsuccess:
     shell("""
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --unlock
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" genus_file="{genus_file_1}" --profile profile --report '{OUT}/results/snakemake_report.html'
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --unlock
+        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --report '{OUT}/results/snakemake_report.html'
         echo -e "Finished"
     """)
 
@@ -239,9 +241,9 @@ rule all:
         expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['R1', 'R2']),   
         expand(str(OUT / "trimmomatic/{sample}_{read}.fastq.gz"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
-        expand(str(OUT / "SPAdes/{sample}/scaffolds.fasta"), sample = SAMPLES),   
-        str(OUT / "QUAST/report.tsv"),
+        expand(str(OUT / "spades/{sample}/scaffolds.fasta"), sample = SAMPLES),   
+        str(OUT / "quast/report.tsv"),
         expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
         str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),
-        str(OUT / "MultiQC/multiqc.html")
+        str(OUT / "multiqc/multiqc.html")

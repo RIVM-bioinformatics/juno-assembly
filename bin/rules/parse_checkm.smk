@@ -2,14 +2,15 @@
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
 
-rule parse_CheckM:
+rule parse_checkm:
     input:
-        expand(str(OUT / "CheckM/per_sample/{sample}/CheckM_{sample}.tsv"), sample=SAMPLES)
+        expand(str(OUT / "checkm/per_sample/{sample}/checkm_{sample}.tsv"), sample=SAMPLES)
     output:
-        str(OUT / "CheckM/CheckM_combined/CheckM_report.tsv")
-    threads: 1
+        str(OUT / "checkm/checkm_combined/checkm_report.tsv")
+    threads: config["threads"]["parsing"]
+    resources: mem_mb=config["mem_mb"]["parsing"]
     log:
-        str(OUT / "log/checkm/CheckM_combined.log")
+        str(OUT / "log/checkm/checkm_combined.log")
     script:
         "../parse_checkM.py"
 
