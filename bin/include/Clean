@@ -2,7 +2,7 @@
 # shellcheck disable=SC1091
 
 #############################################################
-##		Modified from Jovian			   ##
+##		Modified from Jovian			                   ##
 #############################################################
 
 should_i_clean="no"
@@ -35,21 +35,19 @@ if [ "${should_i_clean}" == "no" ]; then
 fi
 
 if [ "${should_i_clean}" == "yes" ]; then
-    echo -e "Removing Juno pipeline output: \nout/\nout/log/\nprofile/variables.yaml\nsample_sheet.yaml\n\n"
+    echo -e "Removing Juno pipeline output: \n"${OUTPUT_DIR}"/\n"${OUTPUT_DIR}"/log/\nprofile/variables.yaml\nprofile/juno_call.txt\nsample_sheet.yaml\n\n"
 
-    #@ remove the folders through a forloop with spinner + finish signal
     a=(
-    "out/"
+    "${OUTPUT_DIR}"
     "sample_sheet.yaml"
     "profile/variables.yaml"
+    "profile/juno_call.txt"
     )
 
     for i in "${a[@]}"; do
-        #start_spinner 
         echo "Removing \"${i}\""
         sleep 0.2
         rm -rf "${i}"
-        #stop_spinner $?
     done
 
 fi
