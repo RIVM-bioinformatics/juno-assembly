@@ -21,6 +21,12 @@ if [ ! -z "$4" ]; then
     CHECKM="TRUE"
 fi
 
+if [ -z "${irods_runsheet_sys__runsheet__lsf_queue}" ]
+then
+    echo cluster queue not configured in pipeline settings iRods
+    exit 1
+fi
+
 conda env update -f envs/mamba.yaml -q -v
 source activate mamba
 
