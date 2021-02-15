@@ -50,15 +50,15 @@ if [ -z $METADATA ]; then
     echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
     echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL \
 --profile profile \
---drmaa ' -q bio -n {threads} -R \'span[hosts=1]\'' \
+--drmaa ' -q ${irods_runsheet_sys__runsheet__lsf_queue} -n {threads} -R \'span[hosts=1]\'' \
 --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa \
 ${@}\n" >> profile/juno_call.txt
-    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -q ${irods_runsheet_sys__runsheet__lsf_queue} -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 else
     echo "This is the genus file: $METADATA"
     echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
     echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile \
---drmaa  -q bio -n {threads} -R \'span[hosts=1]\'' \
+--drmaa  -q ${irods_runsheet_sys__runsheet__lsf_queue} -n {threads} -R \'span[hosts=1]\'' \
 --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@} \n" >> profile/juno_call.txt
-    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q ${irods_runsheet_sys__runsheet__lsf_queue} -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 fi 
