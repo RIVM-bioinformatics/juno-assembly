@@ -27,6 +27,7 @@ Snakemake rules (in order of execution):
 
 configfile: "profile/pipeline_parameters.yaml"
 configfile: "profile/variables.yaml"
+configfile: "profile/user_parameters.yaml"
 
 from pandas import *
 import pathlib
@@ -34,9 +35,6 @@ import pprint
 import os
 import yaml
 import json
-
-
-yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
 
 #################################################################################
 ##### Load samplesheet, load genus dict and define output directory         #####
@@ -145,6 +143,7 @@ include: "bin/rules/fastqc_raw_data.smk"
 include: "bin/rules/trimmomatic.smk"
 include: "bin/rules/fastqc_clean_data.smk"
 include: "bin/rules/cat_unpaired.smk"
+
     #############################################################################
     ##### De novo assembly                                                  #####
     #############################################################################
@@ -154,13 +153,16 @@ include: "bin/rules/run_spades.smk"
     ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
     #############################################################################
 include: "bin/rules/run_quast.smk"
+
 if checkm_decision == 'TRUE':
     include: "bin/rules/run_checkm.smk"
     include: "bin/rules/parse_checkm.smk"
+
 include: "bin/rules/picard_insert_size.smk"
 include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
 include: "bin/rules/parse_bbtools_summary.smk"
+
 if checkm_decision == 'TRUE':
     include: "bin/rules/multiqc.smk"
 else:
@@ -176,11 +178,11 @@ onstart:
         print("Checking if all specified files are accessible...")
         if checkm_decision == 'TRUE':
             important_files = [ config["sample_sheet"],
-                         config["genuslist"],
-                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+                        config["genuslist"],
+                        'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         else:
             important_files = [ config["sample_sheet"],
-                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+                        'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         for filename in important_files:
             if not os.path.exists(filename):
                 raise FileNotFoundError(filename)
@@ -191,22 +193,24 @@ onstart:
         print("\tAll specified files are present!")
     shell("""
         mkdir -p {OUT}
-        mkdir -p {OUT}/results
+        mkdir -p {OUT}/audit_trail
         echo -e "\nLogging pipeline settings..."
         echo -e "\tGenerating methodological hash (fingerprint)..."
-        echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
-        echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
+        echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/audit_trail/log_git.txt'
+        echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/audit_trail/log_git.txt'
         echo -e "\tGenerating full software list of current conda environment..."
-        conda list > '{OUT}/results/log_conda.txt'
+        conda list > '{OUT}/audit_trail/log_conda.txt'
         echo -e "\tGenerating config file log..."
-        rm -f '{OUT}/results/log_config.txt'
-        cat "profile/juno_call.txt" > '{OUT}/results/log_config.txt'
+        rm -f '{OUT}/audit_trail/log_config.txt'
+        echo -e "Date run: $(date)" > '{OUT}/audit_trail/log_config.txt'
         for file in profile/*.yaml
         do
-            echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/results/log_config.txt'
-            cat ${{file}} >> '{OUT}/results/log_config.txt'
-            echo -e "\n\n" >> '{OUT}/results/log_config.txt'
+            echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/audit_trail/log_config.txt'
+            cat ${{file}} >> '{OUT}/audit_trail/log_config.txt'
+            echo -e "\n\n" >> '{OUT}/audit_trail/log_config.txt'
         done
+        echo -e "\n\nSample sheet:\n" >> '{OUT}/audit_trail/log_config.txt'
+        cat sample_sheet.yaml >> '{OUT}/audit_trail/log_config.txt'
     """)
 
 #@################################################################################
@@ -214,14 +218,14 @@ onstart:
 #@################################################################################
 
 #onerror:
- #   shell("""""")
+#   shell("""""")
 
 
 onsuccess:
     shell("""
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --unlock
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --report '{OUT}/results/snakemake_report.html'
+        snakemake --profile profile --cores 1 --unlock
+        snakemake --profile profile --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
         echo -e "Finished"
     """)
 

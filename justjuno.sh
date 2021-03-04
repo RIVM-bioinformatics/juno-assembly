@@ -19,22 +19,17 @@ fi
 if [ ! -z "$4" ]; then
     METADATA=$4
     CHECKM="TRUE"
+else
+    METADATA="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
 fi
 
 conda env update -f envs/mamba.yaml -q -v
 source activate mamba
 
 PATH_MASTER_YAML="envs/master_env.yaml"
-MASTER_NAME="$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')" # Extract Conda environment name as specified in yaml file
+MASTER_NAME="$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')" 
 
 mamba env update -f $PATH_MASTER_YAML -q -v
-
-# if [ $CHECKM == "TRUE" ]; then
-#     mamba env update -f envs/checkm.yaml -q -v
-#     source activate checkM
-#     checkm taxon_list > files/checkm_taxon_list.txt
-#     source activate mamba # back to mamba again to start juno_master
-# fi
 
 source activate $MASTER_NAME
 
@@ -46,19 +41,18 @@ SET_HOSTNAME=$(bin/include/gethostname.sh)
 echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
 echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
 
-if [ -z $METADATA ]; then
-    echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
-    echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL \
---profile profile \
---drmaa ' -n {threads} -R \'span[hosts=1]\'' \
---drmaa-log-dir ${OUTPUT_DIR}/log/drmaa \
-${@}\n" >> profile/juno_call.txt
-    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL --profile profile --drmaa " -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
-else
-    echo "This is the genus file: $METADATA"
-    echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
-    echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile \
---drmaa  -n {threads} -R \'span[hosts=1]\'' \
---drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@} \n" >> profile/juno_call.txt
-    snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
-fi 
+__USERPARAMETERS="
+pipeline_version: "${VERSION}"
+out: "${OUTPUT_DIR}"
+metadata: "$METADATA"
+checkm: "$CHECKM"
+genus: "$GENUS_ALL"
+"
+
+echo "$__USERPARAMETERS" > profile/user_parameters.yaml
+
+snakemake --profile profile --cores 300 \
+    --drmaa " -n {threads} -R \"span[hosts=1]\" \
+    -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
+    -e ${OUTPUT_DIR}/log/drmaa/{name}_{sample}_{jobid}.err" \
+    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa 

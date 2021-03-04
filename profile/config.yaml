@@ -1,5 +1,3 @@
-local-cores: 8
-cores: 300
 latency-wait: 60
 use-conda: true
 jobname: Juno_{name}.jobid{jobid}
