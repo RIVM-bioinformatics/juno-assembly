@@ -382,9 +382,10 @@ else
     fi
     echo "cores: ${CORES}" >>$PARAMETERS
     snakemake --profile profile --cores $CORES \
-    --drmaa " -q ${QUEUE} -n {threads} -R \"span[hosts=1]\" \
+    --drmaa " -q ${QUEUE} -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
-    -e ${OUTPUT_DIR}/log/drmaa/{name}_{sample}_{jobid}.err" \
+    -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
+    -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
     --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
 fi
 

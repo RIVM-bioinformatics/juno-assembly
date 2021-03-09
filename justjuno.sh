@@ -52,7 +52,8 @@ genus: "$GENUS_ALL"
 echo "$__USERPARAMETERS" > profile/user_parameters.yaml
 
 snakemake --profile profile --cores 300 \
-    --drmaa " -n {threads} -R \"span[hosts=1]\" \
+    --drmaa " -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
-    -e ${OUTPUT_DIR}/log/drmaa/{name}_{sample}_{jobid}.err" \
-    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa 
+    -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
+    -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
+    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
