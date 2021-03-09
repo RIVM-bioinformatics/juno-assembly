@@ -381,6 +381,7 @@ else
         CORES="300"
     fi
     echo "cores: ${CORES}" >>$PARAMETERS
+    echo "queue: ${QUEUE}" >> $PARAMETERS
     snakemake --profile profile --cores $CORES \
     --drmaa " -q ${QUEUE} -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \

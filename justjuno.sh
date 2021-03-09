@@ -37,6 +37,7 @@ python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
 
 UNIQUE_ID=$(bin/include/generate_id.sh)
 SET_HOSTNAME=$(bin/include/gethostname.sh)
+VERSION=$(git log -n 1 --pretty=format:"%H")
 
 echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
 echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
@@ -47,6 +48,7 @@ out: "${OUTPUT_DIR}"
 metadata: "$METADATA"
 checkm: "$CHECKM"
 genus: "$GENUS_ALL"
+cores: 300
 "
 
 echo "$__USERPARAMETERS" > profile/user_parameters.yaml
@@ -56,4 +58,4 @@ snakemake --profile profile --cores 300 \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
     -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
     -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
-    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
