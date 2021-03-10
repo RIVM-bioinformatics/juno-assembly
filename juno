@@ -39,8 +39,8 @@ PIPELINE_NAME="Juno"
 UNIQUE_ID=$(bin/include/generate_id.sh)
 SET_HOSTNAME=$(bin/include/gethostname.sh)
 VERSION=$(git log -n 1 --pretty=format:"%H")
-eval "$(parse_yaml profile/pipeline_parameters.yaml "params_")"
-eval "$(parse_yaml profile/config.yaml "configuration_")"
+eval "$(parse_yaml config/pipeline_parameters.yaml "params_")"
+eval "$(parse_yaml config/config.yaml "configuration_")"
 #set +o allexport
 
 ############################# Get names of environments #######################
@@ -57,8 +57,8 @@ CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ')
 ###############################################################################
 
 ################### Default values for pipeline ###############################
-INPUT_DIR="raw_data/"
-OUTPUT_DIR="out/"
+INPUT_DIR="raw_data"
+OUTPUT_DIR="out"
 GENUS_ALL="NotProvided"
 METADATA="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
 SKIP_CONFIRMATION="FALSE"
@@ -81,12 +81,12 @@ do
     key="$1"
     case $key in
         -i|--input)
-        INPUT_DIR="$2"
+        INPUT_DIR="${2%/}"
         shift 
         shift 
         ;;
         -o|--output)
-        OUTPUT_DIR="$2"
+        OUTPUT_DIR="${2%/}"
         shift 
         shift 
         ;;
@@ -334,8 +334,8 @@ fi
 
 
 if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
-    echo -e "Juno_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
-    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
+    echo -e "Juno_run:\n    identifier: ${UNIQUE_ID}" > config/variables.yaml
+    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> config/variables.yaml
     echo -e "The sample sheet and variables file has now been created, you can now run the snakefile manually"
     exit 0
 fi
@@ -344,8 +344,8 @@ fi
 #####                 Run Snakemake leaving audit trail                   #####
 ###############################################################################
 
-LOG_ID_HOST="profile/variables.yaml"
-PARAMETERS="profile/user_parameters.yaml"
+LOG_ID_HOST="config/variables.yaml"
+PARAMETERS="config/user_parameters.yaml"
 
 __USERPARAMETERS="
 pipeline_version: "${VERSION}"
@@ -375,14 +375,14 @@ if [[ $LOCAL == "TRUE" ]]; then
         CORES="4"
     fi
     echo "cores: ${CORES}" >>$PARAMETERS
-    snakemake --profile profile --cores $CORES ${@}
+    snakemake --profile config --cores $CORES ${@}
 else
     if [[ $CORES == "NotProvided" ]]; then
         CORES="300"
     fi
     echo "cores: ${CORES}" >>$PARAMETERS
     echo "queue: ${QUEUE}" >> $PARAMETERS
-    snakemake --profile profile --cores $CORES \
+    snakemake --profile config --cores $CORES \
     --drmaa " -q ${QUEUE} -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
     -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \

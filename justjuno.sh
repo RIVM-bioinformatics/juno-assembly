@@ -39,8 +39,8 @@ UNIQUE_ID=$(bin/include/generate_id.sh)
 SET_HOSTNAME=$(bin/include/gethostname.sh)
 VERSION=$(git log -n 1 --pretty=format:"%H")
 
-echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
-echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
+echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > config/variables.yaml
+echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> config/variables.yaml
 
 __USERPARAMETERS="
 pipeline_version: "${VERSION}"
@@ -51,9 +51,9 @@ genus: "$GENUS_ALL"
 cores: 300
 "
 
-echo "$__USERPARAMETERS" > profile/user_parameters.yaml
+echo "$__USERPARAMETERS" > config/user_parameters.yaml
 
-snakemake --profile profile --cores 300 \
+snakemake --profile config --cores 300 \
     --drmaa " -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
     -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \

@@ -2,22 +2,22 @@
 ##### Data quality control and cleaning                                 #####
 #############################################################################
 
-rule fastqc_clean_data:
+rule qc_clean_fastq:
     input:
-        str(OUT / "trimmomatic/{sample}_{read}.fastq.gz")
+        OUT + "/clean_fastq/{sample}_{read}.fastq.gz"
     output:
-        html=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.html"),
-        zip=str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip")
+        html = OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.html",
+        zip = OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip"
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
     benchmark:
-        str(OUT / "log/benchmark/fastqc_clean_data_{sample}_{read}.txt")
+        OUT + "/log/benchmark/qc_clean_fastq_{sample}_{read}.txt"
     threads: config["threads"]["fastqc"]
     resources: mem_mb=config["mem_mb"]["fastqc"]
     log:
-        str(OUT / "log/fastqc/fastqc_clean_data_{sample}_{read}.log")
+        OUT + "/log/qc_clean_fastq/qc_clean_fastq_{sample}_{read}.log"
     params:
-        output_dir=str(OUT / "FastQC_posttrim/")
+        output_dir = OUT + "/qc_clean_fastq/"
     shell:
         """
 if [ -s "{input}" ] # If file exists and is NOT empty (i.e. filesize > 0) do...

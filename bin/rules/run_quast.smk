@@ -5,17 +5,17 @@
 
 rule run_quast_combined:
     input:
-        expand(str(OUT / "scaffolds_filtered/{sample}.fasta"), sample=SAMPLES)
+        expand(OUT + "/de_novo_assembly_filtered/{sample}.fasta", sample=SAMPLES)
     output:
-        str(OUT / "quast/report.tsv")
+        OUT + "/qc_de_novo_assembly/quast/report.tsv"
     conda:
         "../../envs/quast.yaml"
     threads: config["threads"]["quast"],
     resources: mem_mb=config["mem_mb"]["quast"]
     params:
-        output_dir = str(OUT / "quast"),
+        output_dir = OUT + "/qc_de_novo_assembly/quast"
     log:
-        str(OUT / "log/quast/quast_combined_quality.log")
+        OUT + "/log/qc_de_novo_assembly/quast.log"
     shell:
         """
         quast --threads {threads} {input:q} --output-dir {params.output_dir:q} > {log:q}

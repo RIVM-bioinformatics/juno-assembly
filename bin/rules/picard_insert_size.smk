@@ -4,25 +4,25 @@
 
 rule picard_insert_size:
     input:
-        fasta=str(OUT / "scaffolds_filtered/{sample}.fasta"),
-        pR1=str(OUT / "trimmomatic/{sample}_pR1.fastq.gz"),
-        pR2=str(OUT / "trimmomatic/{sample}_pR2.fastq.gz"),
+        fasta=OUT + "/de_novo_assembly_filtered/{sample}.fasta",
+        pR1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
+        pR2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
     output:
-        bam=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam")),
-        bam_bai=temp(str(OUT / "scaffolds_filtered/{sample}_sorted.bam.bai")),
-        txt=str(OUT / "scaffolds_filtered/{sample}_insert_size_metrics.txt"),
-        ann=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.ann")),
-        amb=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.amb")),
-        bwt=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.bwt")),
-        pac=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.pac")),
-        sa=temp(str(OUT / "scaffolds_filtered/{sample}.fasta.sa")),
-        pdf=str(OUT / "scaffolds_filtered/{sample}_insert_size_histogram.pdf")
+        bam=temp(OUT + "/qc_de_novo_assembly/insert_size/{sample}_sorted.bam"),
+        bam_bai=temp(OUT + "/qc_de_novo_assembly/insert_size/{sample}_sorted.bam.bai"),
+        txt=OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_metrics.txt",
+        ann=temp(OUT + "/de_novo_assembly_filtered/{sample}.fasta.ann"),
+        amb=temp(OUT + "/de_novo_assembly_filtered/{sample}.fasta.amb"),
+        bwt=temp(OUT + "/de_novo_assembly_filtered/{sample}.fasta.bwt"),
+        pac=temp(OUT + "/de_novo_assembly_filtered/{sample}.fasta.pac"),
+        sa=temp(OUT + "/de_novo_assembly_filtered/{sample}.fasta.sa"),
+        pdf=OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_histogram.pdf"
     conda:
         "../../envs/scaffold_analyses.yaml"
     log:
-        str(OUT / "log/picard_insert_size/picard_insert_size_{sample}.log")
+        OUT + "/log/picard_insert_size/picard_insert_size_{sample}.log"
     benchmark:
-        str(OUT / "log/benchmark/picard_insert_size_{sample}.txt")
+        OUT + "/log/benchmark/picard_insert_size_{sample}.txt"
     threads: config["threads"]["picard"],
     resources: mem_mb=config["mem_mb"]["picard"]
     shell:

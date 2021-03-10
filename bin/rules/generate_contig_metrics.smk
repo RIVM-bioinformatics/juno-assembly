@@ -4,17 +4,17 @@
 
 rule pileup_contig_metrics:
     input:
-        bam=str(OUT / "scaffolds_filtered/{sample}_sorted.bam"),
-        fasta=str(OUT / "scaffolds_filtered/{sample}.fasta"),
+        bam = OUT + "/qc_de_novo_assembly/insert_size/{sample}_sorted.bam",
+        fasta = OUT + "/de_novo_assembly_filtered/{sample}.fasta"
     output:
-        summary=str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"),
-        perScaffold=str(OUT / "bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv"),
+        summary = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv",
+        perScaffold = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv",
     conda:
         "../../envs/scaffold_analyses.yaml"
     log:
-        str(OUT / "log/contigs_metrics/pileup_contig_metrics_{sample}.log")
+        OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_{sample}.log"
     benchmark:
-        str(OUT / "log/benchmark/pileup_contig_metrics_{sample}.txt")
+        OUT + "/log/benchmark/pileup_contig_metrics_{sample}.txt"
     threads: config["threads"]["pileup"]
     resources: mem_mb=config["mem_mb"]["pileup"]
     shell:

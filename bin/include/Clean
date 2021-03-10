@@ -11,7 +11,7 @@ should_i_clean="no"
 echo -e "The following files and folders will be deleted:"
 echo -e "${OUTPUT_DIR}"
 echo -e "${OUTPUT_DIR}/log/"
-echo -e "profile/variables.yaml"
+echo -e "config/variables.yaml"
 echo -e "sample_sheet.yaml\n\n"
 
 if [ "${SKIP_CONFIRMATION}" == "TRUE" ]; then
@@ -40,13 +40,13 @@ if [ "${should_i_clean}" == "yes" ]; then
     echo -e "Removing Juno pipeline output:"
     echo -e "${OUTPUT_DIR}"
     echo -e "${OUTPUT_DIR}/log/"
-    echo -e "profile/variables.yaml"
+    echo -e "config/variables.yaml"
     echo -e "sample_sheet.yaml\n\n"
 
     a=(
     "${OUTPUT_DIR}"
     "sample_sheet.yaml"
-    "profile/variables.yaml"
+    "config/variables.yaml"
     )
 
     for i in "${a[@]}"; do
