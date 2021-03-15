@@ -2,5 +2,6 @@
 out
 raw_data
 sample_sheet.yaml
-profile/variables.yaml
-profile/juno_call.txt
+config/variables.yaml
+config/juno_call.txt 
+config/user_parameters.yaml

@@ -25,8 +25,9 @@ Snakemake rules (in order of execution):
 ##### Import config file, sample_sheet and set output folder names          #####
 #################################################################################
 
-configfile: "profile/pipeline_parameters.yaml"
-configfile: "profile/variables.yaml"
+configfile: "config/pipeline_parameters.yaml"
+configfile: "config/variables.yaml"
+configfile: "config/user_parameters.yaml"
 
 from pandas import *
 import pathlib
@@ -34,9 +35,6 @@ import pprint
 import os
 import yaml
 import json
-
-
-yaml.warnings({'YAMLLoadWarning': False}) # Suppress yaml "unsafe" warnings
 
 #################################################################################
 ##### Load samplesheet, load genus dict and define output directory         #####
@@ -48,14 +46,14 @@ with open(config["sample_sheet"]) as sample_sheet_file:
     SAMPLES = yaml.safe_load(sample_sheet_file) 
 
 # OUT defines output directory for most rules.
-OUT = pathlib.Path(config["out"])
+OUT = config["out"]
 
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
 genus_all = config["genus"]
 metadata = config["metadata"]
 
-if checkm_decision == 'TRUE':
+if checkm_decision is True :
     # make a list of all genera supported by the current version of CheckM
     genuslist = []
     with open(config["genuslist"]) as file_in:
@@ -133,7 +131,6 @@ else:
     for sample, value in SAMPLES.items():
         SAMPLES[sample] = [value, 'checkm_deactivated']
 
-
 #@################################################################################
 #@#### 				Processes                                    #####
 #@################################################################################
@@ -144,7 +141,7 @@ else:
 include: "bin/rules/fastqc_raw_data.smk"
 include: "bin/rules/trimmomatic.smk"
 include: "bin/rules/fastqc_clean_data.smk"
-include: "bin/rules/cat_unpaired.smk"
+
     #############################################################################
     ##### De novo assembly                                                  #####
     #############################################################################
@@ -154,14 +151,17 @@ include: "bin/rules/run_spades.smk"
     ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
     #############################################################################
 include: "bin/rules/run_quast.smk"
-if checkm_decision == 'TRUE':
+
+if checkm_decision is True:
     include: "bin/rules/run_checkm.smk"
     include: "bin/rules/parse_checkm.smk"
+
 include: "bin/rules/picard_insert_size.smk"
 include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
 include: "bin/rules/parse_bbtools_summary.smk"
-if checkm_decision == 'TRUE':
+
+if checkm_decision is True:
     include: "bin/rules/multiqc.smk"
 else:
     include: "bin/rules/multiqc_nocheckm.smk"
@@ -176,11 +176,11 @@ onstart:
         print("Checking if all specified files are accessible...")
         if checkm_decision == 'TRUE':
             important_files = [ config["sample_sheet"],
-                         config["genuslist"],
-                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+                        config["genuslist"],
+                        'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         else:
             important_files = [ config["sample_sheet"],
-                         'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+                        'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
         for filename in important_files:
             if not os.path.exists(filename):
                 raise FileNotFoundError(filename)
@@ -191,22 +191,24 @@ onstart:
         print("\tAll specified files are present!")
     shell("""
         mkdir -p {OUT}
-        mkdir -p {OUT}/results
+        mkdir -p {OUT}/audit_trail
         echo -e "\nLogging pipeline settings..."
         echo -e "\tGenerating methodological hash (fingerprint)..."
-        echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/results/log_git.txt'
-        echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/results/log_git.txt'
+        echo -e "This is the link to the code used for this analysis:\thttps://github.com/AleSR13/Juno_pipeline/tree/$(git log -n 1 --pretty=format:"%H")" > '{OUT}/audit_trail/log_git.txt'
+        echo -e "This code with unique fingerprint $(git log -n1 --pretty=format:"%H") was committed by $(git log -n1 --pretty=format:"%an <%ae>") at $(git log -n1 --pretty=format:"%ad")" >> '{OUT}/audit_trail/log_git.txt'
         echo -e "\tGenerating full software list of current conda environment..."
-        conda list > '{OUT}/results/log_conda.txt'
+        conda list > '{OUT}/audit_trail/log_conda.txt'
         echo -e "\tGenerating config file log..."
-        rm -f '{OUT}/results/log_config.txt'
-        cat "profile/juno_call.txt" > '{OUT}/results/log_config.txt'
-        for file in profile/*.yaml
+        rm -f '{OUT}/audit_trail/log_config.txt'
+        echo -e "Date run: $(date)" > '{OUT}/audit_trail/log_config.txt'
+        for file in config/*.yaml
         do
-            echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/results/log_config.txt'
-            cat ${{file}} >> '{OUT}/results/log_config.txt'
-            echo -e "\n\n" >> '{OUT}/results/log_config.txt'
+            echo -e "\n==> Contents of file \"${{file}}\": <==" >> '{OUT}/audit_trail/log_config.txt'
+            cat ${{file}} >> '{OUT}/audit_trail/log_config.txt'
+            echo -e "\n\n" >> '{OUT}/audit_trail/log_config.txt'
         done
+        echo -e "\n\nSample sheet:\n" >> '{OUT}/audit_trail/log_config.txt'
+        cat sample_sheet.yaml >> '{OUT}/audit_trail/log_config.txt'
     """)
 
 #@################################################################################
@@ -214,14 +216,14 @@ onstart:
 #@################################################################################
 
 #onerror:
- #   shell("""""")
+#   shell("""""")
 
 
 onsuccess:
     shell("""
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --unlock
-        snakemake --config checkm="{checkm_decision}" out="{OUT}" genus="{genus_all}" metadata="{metadata}" --profile profile --report '{OUT}/results/snakemake_report.html'
+        snakemake --profile config --cores 1 --unlock
+        snakemake --profile config --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
         echo -e "Finished"
     """)
 
@@ -231,18 +233,17 @@ onsuccess:
 #################################################################################
 
 localrules:
-    all,
-    cat_unpaired
+    all
 
 
 rule all:
     input:
-        expand(str(OUT / "FastQC_pretrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['R1', 'R2']),   
-        expand(str(OUT / "trimmomatic/{sample}_{read}.fastq.gz"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
-        expand(str(OUT / "FastQC_posttrim/{sample}_{read}_fastqc.zip"), sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
-        expand(str(OUT / "spades/{sample}/scaffolds.fasta"), sample = SAMPLES),   
-        str(OUT / "quast/report.tsv"),
-        expand(str(OUT / "bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv"), sample = SAMPLES),
-        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_scaffolds.tsv"),
-        str(OUT / "bbtools_scaffolds/bbtools_combined/bbtools_summary_report.tsv"),
-        str(OUT / "multiqc/multiqc.html")
+        expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['R1', 'R2']),   
+        expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
+        expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
+        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
+        OUT + "/qc_de_novo_assembly/quast/report.tsv",
+        expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample = SAMPLES),
+        OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
+        OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv",
+        OUT + "/multiqc/multiqc.html"

@@ -4,13 +4,13 @@
 
 rule parse_checkm:
     input:
-        expand(str(OUT / "checkm/per_sample/{sample}/checkm_{sample}.tsv"), sample=SAMPLES)
+        expand(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv", sample=SAMPLES)
     output:
-        str(OUT / "checkm/checkm_combined/checkm_report.tsv")
+        OUT + "/qc_de_novo_assembly/checkm/checkm_report.tsv"
     threads: config["threads"]["parsing"]
     resources: mem_mb=config["mem_mb"]["parsing"]
     log:
-        str(OUT / "log/checkm/checkm_combined.log")
+        OUT + "/log/checkm/checkm_combined.log"
     script:
         "../parse_checkM.py"
 

@@ -22,29 +22,48 @@
 ###                                                                                                                                         ###
 ###############################################################################################################################################
 
+###############################################################################
+#####                            Set-up                                   #####
+###############################################################################
 
-#load in functions
-set -o allexport
+############################### Bash settings #################################
+
+# Strict mode
+set -eu
+
+################### Generate ID, host and version info ########################
+
+#set -o allexport
 source bin/include/functions.sh
-eval "$(parse_yaml profile/pipeline_parameters.yaml "params_")"
-eval "$(parse_yaml profile/config.yaml "configuration_")"
-set +o allexport
-
+PIPELINE_NAME="Juno"
 UNIQUE_ID=$(bin/include/generate_id.sh)
 SET_HOSTNAME=$(bin/include/gethostname.sh)
+VERSION=$(git log -n 1 --pretty=format:"%H")
+eval "$(parse_yaml config/pipeline_parameters.yaml "params_")"
+eval "$(parse_yaml config/config.yaml "configuration_")"
+#set +o allexport
 
-### conda environment
+############################# Get names of environments #######################
+
 PATH_MASTER_YAML="envs/master_env.yaml"
-MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
+PATH_MAMBA_YAML="envs/mamba.yaml"
 PATH_CHECKM_YAML="envs/checkm.yaml"
-CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') # Extract Conda environment name as specified in yaml file
+MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ') 
+MAMBA_NAME=$(head -n 1 ${PATH_MAMBA_YAML} | cut -f2 -d ' ') 
+CHECKM_NAME=$(head -n 1 ${PATH_CHECKM_YAML} | cut -f2 -d ' ') 
 
-### Default values for CLI parameters
-INPUT_DIR="raw_data/"
-OUTPUT_DIR="out/"
+###############################################################################
+#####                  Parse arguments or set defaults                    #####
+###############################################################################
+
+################### Default values for pipeline ###############################
+INPUT_DIR="raw_data"
+OUTPUT_DIR="out"
 GENUS_ALL="NotProvided"
 METADATA="/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2021.xlsx"
 SKIP_CONFIRMATION="FALSE"
+CORES="NotProvided"
+QUEUE="bio"
 CLEAN="FALSE"
 HELP="FALSE"
 HELP_GENERA="FALSE"
@@ -54,25 +73,40 @@ CHECKM="TRUE"
 UPDATE_GENUS="FALSE"
 LOCAL="FALSE"
 
-### Parse the commandline arguments, if they are not part of the pipeline, they get send to Snakemake
+################### Parse the commandline arguments ###########################
+# Unknown arguments are sent to Snakemake
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
     key="$1"
     case $key in
         -i|--input)
-        INPUT_DIR="$2"
-        shift # Next
-        shift # Next
+        INPUT_DIR="${2%/}"
+        shift 
+        shift 
         ;;
         -o|--output)
-        OUTPUT_DIR="$2"
-        shift # Next
-        shift # Next
+        OUTPUT_DIR="${2%/}"
+        shift 
+        shift 
         ;;
         --genus)
         GENUS_ALL="$2"
         shift
+        shift
+        ;;
+        -q|--queue)
+        QUEUE="${2}"
+        shift
+        shift
+        ;;
+        --cores)
+        CORES="${2}"
+        shift
+        shift
+        ;;
+        -l|--local)
+        LOCAL="TRUE"
         shift
         ;;
         --metadata)
@@ -82,118 +116,136 @@ do
         ;;
         -h|--help)
         HELP="TRUE"
-        shift # Next
+        shift 
         ;;
         --help-genera)
         UPDATE_GENUS="TRUE"
         HELP_GENERA="TRUE"
-        shift # Next
+        shift 
         ;;
         -sh|--snakemake-help)
         SNAKEMAKE_HELP="TRUE"
-        shift # Next
+        shift 
         ;;
         --clean)
         CLEAN="TRUE"
-        shift # Next
+        shift 
         ;;
         --make-sample-sheet)
         MAKE_SAMPLE_SHEET="TRUE"
-        shift # Next
+        shift 
         ;;
         --no-checkm)
         CHECKM="FALSE"
         UPDATE_GENUS="FALSE"
-        shift # Next
+        shift 
         ;;
         -y)
         SKIP_CONFIRMATION="TRUE"
-        shift # Next
+        shift
         ;;
-        -l|--local)
-        LOCAL="TRUE"
-        shift # Next
-        ;;
-        *) # Any other option
-        POSITIONAL+=("$1") # save in array
-        shift # Next
+        *) 
+        POSITIONAL+=("$1") # Save in array
+        shift 
         ;;
     esac
 done
-set -- "${POSITIONAL[@]:-}" # Restores the positional arguments (i.e. without the case arguments above) which then can be called via `$@` or `$[0-9]` etc. These parameters are send to Snakemake.
+set -- "${POSITIONAL[@]:-}" 
 
 
-### Print Juno help message
+###############################################################################
+#####                           Juno help                                 #####
+###############################################################################
+
 if [ "${HELP:-}" == "TRUE" ]; then
     line
-    cat bin/help.txt
+    bash bin/include/help.sh $PIPELINE_NAME $VERSION
     exit 0
 fi
 
-
-
-
+###############################################################################
+#####                     Clean old output if necessary                   #####
+###############################################################################
 
 ### Remove all output
 if [ "${CLEAN:-}" == "TRUE" ]; then
-    bash bin/include/Clean
+    bash bin/include/Clean $OUTPUT_DIR
     exit 0
 fi
 
+###############################################################################
+#####               Installation conda environments                       #####
+###############################################################################
 
-###############################################################################################################
-##### Create mamba environment if it doesn exist                                                          #####
-###############################################################################################################
-conda env update -f envs/mamba.yaml -q -v
-source activate mamba
-#mamba env update -f ${PATH_CHECKM_YAML}
-
-###############################################################################################################
-##### Installation block                                                                                  #####
-###############################################################################################################
-
-### Pre-flight check: Assess availability of required files, conda and master environment
-if [ ! -e "${PATH_MASTER_YAML}" ]; then # If this yaml file does not exist, give error.
+############## Check that necessary yaml files are present ####################
+if [ ! -e "${PATH_MASTER_YAML}" ] || [ ! -e "${PATH_MAMBA_YAML}" ]; then
     line
     spacer
-    echo -e "ERROR: Missing file \"${PATH_MASTER_YAML}\""
+    echo -e "\nERROR:\n"
+    echo "The necessary files to make the ${PIPELINE_NAME} master environment are missing"
+    echo -e "(${PATH_MASTER_YAML} or ${PATH_MAMBA_YAML})\n"
     exit 1
 fi
 
-if [[ $PATH != *${MASTER_NAME}* ]]; then # If the master environment is not in your path (i.e. it is not currently active), do...
-    line
-    spacer
-    source activate ${MASTER_NAME}
-    if [ ! $? -eq 0 ]; then
-    	set +ue # Turn bash strict mode off because that breaks conda
-    	if [ "${SKIP_CONFIRMATION}" = "TRUE" ]; then
-       		echo -e "\tInstalling master environment..." 
-       		mamba env update -f ${PATH_MASTER_YAML} 
-       		echo -e "DONE"
-    	else
-       		while read -r -p "The master environment hasn't been installed yet, do you want to install this environment now? [y/n] " envanswer
-       		do
-            		envanswer=${envanswer,,}
-            		if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
-                		echo -e "\tInstalling master environment..." 
-				mamba env update -f ${PATH_MASTER_YAML}
-                		echo -e "DONE"
-                		break
-            		elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
-                		echo -e "The master environment is a requirement. Exiting because Juno cannot continue without this environment"
-                		exit 1
-            		else
-                		echo -e "Please answer with 'yes' or 'no'"
-            		fi
-        	done
-    	fi
-    fi
+###################### Install mamba and master environments ##################
+
+if [[ $PATH != *${MASTER_NAME}* ]]; then 
+    set +eu
+    if [[ $PATH != *${MAMBA_NAME}* ]]; then
+        source activate ${MAMBA_NAME}
+        if [ ! $? -eq 0 ]; then
+            if [ "${SKIP_CONFIRMATION}" == "FALSE" ]; then
+                spacer
+                while read -r -p "The ${PIPELINE_NAME} master environment is not active yet, do you want to install/update it and activate it now? [y/n] " envanswer
+       	        do
+                    envanswer=${envanswer,,}
+                    if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
+                        break
+                    elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
+                        echo -e "The ${PIPELINE_NAME} master environment is a requirement. Exiting because cannot continue without this environment"
+                        exit 1
+                    else
+                        echo -e "Please answer with 'yes' or 'no'"
+                    fi
+                done
+            fi
+            echo -e "\nUpdating mamba...\n"
+            conda env update -f "${PATH_MAMBA_YAML}"
+            source activate "${MAMBA_NAME}"
+            mamba env update -f "${PATH_MASTER_YAML}"
+        fi
+        source activate "${MASTER_NAME}"
+        if [ ! $? -eq 0 ]; then
+            if [ "${SKIP_CONFIRMATION}" == "FALSE" ]; then
+                spacer
+                while read -r -p "The ${PIPELINE_NAME} master environment is not active yet, do you want to install/update it and activate it now? [y/n] " envanswer
+       	        do
+                    envanswer=${envanswer,,}
+                    if [[ "${envanswer}" =~ ^(yes|y)$ ]]; then
+                        break
+                    elif [[ "${envanswer}" =~ ^(no|n)$ ]]; then
+                        echo -e "The ${PIPELINE_NAME} master environment is a requirement. Exiting because cannot continue without this environment"
+                        exit 1
+                    else
+                        echo -e "Please answer with 'yes' or 'no'"
+                    fi
+                done
+            fi
+            echo -e "\nInstalling master environment...\n"
+            mamba env update -f "${PATH_MASTER_YAML}"
+        fi
+    fi  
     source activate "${MASTER_NAME}"
-    set -ue # Turn bash strict mode on again
-fi
+    set -eu
+    echo -e "\nThe master environment has been activated\n" 
+fi 
 
 
-### Print Snakemake help
+
+###############################################################################
+#####                       Snakemake help                                #####
+###############################################################################
+
 if [ "${SNAKEMAKE_HELP:-}" == "TRUE" ]; then
     line
     snakemake --help
@@ -201,7 +253,10 @@ if [ "${SNAKEMAKE_HELP:-}" == "TRUE" ]; then
 fi
 
 
-### Check input
+
+###############################################################################
+#####                     Check argument validity                         #####
+###############################################################################
 if [ ! -d "${INPUT_DIR}" ]; then
     minispacer
     echo -e "The input directory specified (${INPUT_DIR}) does not exist"
@@ -218,7 +273,9 @@ if [[ ! $METADATA =~ xlsx$ ]]; then
     exit 1
 fi
 
-
+###############################################################################
+#####                      Get genus (taxon) list                         #####
+###############################################################################
 # Download and update genus list
 if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     printf "\nCollecting available genera from CheckM...\n"
@@ -229,25 +286,26 @@ if [ "${UPDATE_GENUS}" == "TRUE" ]; then
     checkm taxon_list > files/checkm_taxon_list.txt  
     source activate mamba
     source activate "${MASTER_NAME}"
-    ### Genus help
-    if [ "${HELP_GENERA:-}" == "TRUE" ]; then
-        spacer
-        GENERA=`grep genus files/checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
-        line
-        echo -e "The genera that CheckM currently accepts are: "
-        minispacer
-        pr -4 -t -w 120 <<eof
-$GENERA
-eof
-        set -ue
-        exit 0
-    fi
-    ### Display all the genera accepted by CheckM
     set -ue
 fi
 
+### Genus help if prompted
+if [ "${HELP_GENERA:-}" == "TRUE" ]; then
+    spacer
+    GENERA=`grep genus files/checkm_taxon_list.txt | awk -F ' ' '{print $2}'`
+    line
+    echo -e "The genera that CheckM currently accepts are: "
+    minispacer
+    pr -4 -t -w 120 <<eof
+$GENERA
+eof
+    exit 0
+fi
 
-### Generate sample sheet
+###############################################################################
+#####                      Make sample sheet                              #####
+###############################################################################
+
 if [  `ls -A "${INPUT_DIR}" | grep 'R[0-9]\{1\}.*\.f[ast]\{0,3\}q\.\?[gz]\{0,2\}$' | wc -l` -gt 0 ]; then
     minispacer
     echo -e "Files in input directory (${INPUT_DIR}) are present"
@@ -258,62 +316,81 @@ if [  `ls -A "${INPUT_DIR}" | grep 'R[0-9]\{1\}.*\.f[ast]\{0,3\}q\.\?[gz]\{0,2\}
     fi
 else
     minispacer
-    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty or does not contain the expected input files...\nPlease specify a directory with input-data."
-    exit 0
+    echo -e "The input directory you specified (${INPUT_DIR}) exists but is empty or does not contain the expected input files..."
+    echo -e "Please specify a directory with input-data."
+    exit 1
 fi
 
 ### Checker for succesfull creation of sample_sheet
 if [ "${SHEET_SUCCESS}" == "TRUE" ]; then
     echo -e "Succesfully generated the sample sheet"
-    echo -e "ready_for_start"
+    echo -e "Ready to start"
 else
-    echo -e "Couldn't find files in the input directory that ended up being in a .FASTQ, .FQ or .GZ format"
-    echo -e "Please inspect the input directory (${INPUT_DIR}) and make sure the files are in one of the formats listed below"
-    echo -e ".fastq.gz (Zipped Fastq)"
-    echo -e ".fq.gz (Zipped Fq)"
-    echo -e ".fastq (Unzipped Fastq)"
-    echo -e ".fq (unzipped Fq)"
+    echo -e "Something went wrong while generating the sample sheet"
+    echo -e "Make sure that ${INPUT_DIR} contains proper input data: "
+    echo -e ".fastq, .fq, .fastq.gz, .fq.gz files containing the _R1 or _R2 tag within the file name."
     exit 1
 fi
 
 
 if [ "${MAKE_SAMPLE_SHEET}" == "TRUE" ]; then
-    echo -e "Juno_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
-    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
+    echo -e "Juno_run:\n    identifier: ${UNIQUE_ID}" > config/variables.yaml
+    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> config/variables.yaml
     echo -e "The sample sheet and variables file has now been created, you can now run the snakefile manually"
     exit 0
 fi
 
+###############################################################################
+#####                 Run Snakemake leaving audit trail                   #####
+###############################################################################
 
-### Actual snakemake command with checkers for required files. N.B. here the UNIQUE_ID and SET_HOSTNAME variables are set!
+LOG_ID_HOST="config/variables.yaml"
+PARAMETERS="config/user_parameters.yaml"
+
+__USERPARAMETERS="
+pipeline_version: "${VERSION}"
+out: "${OUTPUT_DIR}"
+metadata: "$METADATA"
+checkm: "$CHECKM"
+genus: "$GENUS_ALL"
+"
+echo "$__USERPARAMETERS" > $PARAMETERS
+
 if [ -e sample_sheet.yaml ]; then
     echo -e "Starting snakemake"
-    set +ue #turn off bash strict mode because snakemake and conda can't work with it properly
-    echo -e "pipeline_run:\n    identifier: ${UNIQUE_ID}" > profile/variables.yaml
-    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> profile/variables.yaml
-    eval $(parse_yaml profile/variables.yaml "config_")
-    if [ $LOCAL == "TRUE" ]; then
-        echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
-        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA \
---profile profile \
-${@} \n" >> profile/juno_call.txt
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile ${@}
-    else
-        echo -e "Juno call (this settings would overwrite any others in the configuration files): \n" > profile/juno_call.txt
-        echo -e "snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA \
---profile profile \
---drmaa  -q bio -n {threads} -R \'span[hosts=1]\'' \
---drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@} \n" >> profile/juno_call.txt
-        snakemake --config checkm=$CHECKM out=$OUTPUT_DIR genus=$GENUS_ALL metadata=$METADATA --profile profile --drmaa " -q bio -n {threads} -R \"span[hosts=1]\"" --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
-    fi
-    #echo -e "\nUnique identifier for this run is: $config_run_identifier "
-    echo -e "Juno run complete"
-    set -ue #turn bash strict mode back on
+    echo -e "pipeline_run:\n   identifier: ${UNIQUE_ID}" > "$LOG_ID_HOST"
+    echo -e "Server_host:\n    hostname: http://${SET_HOSTNAME}" >> "$LOG_ID_HOST"
+    eval $(parse_yaml ${LOG_ID_HOST} "config_")
 else
     echo -e "Sample_sheet.yaml could not be found"
     echo -e "This also means that the pipeline was unable to generate a new sample sheet for you"
     echo -e "Please inspect the input directory (${INPUT_DIR}) and make sure the right files are present"
     exit 1
 fi
+
+set +ue # Turn off bash strict mode to be able to use Snakemake + conda
+
+if [[ $LOCAL == "TRUE" ]]; then
+    if [[ $CORES == "NotProvided" ]]; then
+        CORES="4"
+    fi
+    echo "cores: ${CORES}" >>$PARAMETERS
+    snakemake --profile config --cores $CORES ${@}
+else
+    if [[ $CORES == "NotProvided" ]]; then
+        CORES="300"
+    fi
+    echo "cores: ${CORES}" >>$PARAMETERS
+    echo "queue: ${QUEUE}" >> $PARAMETERS
+    snakemake --profile config --cores $CORES \
+    --drmaa " -q ${QUEUE} -n {threads} \
+    -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
+    -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
+    -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
+    --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa ${@}
+fi
+
+set -ue
+echo -e "Juno run complete"
 
 exit 0 
