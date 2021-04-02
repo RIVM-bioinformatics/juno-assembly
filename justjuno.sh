@@ -1,5 +1,6 @@
 #!/bin/bash
 set -x
+set -e
 
 INPUT_DIR=$1
 OUTPUT_DIR=$2
