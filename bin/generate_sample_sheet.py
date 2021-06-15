@@ -32,13 +32,13 @@ def main(args):
     for file_ in args.dir.iterdir():
         if file_.is_dir():
             continue
-        if file_.stat().st_size > 3000:
-            match = fq_pattern.fullmatch(file_.name)
-            if match:
+        match = fq_pattern.fullmatch(file_.name)
+        if match:
+            if file_.stat().st_size > 3000:
                 sample = samples.setdefault(match.group(1), {})
                 sample["R{}".format(match.group(2))] = str(file_)
-        else:
-            small_files.append(str(file_))
+            else:
+                small_files.append(str(file_))
 
     if len(small_files) > 0:   
         warnings.warn("\n\n\033[91mThe following files are too small (<3000 bytes) and were not included in the analysis: \n-{}\033[0m\n\n".format('\n-'.join(small_files)))
