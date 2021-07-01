@@ -1,6 +1,22 @@
-## Juno pipeline
+<div align="center">
+    <h1>Juno-assembly</h1>
+    <br />
+    <h2>Pipeline to process bacterial raw sequencing data up to de-novo assembly and the accompanying statistics.</h2>
+    <br />
+    <img src="https://via.placeholder.com/150" alt="pipeline logo">
+</div>
 
-The goal of this pipeline is to generate assemblies from raw fastq files. The input of the pipeline is raw Illumina paired-end data in the form of two fastq files (with extension .fastq, .fastq.gz, .fq or .fq.gz), containing the forward and the reversed reads ('R1' and 'R2' must be part of the file name, respectively). On the basis of the generated genome assemblies, low quality and contaminated samples can be excluded for downstream analysis. __Note:__ The pipeline has been tested only in gastroenteric bacteria (_Salmonella_, _Shigella_, _Listeria_ and STEC) but it could theoretically be used in other genera/species.
+## Pipeline information
+
+* **Author(s):**            Alejandra Hernández Segura, Robert Verhagen and Ernst Hamer.
+* **Organization:**         Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
+* **Department:**           Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
+* **Start date:**           01 - 04 - 2020
+* **Commissioned by:**      Maaike van den Beld
+
+## About this project
+
+The goal of this pipeline is to generate assemblies from raw fastq files. The input of the pipeline is raw Illumina paired-end data (read length > 99 bp) in the form of two fastq files (with extension .fastq, .fastq.gz, .fq or .fq.gz), containing the forward and the reversed reads ('R1' and 'R2' must be part of the file name, respectively). On the basis of the generated genome assemblies, low quality and contaminated samples can be excluded for downstream analysis. __Note:__ The pipeline has been validated only in gastroenteric bacteria (_Salmonella_, _Shigella_, _Listeria_ and STEC) but it could theoretically be used in other genera/species.
 
 The pipeline uses the following tools:
 1. [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) (Andrews, 2010) is used to assess the quality of the raw Illumina reads
@@ -15,75 +31,95 @@ The pipeline uses the following tools:
 
 ![Image of pipeline](https://github.com/DennisSchmitz/BAC_gastro/blob/master/juno_pipeline.png)
 
-### Basic Usage
+## Prerequisities
 
-All input fastq files can be put in the raw_data folder, or an input folder can be otherwise specified. The most simple way to use the pipeline is:
+* **Linux + conda** A Linux-like environment with at least 'miniconda' installed. 
+* **Python3.7.6** .
 
-```
-bash juno -i <INPUT_DIR> -o <OUTPUT_DIR>
-```
 
-The pipeline guides you through the installation steps (if necessary). It first makes a sample sheet enlisting the samples and their corresponsing fastq files. Note that the pipeline expects that fastq files containing forward and reverse reads are recognized from each other by the name ('R1' and 'R2'. For instance: sampleX_R1.fastq.gz and sampleX_R2.fastq.gz). Make sure that your files follow that pattern!
+## Installation
 
-The pipeline will run the different steps of the pipeline and store the results of each of them in the output folder (default: out/). The output folder also contains logging information for every step of the pipeline (out/log/), for the jobs submitted to the cluster in which it was run (out/log/drmaa) and for the pipeline in general (out/results/). 
-
-__Note:__ The pipeline uses CheckM to calculate the coverage of the assembly. This step needs to use the genus as an input and it assumes that the genus is in a file in a specific location (_/data/BioGrid/NGSlab/BAC_in_house_NGS/In-house_NGS_selectie_2020.xlsx_) and that ont he first tab/sheet it contains at least 2 columns: "Monsternummer" (most coincide with the name of the samples that was used for demultiplexing) and "genus" (with the genus for that sample). If you do not get this to work or simply want to skip this step, then you can run the pipeline like this:
+1. Clone the repository:
 
 ```
-bash juno -i <INPUT_DIR> -o <OUTPUT_DIR> --no-checkm
+git clone https://github.com/RIVM-bioinformatics/Juno_pipeline.git
 ```
+Alternatively, you can download it manually as a zip file (you will need to unzip it then).
 
-### Getting help
-
-For getting more information about the usage and see all the options accepted by this pipeline you can type:
-
-```
-bash juno --help
-```
-An important thing to know is that __the pipeline only accepts genera that are supported by the CheckM database__. To get a full list of the genera that are accepted by CheckM, run this:
+2. Enter the directory with the pipeline and install the master environment:
 
 ```
-bash juno --help_genera
-```
-The pipeline relies on the [`snakemake`](https://snakemake.readthedocs.io/en/stable/) workflows. This tool has a lot of options that can be used. The BAC gastro pipeline is able to send commands to snakemake. Thereore, any argument that is not enlisted in the `--help` is sent to snakemake. If you want to see all the available options/arguments that snakemake accepts, type:
-
-```
-bash juno --snakemake-help
+cd Juno_pipeline
+conda env install -f envs/master_env.yaml
 ```
 
-### Advanced Usage
+## Parameters & Usage
 
-The pipeline also accepts different parameters that have different actions. For instance, you can do a dry-run in which every step the pipeline takes is enlisted, but without actually performing them.
+### Command for help
 
-```
-bash juno -i <INPUT_DIR> -n
-```
-You can also clean all the files produced in previous runs (deleting the out/, out/log/, sample_sheet.yaml, etc) by typing
+* ```-h, --help``` Shows the help of the pipeline
 
-```
-bash juno -i <INPUT_DIR> -o <OUTPUT_DIR> --clean
-```
+### Required parameters
 
-For other parameters, see the folloing table of options or call the `--help` option of this pipeline.
+* ```-i, --input``` Directory with the input (fasta) files. The fasta files should be all in this directory (no subdirectories) and have the extension '.fastq', '.fastq.gz', '.fq' or '.fq.gz'. Important, any very small file (smaller than 3 kilobytes) will be ignored and not included in the pipeline results since they are probably empty files.  
+* `--genus` Provide name of an approved genus to be used for CheckM. Please check --help-genera for a list of approved genera). Only one name is allowed, so if multiple samples are included in the input directory, it will be assumed that they all have the same genus. If different samples have different genus, then do not provide a `--genus` and use `--metadata` instead. If you prefer to avoid the hassle and just run the pipeline without needing the genus name, you can use the flag `no-checkm`. Keep in mind that the coverage of the assembly and other stats calculated by CheckM will not be obtained.
 
-| __PARAMETER__ | __DESCRIPTION__ |
+### Optional parameters
+
+* `-m --metadata` Excel file (.xlsx) containing the information of the samples and their corresponding genus. It should contain at least a column called 'Monsternummer' containing the sample ID (same name than fastq files but removing the suffix _R1|2.fastq.gz) and another one called 'genus' containing the name of the genus. Mind the capital in the name 'Monsternummer'. Default is: /data/BioGrid/NGSlab/BAC_in_house_NGS/In- house_NGS_selectie_2021.xlsx (used at RIVM). An example metadata would be:
+
+| __Monsternummer__ | __genus__ |
 | :---: | :--- |
-| __Input:__ | |
-| -i, --input [DIR] | This is the folder containing your input fastq files. Default is raw_data/ |
-| -o, --output [DIR] | This is the folder where the results will be stored. It will be created if it does not exist. Default is out/ |
-| __Output (automatically generated):__ | |                                                                                   
-| out/ | Contains dir contains the results of every step of the pipeline |
-| out/log/ | Contains the log files for every step of the pipeline |
-| out/log/drmaa | Contains the .out and .err files of every job sent to the grid/cluster |
-| out/log/results | Contains the log files and parameters that the pipeline used for the current run |
-| __Parameters:__ | |
-| -h, --help | Print the help document |
-| --help-genera | Prints list of accepted genera for this pipeline (based on CheckM list) |
-| -sh, --snakemake-help | Print the snakemake help document |
-| --clean (-y) | Removes output (-y forces "Yes" on all prompts) |
-| --no-checkm	|	Not run CheckM or update the genus database from CheckM |
-| --no-genus-update	|	Not update the genus database from CheckM |
-| -n, --dry-run | Useful snakemake command that displays the steps to be performed without actually executing them. Useful to spot any potential issues while running the pipeline |
-| -u, --unlock | Unlocks the working directory. A directory is locked when a run ends abruptly and it prevents you from doing subsequent analyses on that directory until it gets unlocked |
-| Other snakemake parameters | Any other parameters will be passed to snakemake. Read snakemake help (-sh) to see the options |
+| sample1 | Salmonella |
 
+*Note:* The fastq files corresponding to this sample would probably be something like sample1_S1_R1_0001.fastq.gz and sample1_S1_R2_0001.fastq.gz.
+
+* `--no-checkm` If present, this flag tells the pipeline to not run CheckM or update the genus database from CheckM.
+* ```-o --output``` Directory (if not existing it will be created) where the output of the pipeline will be collected. The default behavior is to create a folder called 'output' within the pipeline directory. 
+* ```-c --cores```  Maximum number of cores to be used to run the pipeline. Defaults to 300 (it assumes you work in an HPC cluster).
+* ```-l --local```  If this flag is present, the pipeline will be run locally (not attempting to send the jobs to a cluster). Keep in mind that if you use this flag, you also need to adjust the number of cores (for instance, to 2) to avoid crashes. The default is to assume that you are working on a cluster because the pipeline was developed in an environment where it is the case.
+* ```-q --queue```  If you are running the pipeline in a cluster, you need to provide the name of the queue. It defaults to 'bio' (default queue at the RIVM). 
+* ```-n --dryrun```, ```-u --unlock``` and ```--rerunincomplete``` are all parameters passed to Snakemake. If you want the explanation of these parameters, please refer to the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/).
+
+### The base command to run this program. 
+
+```
+bash juno -i [path/to/input/dir] -o [path/to/output/dir] --genus [genus]
+```
+
+### An example on how to run the pipeline.
+
+```
+bash juno -i my_data -o my_results --genus Salmonella --local --cores 2
+```
+
+## Explanation of the output
+
+* **log:** Log files with output and error files from each Snakemake rule/step that is performed. 
+* **audit_trail:** Information about the versions of software and databases used.
+* **output per sample:** The pipeline will create one subfolder per each step performed. These subfolders will in turn contain the results per sample and/or one with results combined for all samples (if applicable). To understand the ouptut, please refer to the manuals of each individual tool. The generated subfolders are:
+    - clean_fastq: contains the fastq files after filtering low quality reads and trimming ends and/or adapters. This is what you would use in downstream analyses that require fastq files as input.
+    - de_novo_assembly: results from the assembly step without filtering out the small contigs.
+    - de_novo_assembly_filtered: results from the assembly step containing only contigs larger than 500bp. This is what you would normally use in downstream analyses that require assembly (fasta files) as input.
+    - multiqc: MultiQC report for all samples run.
+    - qc_clean_fastq: results of the quality control for fastq files. Run after filtering and trimming.
+    - qc_de_novo_assembly: results of the quality control of the assemblies. Includes results of different tools (refer to those tools for interpretation).
+    - qc_raw_fastq: results of the quality control for fastq files. Run before filtering and trimming. 
+        
+## Issues  
+
+* All default values have been chosen to work with the RIVM Linux environment, therefore, there might not be applicable to other environments (although they should work if the appropriate arguments/parameters are given).
+* Any issue can be reported in the [Issues section](https://github.com/RIVM-bioinformatics/Juno_pipeline/issues) of this repository.
+
+## Future ideas for this pipeline
+
+* Containerize.
+* Improve the wrapper.
+* Give the possibility to change more of the default parameters.
+
+## License
+This pipeline is licensed with an AGPL3 license. Detailed information can be found inside the 'LICENSE' file in this repository.
+
+## Contact
+* **Contact person:**       Alejandra Hernández Segura
+* **Email**                 alejandra.hernandez.segura@rivm.nl

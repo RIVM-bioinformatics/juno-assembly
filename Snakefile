@@ -50,7 +50,8 @@ OUT = config["out"]
 
 # Decision whether to run checkm or not
 checkm_decision = config["checkm"]
-genus_all = config["genus"]
+# Genus needs to be with first capital to match with CheckM
+genus_all = config["genus"].capitalize()
 metadata = config["metadata"]
 
 if checkm_decision is True :
@@ -59,11 +60,11 @@ if checkm_decision is True :
     with open(config["genuslist"]) as file_in:
         for line in file_in:
             if "genus" in line:
-                genuslist.append((line.split()[1].lower().strip()))
+                genuslist.append((line.split()[1].strip()))
     
     # If genus for all samples was provided, use it. Otherwise read it from the In-house_NGS_selectie_2020.xlsx file
-    if genus_all != 'NotProvided':
-        if genus_all.lower() in genuslist: 
+    if genus_all != 'Notprovided':
+        if genus_all.capitalize() in genuslist: 
             for sample, value in SAMPLES.items():
                 SAMPLES[sample] = [value, genus_all]
         else:
@@ -100,7 +101,7 @@ if checkm_decision is True :
         #search samples in genus dict and add genus to the SAMPLES dict
         for sample, value in SAMPLES.items():
             if str(sample) in genus_dict:
-                if str(genus_dict[sample]).lower() in genuslist:
+                if str(genus_dict[sample]) in genuslist:
                     SAMPLES[sample] = [value,genus_dict[sample]]
     
                 # Genus not recognized by checkM

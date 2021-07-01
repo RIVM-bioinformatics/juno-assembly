@@ -1,5 +1,6 @@
 .snakemake
 out
+output
 raw_data
 sample_sheet.yaml
 config/variables.yaml

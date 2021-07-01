@@ -15,7 +15,7 @@ Input:
                                     fastq files. Default 
                                     is raw_data/
   -o, --output [DIR]                This is the folder containing your output 
-                                    files. Default is out/
+                                    files. Default is output/
                                     
   --genus [STR]                     Provide name of an approved genus to be used
                                     for CheckM. Please check --help-genera for a 
