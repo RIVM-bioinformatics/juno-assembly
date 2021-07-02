@@ -4,7 +4,7 @@
 
 rule checkm:
     input:
-        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample=SAMPLES)
+        OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
     output:
         result = OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv",
         tmp_dir1 = temp(directory(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/bins")),

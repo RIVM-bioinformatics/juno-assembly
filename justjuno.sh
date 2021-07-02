@@ -35,7 +35,8 @@ mamba env update -f $PATH_MASTER_YAML -q -v
 source activate $MASTER_NAME
 
 python bin/generate_sample_sheet.py "${INPUT_DIR}" > sample_sheet.yaml
-
+small_files=$(python bin/generate_sample_sheet.py ../210507_NB502001_0214_AHVG2HAFX2_0009/ 2>&1 1>/dev/null)
+    
 UNIQUE_ID=$(bin/include/generate_id.sh)
 SET_HOSTNAME=$(bin/include/gethostname.sh)
 VERSION=$(git log -n 1 --pretty=format:"%H")
@@ -60,3 +61,8 @@ snakemake --profile config --cores 300 \
     -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
     -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
     --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
+
+RESULT=$?
+echo $small_files
+
+exit $RESULT

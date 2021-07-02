@@ -50,7 +50,9 @@ rule run_de_novo_assembly:
             -s {input.fastq_unpaired} \
             -o {params.output_dir:q} \
             -k {params.kmersizes} \
-            -m {params.max_GB_RAM} > {log:q}
-            seqtk seq {output.all_scaffolds} 2>> {log} |\
+            -m {params.max_GB_RAM} \
+            -t {threads} > {log:q}
+        
+        seqtk seq {output.all_scaffolds} 2>> {log} |\
             gawk -F "_" '/^>/ {{if ($4 >= {params.minlength}) {{print $0; getline; print $0}};}}' 2>> {log} 1> {output.filt_scaffolds} 
         """

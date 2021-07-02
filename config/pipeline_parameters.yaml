@@ -47,10 +47,10 @@ threads:
 mem_mb:
     parsing: 4000
     trimmomatic: 12000
-    picard: 6000 #
-    spades: 10000 #
+    picard: 12000
+    spades: 100000
     pileup: 6000
     multiqc: 8000
-    checkm: 10000 #
+    checkm: 12000
     quast: 8000
     fastqc: 8000

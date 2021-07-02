@@ -1,6 +1,6 @@
-[2021-02-04 13:57:38] INFO: CheckM v1.1.2
-[2021-02-04 13:57:38] INFO: checkm taxon_list
-[2021-02-04 13:57:38] INFO: [CheckM - taxon_list] Listing available taxonomic-specific marker sets.
+[2021-07-01 15:55:32] INFO: CheckM v1.1.2
+[2021-07-01 15:55:32] INFO: checkm taxon_list
+[2021-07-01 15:55:32] INFO: [CheckM - taxon_list] Listing available taxonomic-specific marker sets.
 
 ------------------------------------------------------------------------------------------------------------
   Rank      Taxon                                               # genomes   # marker genes   # marker sets  
@@ -1433,4 +1433,4 @@
   species   Yersinia pseudotuberculosis                             4            1975             263       
   species   Zymomonas mobilis                                       3            1142             133       
 ------------------------------------------------------------------------------------------------------------
-[2021-02-04 13:57:44] INFO: { Current stage: 0:00:05.686 || Total: 0:00:05.686 }
+[2021-07-01 15:55:38] INFO: { Current stage: 0:00:06.290 || Total: 0:00:06.290 }

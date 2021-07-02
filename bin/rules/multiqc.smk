@@ -5,7 +5,7 @@
 rule multiqc:
     input:
         expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = "R1 R2".split()),
-        expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = "pR1 pR2 uR1 uR2".split()),
+        expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = "pR1 pR2".split()),
         OUT + "/qc_de_novo_assembly/quast/report.tsv",
         OUT + "/qc_de_novo_assembly/checkm/checkm_report.tsv",
         expand(OUT + "/log/clean_fastq/clean_fastq_{sample}.log", sample = SAMPLES),
