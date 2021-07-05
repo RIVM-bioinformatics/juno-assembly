@@ -22,7 +22,7 @@ import re
 import yaml
 import warnings
 
-fq_pattern = re.compile("(.*?)(?:_S\d+_|_S\d+.|_|\.)R?(1|2)(?:_.*\.|\..*\.|\.)f(ast)?q(\.gz)?")
+fq_pattern = re.compile("(.*?)(?:_S\d+_|_S\d+\.|_|\.)R?(1|2)(?:_.*\.|\..*\.|\.)f(ast)?q(\.gz)?")
 
 min_file_size = 3000
 
