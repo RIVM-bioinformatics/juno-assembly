@@ -4,6 +4,7 @@ out
 output
 raw_data
 envs/src/
+unused/
 
 # Files to ignore
 sample_sheet.yaml
