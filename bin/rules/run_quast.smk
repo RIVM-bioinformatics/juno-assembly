@@ -11,7 +11,7 @@ rule run_quast_combined:
     conda:
         "../../envs/quast.yaml"
     threads: config["threads"]["quast"],
-    resources: mem_mb=config["mem_mb"]["quast"]
+    resources: mem_gb=config["mem_gb"]["quast"]
     params:
         output_dir = OUT + "/qc_de_novo_assembly/quast"
     log:

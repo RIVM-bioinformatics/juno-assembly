@@ -59,7 +59,7 @@ snakemake --profile config --cores 300 \
     --drmaa " -n {threads} \
     -o ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.out \
     -e ${OUTPUT_DIR}/log/drmaa/{name}_{wildcards}_{jobid}.err \
-    -R \"span[hosts=1] rusage[mem={resources.mem_mb}]\" "  \
+    -R \"span[hosts=1] rusage[mem={resources.mem_gb}]\" "  \
     --drmaa-log-dir ${OUTPUT_DIR}/log/drmaa
 
 RESULT=$?

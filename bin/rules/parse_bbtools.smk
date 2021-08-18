@@ -8,7 +8,7 @@ rule parse_bbtools:
     output:
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
     threads: config["threads"]["parsing"]
-    resources: mem_mb=config["mem_mb"]["parsing"]
+    resources: mem_gb=config["mem_gb"]["parsing"]
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_combined.log"
     script:

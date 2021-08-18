@@ -14,10 +14,8 @@ rule multiqc:
         OUT + "/multiqc/multiqc.html",
     conda:
         "../../envs/multiqc.yaml"
-    benchmark:
-        OUT + "/log/benchmark/multiqc.txt"
     threads: config["threads"]["multiqc"]
-    resources: mem_mb=config["mem_mb"]["multiqc"]
+    resources: mem_gb=config["mem_gb"]["multiqc"]
     params:
         config_file="files/multiqc_config.yaml",
         output_dir=OUT + "/multiqc"

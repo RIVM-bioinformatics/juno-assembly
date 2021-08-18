@@ -21,10 +21,8 @@ rule picard_insert_size:
         "../../envs/scaffold_analyses.yaml"
     log:
         OUT + "/log/picard_insert_size/picard_insert_size_{sample}.log"
-    benchmark:
-        OUT + "/log/benchmark/picard_insert_size_{sample}.txt"
     threads: config["threads"]["picard"],
-    resources: mem_mb=config["mem_mb"]["picard"]
+    resources: mem_gb=config["mem_gb"]["picard"]
     shell:
         """
 bwa index {input.fasta} > {log} 2>&1

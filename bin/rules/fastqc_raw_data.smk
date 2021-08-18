@@ -4,16 +4,14 @@
 
 rule qc_raw_fastq:
     input:
-        lambda wildcards: SAMPLES[wildcards.sample][0][wildcards.read],
+        lambda wildcards: SAMPLES[wildcards.sample][wildcards.read],
     output:
         html = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.html",
         zip = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip"
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
-    benchmark:
-        OUT + "/log/benchmark/qc_raw_fastq_{sample}_{read}.txt"
     threads: config["threads"]["fastqc"]
-    resources: mem_mb=config["mem_mb"]["fastqc"]
+    resources: mem_gb=config["mem_gb"]["fastqc"]
     log:
         OUT + "/log/qc_raw_fastq/qc_raw_fastq_{sample}_{read}.log"
     params:

@@ -1,8 +1,13 @@
-.snakemake
+# Folders to ignore
+.snakemake/
 out
 output
 raw_data
+envs/src/
+
+# Files to ignore
 sample_sheet.yaml
+config/sample_sheet.yaml
 config/variables.yaml
 config/juno_call.txt 
 config/user_parameters.yaml

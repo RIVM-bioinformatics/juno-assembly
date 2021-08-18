@@ -13,17 +13,14 @@ rule pileup_contig_metrics:
         "../../envs/scaffold_analyses.yaml"
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_{sample}.log"
-    benchmark:
-        OUT + "/log/benchmark/pileup_contig_metrics_{sample}.txt"
     threads: config["threads"]["pileup"]
-    resources: mem_mb=config["mem_mb"]["pileup"]
+    resources: mem_gb=config["mem_gb"]["pileup"]
     shell:
         """
 pileup.sh in={input.bam} \
-ref={input.fasta} \
-out={output.perScaffold} \
-secondary=f \
-samstreamer=t > {log} 2>&1
-cp {log} {output.summary}
+    ref={input.fasta} \
+    out={output.perScaffold} \
+    secondary=f \
+    samstreamer=t > {output.summary} 2> {log}
         """
 

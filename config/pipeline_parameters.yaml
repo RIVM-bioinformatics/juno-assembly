@@ -44,13 +44,13 @@ threads:
     quast: 4
     fastqc: 1
 
-mem_mb:
-    parsing: 4000
-    trimmomatic: 12000
-    picard: 12000
-    spades: 100000
-    pileup: 6000
-    multiqc: 8000
-    checkm: 12000
-    quast: 8000
-    fastqc: 8000
+mem_gb:
+    parsing: 4
+    trimmomatic: 12
+    picard: 12
+    spades: 100
+    pileup: 6
+    multiqc: 8
+    checkm: 12
+    quast: 8
+    fastqc: 8

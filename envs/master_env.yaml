@@ -1,17 +1,16 @@
-name: juno_mmaster
+name: juno_assembly
 channels:
-  - bioconda
-  - conda-forge
   - anaconda
+  - bioconda
+  - biocore
+  - conda-forge
   - defaults
 dependencies:
+  - snakemake==6.6.1
   - mamba
-  - snakemake==5.20.1
-  - drmaa==0.7.9
-  - xlrd==1.2.0
-  - git==2.21.0
+  - git
   - pip==19.2.3
   - pandas==1.1.0
   - pip:
-    - PyYAML==5.3.1
-
+    - numpy
+    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.1.0#egg=Juno-bacteriology-pipelines"
