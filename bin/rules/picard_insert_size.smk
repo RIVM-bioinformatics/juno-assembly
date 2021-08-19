@@ -19,6 +19,8 @@ rule picard_insert_size:
         pdf=OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_histogram.pdf"
     conda:
         "../../envs/scaffold_analyses.yaml"
+    container:
+        "docker://quay.io/biocontainers/picard:2.25.7--hdfd78af_0"
     log:
         OUT + "/log/picard_insert_size/picard_insert_size_{sample}.log"
     threads: config["threads"]["picard"],

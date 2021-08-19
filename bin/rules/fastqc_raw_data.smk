@@ -10,6 +10,8 @@ rule qc_raw_fastq:
         zip = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip"
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
+    container:
+        "biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]
     resources: mem_gb=config["mem_gb"]["fastqc"]
     log:

@@ -32,6 +32,8 @@ rule run_de_novo_assembly:
         splog=temp(OUT + "/de_novo_assembly/{sample}/spades.log")
     conda:
         "../../envs/spades.yaml"
+    container:
+        "quay.io/biocontainers/spades:3.15.3--h95f258a_0"
     threads: config["threads"]["spades"],
     resources: mem_gb=config["mem_gb"]["spades"]
     params:

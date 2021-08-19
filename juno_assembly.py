@@ -18,7 +18,7 @@ import sys
 import warnings
 import yaml
 
-class JunoAssemblyRun():
+class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
     """Class with the arguments and specifications that are only for the 
     Juno_assembly pipeline but inherit from PipelineStartup and RunSnakemake
     """
@@ -45,12 +45,30 @@ class JunoAssemblyRun():
 
         # Pipeline attributes
         self.pipeline_info = {'pipeline_name': "Juno_assembly",
-                                'pipeline_version': "0.1"}
+                                'pipeline_version': "2.0"}
         self.snakefile = "Snakefile"
         self.sample_sheet = "config/sample_sheet.yaml"
+        self.sing_input_dir = "input"
+        self.output_dir = output_dir
+        self.sing_output_dir = "output"
+        self.workdir = pathlib.Path(__file__).parent.absolute()
+        self.useconda = True
+        self.usesingularity = False
+        self.user_parameters = pathlib.Path("config/user_parameters.yaml")
+        self.restarttimes = 0  
+        self.supported_genera=[]
+        with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:
+            for line in file_:
+                genus_name = line.replace('\n', '').lower()
+                self.supported_genera.append(genus_name)
+
         self.input_dir = pathlib.Path(input_dir)
+        self.output_dir = output_dir
+        self.singularityargs = f"--bind {self.output_dir}:{self.sing_output_dir} --bind {self.input_dir}:{self.sing_input_dir}"
+        
         if genus is not None:
-            self.genus = genus.lower()
+            self.genus = genus.strip().lower()
+            self.__check_genus_is_supported(self.genus)
         else:
             self.genus = None
         self.output_dir = pathlib.Path(output_dir)
@@ -58,18 +76,6 @@ class JunoAssemblyRun():
             self.metadata = pathlib.Path(metadata)
         else:
             self.metadata = None
-        self.workdir = pathlib.Path(__file__).parent.absolute()
-        self.useconda = True
-        self.usesingularity = False
-        self.singularityargs = ""
-        self.user_parameters = pathlib.Path("config/user_parameters.yaml")
-        self.output_dir = output_dir
-        self.restarttimes = 1  
-        self.supported_genera=[]
-        with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:
-            for line in file_:
-                genus_name = line.replace('\n', '').lower()
-                self.supported_genera.append(genus_name)
         
         self.startup = self.start_pipeline()
         self.user_params = self.write_userparameters()
@@ -92,25 +98,32 @@ class JunoAssemblyRun():
         self.successful_run = snakemake_run.run_snakemake()
         assert self.successful_run, f'Please check the log files'
 
+    def __check_genus_is_supported(self, genus):
+        if genus.lower() in self.supported_genera:
+            return True
+        else:
+            raise ValueError(
+                self.error_formatter(
+                    f'The genus {genus} is not supported. You can leave the "genus" empty for samples with unsupported genera.'
+                    )
+                )
 
     def add_metadata(self, samples_dic):
         assert self.metadata.is_file(), f"Provided metadata file ({self.metadata}) does not exist"
         # Load species file
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            species_dic = pd.read_excel(self.metadata, usecols=['Sample', 'Genus'], index_col=0)
+            species_dic = pd.read_csv(self.metadata, usecols=['Sample', 'Genus'], index_col=0)
         species_dic.index = species_dic.index.map(str)
-        species_dic['Genus'] = species_dic['Genus'].apply(lambda x: x.lower())
+        species_dic['Genus'] = species_dic['Genus'].apply(lambda x: x.strip().lower())
         species_dic = species_dic.transpose().to_dict()
         # Update dictionary with species
         for sample_name in samples_dic :
-            if species_dic[sample_name]['Genus'] in self.supported_genera:
-                try:
-                    samples_dic[sample_name]['genus'] =  species_dic[sample_name]['Genus']
-                except KeyError :
-                    pass
-            else:
-                raise ValueError(f'The genus {species_dic[sample_name]["Genus"]} is not supported. You can leave the "genus" empty for samples with unsupported genera.')
+            try:
+                self.__check_genus_is_supported(species_dic[sample_name]['Genus'])
+                samples_dic[sample_name]['genus'] =  species_dic[sample_name]['Genus']
+            except KeyError :
+                pass
 
     def start_pipeline(self):
         """Function to start the pipeline (some steps from PipelineStartup 

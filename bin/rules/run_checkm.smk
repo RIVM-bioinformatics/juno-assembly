@@ -11,12 +11,14 @@ rule checkm:
         tmp_dir2 = temp(directory(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/storage"))
     conda:
         "../../envs/checkm.yaml"
+    container:
+        "quay.io/biocontainers/checkm-genome:1.1.3--py_1"
     threads: config["threads"]["checkm"],
     resources: mem_gb=config["mem_gb"]["checkm"]
     params:
         input_dir=OUT + "/de_novo_assembly/{sample}/",
         output_dir=OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}",
-        genus = lambda wildcards: SAMPLES[wildcards.sample]['genus'].capitalize(),
+        genus = lambda wildcards: SAMPLES[wildcards.sample]['genus'],
     log:
         OUT + "/log/qc_de_novo_assembly/checkm_{sample}.log"
     shell:
@@ -27,7 +29,9 @@ if [ "{params.genus}" == "None" ];then
     mkdir -p {output.tmp_dir2}
     echo "No genus was provided and therefore checkm was skipped" > {log}
 else
-    checkm taxonomy_wf genus "{params.genus}" \
+    genus_capitalized={params.genus}
+    genus_capitalized=${{genus_capitalized^}}
+    checkm taxonomy_wf genus "${{genus_capitalized}}" \
         {params.input_dir} \
         {params.output_dir} \
         -t {threads} \

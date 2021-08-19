@@ -11,6 +11,8 @@ rule pileup_contig_metrics:
         perScaffold = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv",
     conda:
         "../../envs/scaffold_analyses.yaml"
+    container:
+        "biocontainers/fastqc:v0.11.9_cv8"
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_{sample}.log"
     threads: config["threads"]["pileup"]

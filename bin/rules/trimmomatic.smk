@@ -13,6 +13,8 @@ rule clean_fastq:
         joined_unpaired=OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz"
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
+    container:
+        "biocontainers/trimmomatic:v0.38dfsg-1-deb_cv1"
     threads: config["threads"]["trimmomatic"]
     resources: mem_gb=config["mem_gb"]["trimmomatic"]
     log:

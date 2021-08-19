@@ -13,6 +13,8 @@ rule qc_clean_fastq:
         zip2 = OUT + "/qc_clean_fastq/{sample}_pR2_fastqc.zip"
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
+    container:
+        "biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]
     resources: mem_gb=config["mem_gb"]["fastqc"]
     log:

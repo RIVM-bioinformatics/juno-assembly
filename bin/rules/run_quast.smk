@@ -10,6 +10,8 @@ rule run_quast_combined:
         OUT + "/qc_de_novo_assembly/quast/report.tsv"
     conda:
         "../../envs/quast.yaml"
+    container:
+        "quay.io/biocontainers/quast:3.2"
     threads: config["threads"]["quast"],
     resources: mem_gb=config["mem_gb"]["quast"]
     params:
