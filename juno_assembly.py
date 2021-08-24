@@ -53,7 +53,7 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
         self.useconda = False
         self.usesingularity = True
         self.user_parameters = pathlib.Path("config/user_parameters.yaml")
-        self.restarttimes = 0 
+        self.restarttimes = 1 
         self.latency_wait = 90
         self.supported_genera=[]
         with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:

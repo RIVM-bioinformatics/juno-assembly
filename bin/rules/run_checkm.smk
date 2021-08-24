@@ -19,7 +19,7 @@ rule checkm:
     params:
         input_dir=OUT + "/de_novo_assembly/{sample}/",
         output_dir=OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}",
-        genus = lambda wildcards: SAMPLES[wildcards.sample]['genus'],
+        genus = lambda wildcards: SAMPLES[wildcards.sample]['genus']
     log:
         OUT + "/log/qc_de_novo_assembly/checkm_{sample}.log"
     shell:
@@ -36,7 +36,7 @@ else
         {params.input_dir} \
         {params.output_dir} \
         -t {threads} \
-        -x scaffolds.fasta > {output.result}
+        -x contigs.fasta > {output.result} #TODO: Change to scaffolds.fasta when bug with empty unpaired is solved
     mv {params.output_dir}/checkm.log {log}
 fi
         """

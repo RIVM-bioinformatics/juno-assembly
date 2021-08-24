@@ -55,37 +55,41 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
     
     def test_junoassembly_dryrun(self):
         """Testing the pipeline runs properly as a dry run"""
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
-                                    metadata= None,
-                                    output_dir = pathlib.Path('test_output'), 
-                                    dryrun = True)
-        expected_sample_sheet = {'sample1': {'R1': 'fake_dir_wsamples/sample1_R1.fastq',
-                                            'R2': 'fake_dir_wsamples/sample1_R2.fastq.gz',
+        input_dir = 'fake_dir_wsamples'
+        full_input_dir = str(pathlib.Path(input_dir).resolve())
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
+                                                        metadata= None,
+                                                        output_dir = pathlib.Path('test_output'), 
+                                                        dryrun = True)
+        expected_sample_sheet = {'sample1': {'R1': f'{full_input_dir}/sample1_R1.fastq',
+                                            'R2': f'{full_input_dir}/sample1_R2.fastq.gz',
                                             'genus': None},
-                                'sample2': {'R1': 'fake_dir_wsamples/sample2_R1_filt.fq',
-                                            'R2': 'fake_dir_wsamples/sample2_R2_filt.fq.gz',
+                                'sample2': {'R1': f'{full_input_dir}/sample2_R1_filt.fq',
+                                            'R2': f'{full_input_dir}/sample2_R2_filt.fq.gz',
                                             'genus': None},
-                                '1234': {'R1': 'fake_dir_wsamples/1234_R1.fastq.gz',
-                                            'R2': 'fake_dir_wsamples/1234_R2.fastq.gz',
+                                '1234': {'R1': f'{full_input_dir}/1234_R1.fastq.gz',
+                                            'R2': f'{full_input_dir}/1234_R2.fastq.gz',
                                             'genus': None} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.startup.sample_dict, expected_sample_sheet, pipeline_dry_run.startup.sample_dict)
 
     def test_junoassembly_dryrun_if_genus_provided(self):
         """Testing the pipeline runs properly as a dry run"""
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
-                                    metadata= None,
-                                    genus='salmonella',
-                                    output_dir = pathlib.Path('test_output'), 
-                                    dryrun = True)
-        expected_sample_sheet = {'sample1': {'R1': 'fake_dir_wsamples/sample1_R1.fastq',
-                                            'R2': 'fake_dir_wsamples/sample1_R2.fastq.gz',
+        input_dir = 'fake_dir_wsamples'
+        full_input_dir = str(pathlib.Path(input_dir).resolve())
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
+                                                        metadata= None,
+                                                        genus='salmonella',
+                                                        output_dir = pathlib.Path('test_output'), 
+                                                        dryrun = True)
+        expected_sample_sheet = {'sample1': {'R1': f'{full_input_dir}/sample1_R1.fastq',
+                                            'R2': f'{full_input_dir}/sample1_R2.fastq.gz',
                                             'genus': 'salmonella'},
-                                'sample2': {'R1': 'fake_dir_wsamples/sample2_R1_filt.fq',
-                                            'R2': 'fake_dir_wsamples/sample2_R2_filt.fq.gz',
+                                'sample2': {'R1': f'{full_input_dir}/sample2_R1_filt.fq',
+                                            'R2': f'{full_input_dir}/sample2_R2_filt.fq.gz',
                                             'genus': 'salmonella'},
-                                '1234': {'R1': 'fake_dir_wsamples/1234_R1.fastq.gz',
-                                            'R2': 'fake_dir_wsamples/1234_R2.fastq.gz',
+                                '1234': {'R1': f'{full_input_dir}/1234_R1.fastq.gz',
+                                            'R2': f'{full_input_dir}/1234_R2.fastq.gz',
                                             'genus': 'salmonella'} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.startup.sample_dict, expected_sample_sheet, pipeline_dry_run.startup.sample_dict)
@@ -96,18 +100,20 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         """
         pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').unlink()
         pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').unlink()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
-                                    metadata= 'fake_dir_wsamples/fake_metadata.csv',
+        input_dir = 'fake_dir_wsamples'
+        full_input_dir = str(pathlib.Path(input_dir).resolve())
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
+                                    metadata= f'{full_input_dir}/fake_metadata.csv',
                                     output_dir = pathlib.Path('test_output'), 
                                     dryrun = True)
-        expected_sample_sheet = {'sample1': {'R1': 'fake_dir_wsamples/sample1_R1.fastq',
-                                            'R2': 'fake_dir_wsamples/sample1_R2.fastq.gz',
+        expected_sample_sheet = {'sample1': {'R1': f'{full_input_dir}/sample1_R1.fastq',
+                                            'R2': f'{full_input_dir}/sample1_R2.fastq.gz',
                                             'genus': 'salmonella'},
-                                'sample2': {'R1': 'fake_dir_wsamples/sample2_R1_filt.fq',
-                                            'R2': 'fake_dir_wsamples/sample2_R2_filt.fq.gz',
+                                'sample2': {'R1': f'{full_input_dir}/sample2_R1_filt.fq',
+                                            'R2': f'{full_input_dir}/sample2_R2_filt.fq.gz',
                                             'genus': 'escherichia'},
-                                '1234': {'R1': 'fake_dir_wsamples/1234_R1.fastq.gz',
-                                            'R2': 'fake_dir_wsamples/1234_R2.fastq.gz',
+                                '1234': {'R1': f'{full_input_dir}/1234_R1.fastq.gz',
+                                            'R2': f'{full_input_dir}/1234_R2.fastq.gz',
                                             'genus': 'campylobacter'} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.startup.sample_dict, expected_sample_sheet, pipeline_dry_run.startup.sample_dict)
@@ -120,22 +126,24 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').touch(exist_ok = True)
         pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').touch(exist_ok = True)
         
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
+        input_dir = 'fake_dir_wsamples'
+        full_input_dir = str(pathlib.Path(input_dir).resolve())
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
                                     metadata= 'fake_dir_wsamples/fake_metadata.csv',
                                     genus='salmonella',
                                     output_dir = pathlib.Path('test_output'), 
                                     dryrun = True)
-        expected_sample_sheet = {'sample1': {'R1': 'fake_dir_wsamples/sample1_R1.fastq',
-                                            'R2': 'fake_dir_wsamples/sample1_R2.fastq.gz',
+        expected_sample_sheet = {'sample1': {'R1': f'{full_input_dir}/sample1_R1.fastq',
+                                            'R2': f'{full_input_dir}/sample1_R2.fastq.gz',
                                             'genus': 'salmonella'},
-                                'sample2': {'R1': 'fake_dir_wsamples/sample2_R1_filt.fq',
-                                            'R2': 'fake_dir_wsamples/sample2_R2_filt.fq.gz',
+                                'sample2': {'R1': f'{full_input_dir}/sample2_R1_filt.fq',
+                                            'R2': f'{full_input_dir}/sample2_R2_filt.fq.gz',
                                             'genus': 'escherichia'},
-                                '1234': {'R1': 'fake_dir_wsamples/1234_R1.fastq.gz',
-                                            'R2': 'fake_dir_wsamples/1234_R2.fastq.gz',
+                                '1234': {'R1': f'{full_input_dir}/1234_R1.fastq.gz',
+                                            'R2': f'{full_input_dir}/1234_R2.fastq.gz',
                                             'genus': 'campylobacter'},
-                                'missingsamp': {'R1': 'fake_dir_wsamples/missingsamp_1.fastq',
-                                            'R2': 'fake_dir_wsamples/missingsamp_2.fastq',
+                                'missingsamp': {'R1': f'{full_input_dir}/missingsamp_1.fastq',
+                                            'R2': f'{full_input_dir}/missingsamp_2.fastq',
                                             'genus': 'salmonella'} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.startup.sample_dict, expected_sample_sheet, pipeline_dry_run.startup.sample_dict)
@@ -147,21 +155,23 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         """
         pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').touch(exist_ok = True)
         pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').touch(exist_ok = True)
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
+        input_dir = 'fake_dir_wsamples'
+        full_input_dir = str(pathlib.Path(input_dir).resolve())
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir,
                                     metadata= 'fake_dir_wsamples/fake_metadata.csv',
                                     output_dir = pathlib.Path('test_output'), 
                                     dryrun = True)
-        expected_sample_sheet = {'sample1': {'R1': 'fake_dir_wsamples/sample1_R1.fastq',
-                                            'R2': 'fake_dir_wsamples/sample1_R2.fastq.gz',
+        expected_sample_sheet = {'sample1': {'R1': f'{full_input_dir}/sample1_R1.fastq',
+                                            'R2': f'{full_input_dir}/sample1_R2.fastq.gz',
                                             'genus': 'salmonella'},
-                                'sample2': {'R1': 'fake_dir_wsamples/sample2_R1_filt.fq',
-                                            'R2': 'fake_dir_wsamples/sample2_R2_filt.fq.gz',
+                                'sample2': {'R1': f'{full_input_dir}/sample2_R1_filt.fq',
+                                            'R2': f'{full_input_dir}/sample2_R2_filt.fq.gz',
                                             'genus': 'escherichia'},
-                                '1234': {'R1': 'fake_dir_wsamples/1234_R1.fastq.gz',
-                                            'R2': 'fake_dir_wsamples/1234_R2.fastq.gz',
+                                '1234': {'R1': f'{full_input_dir}/1234_R1.fastq.gz',
+                                            'R2': f'{full_input_dir}/1234_R2.fastq.gz',
                                             'genus': 'campylobacter'},
-                                'missingsamp': {'R1': 'fake_dir_wsamples/missingsamp_1.fastq',
-                                            'R2': 'fake_dir_wsamples/missingsamp_2.fastq',
+                                'missingsamp': {'R1': f'{full_input_dir}/missingsamp_1.fastq',
+                                            'R2': f'{full_input_dir}/missingsamp_2.fastq',
                                             'genus': None} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.startup.sample_dict, expected_sample_sheet, pipeline_dry_run.startup.sample_dict)
@@ -169,7 +179,9 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
     def test_junoassembly_fails_with_unsupported_genus(self):
         """Testing the pipeline runs properly as a dry run when providing a metadata file"""
         with self.assertRaisesRegex(ValueError, 'not supported. You can leave the "genus" empty'):
-            juno_assembly.JunoAssemblyRun(input_dir = 'fake_dir_wsamples', 
+            input_dir = 'fake_dir_wsamples'
+            full_input_dir = str(pathlib.Path(input_dir).resolve())
+            pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
                                     genus= 'fakegenus',
                                     output_dir = pathlib.Path('test_output'), 
                                     dryrun = True)
