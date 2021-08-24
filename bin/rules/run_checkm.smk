@@ -4,7 +4,8 @@
 
 rule checkm:
     input:
-        OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
+        OUT + "/de_novo_assembly/{sample}/contigs.fasta"
+        # OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
     output:
         result = OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv",
         tmp_dir1 = temp(directory(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/bins")),
@@ -12,7 +13,7 @@ rule checkm:
     conda:
         "../../envs/checkm.yaml"
     container:
-        "quay.io/biocontainers/checkm-genome:1.1.3--py_1"
+        "docker://quay.io/biocontainers/checkm-genome:1.1.3--py_1"
     threads: config["threads"]["checkm"],
     resources: mem_gb=config["mem_gb"]["checkm"]
     params:

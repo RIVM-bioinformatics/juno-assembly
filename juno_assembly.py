@@ -9,6 +9,7 @@ Date: 18-08-2021
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
 """
 
+import atexit
 import base_juno_pipeline
 import argparse
 import os
@@ -48,35 +49,32 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
                                 'pipeline_version': "2.0"}
         self.snakefile = "Snakefile"
         self.sample_sheet = "config/sample_sheet.yaml"
-        self.sing_input_dir = "input"
-        self.output_dir = output_dir
-        self.sing_output_dir = "output"
         self.workdir = pathlib.Path(__file__).parent.absolute()
-        self.useconda = True
-        self.usesingularity = False
+        self.useconda = False
+        self.usesingularity = True
         self.user_parameters = pathlib.Path("config/user_parameters.yaml")
-        self.restarttimes = 0  
+        self.restarttimes = 0 
+        self.latency_wait = 90
         self.supported_genera=[]
         with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:
             for line in file_:
                 genus_name = line.replace('\n', '').lower()
                 self.supported_genera.append(genus_name)
 
-        self.input_dir = pathlib.Path(input_dir)
-        self.output_dir = output_dir
-        self.singularityargs = f"--bind {self.output_dir}:{self.sing_output_dir} --bind {self.input_dir}:{self.sing_input_dir}"
+        self.input_dir = pathlib.Path(input_dir).resolve()
+        self.output_dir = pathlib.Path(output_dir).resolve()
+        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir}"
         
         if genus is not None:
             self.genus = genus.strip().lower()
             self.__check_genus_is_supported(self.genus)
         else:
             self.genus = None
-        self.output_dir = pathlib.Path(output_dir)
         if metadata is not None:
             self.metadata = pathlib.Path(metadata)
         else:
             self.metadata = None
-        
+        # Start pipeline
         self.startup = self.start_pipeline()
         self.user_params = self.write_userparameters()
         snakemake_run = base_juno_pipeline.RunSnakemake(pipeline_name = self.pipeline_info['pipeline_name'],
@@ -94,7 +92,9 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
                                             useconda = self.useconda,
                                             usesingularity = self.usesingularity,
                                             singularityargs = self.singularityargs,
-                                            restarttimes = self.restarttimes)
+                                            restarttimes = self.restarttimes,
+                                            latency_wait = self.latency_wait)
+        
         self.successful_run = snakemake_run.run_snakemake()
         assert self.successful_run, f'Please check the log files'
 
@@ -147,7 +147,8 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
 
         config_params = {'input_dir': str(self.input_dir),
                         'out': str(self.output_dir),
-                        'genus': self.genus}
+                        'genus': self.genus,
+                        'using_containers': self.usesingularity}
         
         with open(self.user_parameters, 'w') as file:
             yaml.dump(config_params, file, default_flow_style=False)
@@ -237,14 +238,14 @@ if __name__ == '__main__':
         help="Re-run jobs if they are marked as incomplete (passed to snakemake)."
     )
     args = parser.parse_args()
-    JunoAssemblyRun(input_dir=args.input, 
-                    genus=args.genus,
-                    output_dir=args.output, 
-                    help_genera=args.help_genera,
-                    metadata=args.metadata,
-                    cores=args.cores,
-                    local=args.local,
-                    queue=args.queue,
-                    unlock=args.unlock,
-                    rerunincomplete=args.rerunincomplete,
-                    dryrun=args.dryrun)
+    juno_assembly_run = JunoAssemblyRun(input_dir=args.input, 
+                                            genus=args.genus,
+                                            output_dir=args.output, 
+                                            help_genera=args.help_genera,
+                                            metadata=args.metadata,
+                                            cores=args.cores,
+                                            local=args.local,
+                                            queue=args.queue,
+                                            unlock=args.unlock,
+                                            rerunincomplete=args.rerunincomplete,
+                                            dryrun=args.dryrun)

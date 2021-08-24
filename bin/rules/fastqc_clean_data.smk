@@ -14,7 +14,7 @@ rule qc_clean_fastq:
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
     container:
-        "biocontainers/fastqc:v0.11.9_cv8"
+        "docker://biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]
     resources: mem_gb=config["mem_gb"]["fastqc"]
     log:
@@ -23,13 +23,13 @@ rule qc_clean_fastq:
         output_dir = OUT + "/qc_clean_fastq/"
     shell:
         """
-if [ -s "{input.pr1}" ] # If file exists and is NOT empty
+if [ -s "{input.pr1}" ]
 then
     fastqc --quiet --outdir {params.output_dir} {input.pr1} > {log}
 else
     touch {output.html1} {output.zip1}
 fi
-if [ -s "{input.pr1}" ] # If file exists and is NOT empty
+if [ -s "{input.pr2}" ]
 then
     fastqc --quiet --outdir {params.output_dir} {input.pr2} >> {log}
 else

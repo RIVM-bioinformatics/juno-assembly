@@ -36,14 +36,15 @@ import json
 ##### Load samplesheet, load genus dict and define output directory         #####
 #################################################################################
 
-# SAMPLES is a dict with sample in the form sample > read number > file. E.g.: SAMPLES["sample_1"]["R1"] = "x_R1.gz"
+# SAMPLES is a dict with sample in the form:
+# sample > read number > file. E.g.: SAMPLES["sample_1"]["R1"] = "x_R1.gz"
 sample_sheet = config["sample_sheet"]
 SAMPLES = {}
 with open(sample_sheet) as sample_sheet_file:
     SAMPLES = yaml.safe_load(sample_sheet_file) 
 
-# OUT defines output directory for most rules.
 OUT = config["out"]
+IN = config["input_dir"]
 
 #@################################################################################
 #@#### 				Processes                                    #####
@@ -84,7 +85,9 @@ include: "bin/rules/multiqc.smk"
 onstart:
     print("Checking if all specified files are accessible...")
     important_files = [ config["sample_sheet"],
-                    'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa' ]
+                    'files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa',
+                    'files/accepted_genera_checkm.txt',
+                    'files/multiqc_config.yaml' ]
     for filename in important_files:
         if not os.path.exists(filename):
             raise FileNotFoundError(filename)
@@ -102,7 +105,6 @@ onsuccess:
         snakemake --config sample_sheet={sample_sheet} \
                     --configfile config/pipeline_parameters.yaml config/user_parameters.yaml \
                     --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
-        echo -e "Finished"
     """)
 
 
@@ -119,7 +121,8 @@ rule all:
         expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['R1', 'R2']),   
         expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2']),
-        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
+        expand(OUT + "/de_novo_assembly/{sample}/contigs.fasta", sample = SAMPLES),
+        # expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
         OUT + "/qc_de_novo_assembly/quast/report.tsv",
         expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample = SAMPLES),
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",

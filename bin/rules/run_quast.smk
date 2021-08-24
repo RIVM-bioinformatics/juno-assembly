@@ -11,7 +11,7 @@ rule run_quast_combined:
     conda:
         "../../envs/quast.yaml"
     container:
-        "quay.io/biocontainers/quast:3.2"
+        "docker://staphb/quast:5.0.2"
     threads: config["threads"]["quast"],
     resources: mem_gb=config["mem_gb"]["quast"]
     params:
@@ -20,5 +20,5 @@ rule run_quast_combined:
         OUT + "/log/qc_de_novo_assembly/quast.log"
     shell:
         """
-        quast --threads {threads} {input:q} --output-dir {params.output_dir:q} > {log:q}
+quast.py --threads {threads} {input} --output-dir {params.output_dir} > {log}
         """

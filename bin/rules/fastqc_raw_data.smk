@@ -11,7 +11,7 @@ rule qc_raw_fastq:
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
     container:
-        "biocontainers/fastqc:v0.11.9_cv8"
+        "docker://biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]
     resources: mem_gb=config["mem_gb"]["fastqc"]
     log:
@@ -20,5 +20,15 @@ rule qc_raw_fastq:
         output_dir = OUT + "/qc_raw_fastq"
     shell:
         """
-        bash bin/fastqc_wrapper.sh {input} {params.output_dir} {output.html} {output.zip} {log} 
+fastqc --quiet --outdir {params.output_dir} {input} &> {log} 
+
+if [ ! -f {output.html} ]
+then
+    find {params.output_dir} -type f -name {wildcards.sample}*{wildcards.read}*.html -exec mv {{}} {output.html} \;
+fi
+
+if [ ! -f {output.zip} ]
+then
+    find {params.output_dir} -type f -name {wildcards.sample}*{wildcards.read}*.zip -exec mv {{}} {output.zip} \;
+fi
         """

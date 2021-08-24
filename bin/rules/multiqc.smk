@@ -15,7 +15,7 @@ rule multiqc:
     conda:
         "../../envs/multiqc.yaml"
     container:
-        "quay.io/biocontainers/multiqc:1.11--pyhdfd78af_0"
+        "docker://quay.io/biocontainers/multiqc:1.11--pyhdfd78af_0"
     threads: config["threads"]["multiqc"]
     resources: mem_gb=config["mem_gb"]["multiqc"]
     params:

@@ -1,0 +1,17 @@
+Bootstrap: docker
+From: biocontainers/seqtk:v1.3-1-deb_cv1
+
+%labels
+    Autor "Alejandra Hernández Segura"
+    Department "Infectious Disease Research, Diagnostics and laboratory Surveillance (IDS, RIVM)"
+    Description "Image containing SEQTK but also GAWK"
+
+%post
+    apt-get update -y
+    apt-get install -y gawk
+
+%runscript
+    /bin/bash $@
+
+%startscript
+    /bin/bash $@

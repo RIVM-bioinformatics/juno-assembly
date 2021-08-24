@@ -4,7 +4,7 @@
 
 rule clean_fastq:
     input:
-        lambda wildcards: (SAMPLES[wildcards.sample][i] for i in ("R1", "R2"))
+        lambda wildcards: (SAMPLES[wildcards.sample][i]) for i in ("R1", "R2")
     output:
         r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
         r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
@@ -14,7 +14,7 @@ rule clean_fastq:
     conda:
         "../../envs/fastqc_trimmomatic.yaml"
     container:
-        "biocontainers/trimmomatic:v0.38dfsg-1-deb_cv1"
+        "docker://staphb/trimmomatic:0.39"
     threads: config["threads"]["trimmomatic"]
     resources: mem_gb=config["mem_gb"]["trimmomatic"]
     log:
@@ -22,16 +22,18 @@ rule clean_fastq:
     params:
         adapter_removal_config=config["trimmomatic"]["adapter_removal_config"],
         min_qual=config["trimmomatic"]["quality_trimming_config"],
-        minlen=config["trimmomatic"]["minimum_length_config"],
+        minlen=config["trimmomatic"]["minimum_length_config"]
     shell:
         """
+set -euo pipefail
+
 trimmomatic PE -threads {threads} \
-    {input[0]} {input[1]} \
+    {input} \
     {output.r1} {output.r1_unpaired} \
     {output.r2} {output.r2_unpaired} \
     {params.adapter_removal_config} \
     {params.min_qual} \
-    {params.minlen} > {log}
+    {params.minlen} >> {log}
 
 # touch the output in the case 100% of the reads are trimmed and no file is created
 touch -r {output.r1} {output.r1_unpaired}

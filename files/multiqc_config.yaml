@@ -23,7 +23,7 @@ custom_data:
 
 sp:
     CheckM_stats:
-        fn: 'CheckM_report*'
+        fn: 'checkm_report*'
 
 table_cond_formatting_rules:
   completeness:
