@@ -1,23 +1,11 @@
 """
-Juno pipeline
-Authors: Ernst Hamer, Alejandra Hernandez-Segura, Dennis Schmitz, Robert Verhagen, Diogo Borst, Tom van Wijk, Maaike van der Beld
+Juno_assembly pipeline
+Authors: Alejandra Hernandez-Segura, Robert Verhagen, Ernst Hamer, Dennis Schmitz, Diogo Borst, Tom van Wijk, Maaike van der Beld
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
 Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
-Date: 09-10-2020
+Date: 26-08-2021
 
-Documentation: https://github.com/DennisSchmitz/BAC_gastro
-
-
-Snakemake rules (in order of execution):
-    1 fastQC        # Asses quality of raw reads.
-    2 trimmomatic   # Trim low quality reads and adapter sequences.
-    3 fastQC        # Asses quality of trimmed reads.
-    4 spades        # Perform assembly with SPAdes.
-    5 quast         # Run quality control tool QUAST on contigs/scaffolds.
-    6 checkM        # Gives scores for completeness, contamination and strain heterogeneity (optional).
-    7 picard        # Determines library fragment lengths.
-    8 bbmap         # Generate scaffold alignment metrics.
-    9 multiQC       # Summarize analysis results and quality assessments in a single report 
+Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html
 
 """
 
@@ -54,7 +42,7 @@ IN = config["input_dir"]
     ##### Data quality control and cleaning                                 #####
     #############################################################################
 include: "bin/rules/fastqc_raw_data.smk"
-include: "bin/rules/trimmomatic.smk"
+include: "bin/rules/clean_fastq.smk"
 include: "bin/rules/fastqc_clean_data.smk"
 
     #############################################################################
@@ -96,16 +84,9 @@ onstart:
 #@#### These are the conditional cleanup rules                               #####
 #@################################################################################
 
-onsuccess:
-    shell("""
-        echo -e "\tGenerating Snakemake report..."
-        snakemake --config sample_sheet={sample_sheet} \
-                    --configfile config/pipeline_parameters.yaml config/user_parameters.yaml \
-                    --cores 1 --unlock
-        snakemake --config sample_sheet={sample_sheet} \
-                    --configfile config/pipeline_parameters.yaml config/user_parameters.yaml \
-                    --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
-    """)
+# onsuccess:
+#     shell("""
+#     """)
 
 
 #################################################################################
@@ -119,7 +100,7 @@ localrules:
 rule all:
     input:
         expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['R1', 'R2']),   
-        expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
+        expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2']),
         expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2']),
         expand(OUT + "/de_novo_assembly/{sample}/contigs.fasta", sample = SAMPLES),
         # expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   

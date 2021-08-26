@@ -6,11 +6,13 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - snakemake==6.6.1
-  - mamba
   - git
+  - mamba
   - pip==19.2.3
   - pandas==1.1.0
+  - python>3.7.6
+  - snakemake==6.6.1
   - pip:
     - numpy
-    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.1.0#egg=Juno-bacteriology-pipelines"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2#egg=base_juno_pipeline"
+    # - "--editable=/mnt/scratch_dir/hernanda/base_juno_pipeline"

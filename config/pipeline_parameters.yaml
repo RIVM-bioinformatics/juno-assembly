@@ -1,38 +1,3 @@
-sample_sheet: sample_sheet.yaml
-# The list of genera accepted on this version of the pipeline:
-genuslist: files/checkm_taxon_list.txt
-
-checkm: 'TRUE'
-
-######################################
-### Software parameters            ###
-######################################
-
-trimmomatic:
-    # For the Nextera PE lib prep adapters
-    adapter_removal_config: ILLUMINACLIP:files/trimmomatic_0.36_adapters_lists/NexteraPE-PE.fa:2:30:10:8:true
-    # ! test settings for best "relaxed" mode
-    # Default: 5 nucleotides window size, minimum average Phred score of 28
-    quality_trimming_config: SLIDINGWINDOW:5:28
-    # Default: Remove anything smaller than 50 nucleotides
-    minimum_length_config: MINLEN:50
-
-
-spades:
-    #use the pipeline for short Illumina reads (<250 nt in length).
-    kmersizes: 21,33,55,77,99
-
-
-scaffold_minLen_filter:
-    # Minimum allowed scaffold size to be allowed for downstream processessing. 
-    # Advice, use a minimum length that is atleast 1nt greater than your Illumina read length
-    minlen: 500
-
-
-######################################
-### Technical parameters           ###
-######################################
-
 threads:
     parsing: 1
     trimmomatic: 4

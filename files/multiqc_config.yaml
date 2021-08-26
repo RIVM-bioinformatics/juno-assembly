@@ -11,9 +11,9 @@ title: Quality control metrics
 # to prevent the browser being locked up when the report opens.
 plots_force_flat: False          # Try to use only flat image graphs
 plots_force_interactive: False   # Try to use only interactive javascript graphs
-plots_flat_numseries: 250        # If neither of the above, use flat if > this number of datasets
-num_datasets_plot_limit: 50      # If interactive, don't plot on load if > this number of datasets
-max_table_rows: 1500             # Swap tables for a beeswarm plot above this
+plots_flat_numseries: 100        # If neither of the above, use flat if > this number of datasets
+num_datasets_plot_limit: 30      # If interactive, don't plot on load if > this number of datasets
+max_table_rows: 750             # Swap tables for a beeswarm plot above this
 
 custom_data:
   CheckM_stats:

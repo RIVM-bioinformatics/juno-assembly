@@ -6,9 +6,11 @@ raw_data
 envs/src/
 unused/
 test_output/
+test_output_sing/
 __pycache__/
 .java/
 .cache/
+src/
 
 # Files to ignore
 sample_sheet.yaml

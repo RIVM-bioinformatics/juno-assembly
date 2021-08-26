@@ -9,7 +9,7 @@ rule qc_raw_fastq:
         html = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.html",
         zip = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip"
     conda:
-        "../../envs/fastqc_trimmomatic.yaml"
+        "../../envs/qc_and_clean.yaml"
     container:
         "docker://biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]

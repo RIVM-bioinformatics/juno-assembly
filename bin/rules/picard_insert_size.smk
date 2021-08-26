@@ -21,6 +21,8 @@ rule picard_insert_size:
         OUT + "/log/picard_insert_size/picard_insert_size_{sample}.log"
     threads: config["threads"]["picard"],
     resources: mem_gb=config["mem_gb"]["picard"]
+    params:
+        run_in_container = config['run_in_container']
     shell:
         """
 set -euo pipefail
@@ -34,8 +36,15 @@ samtools sort -@ {threads} - -o {output.bam} >> {log} 2>&1
 
 samtools index -@ {threads} {output.bam} >> {log} 2>&1
 
-picard-tools CollectInsertSizeMetrics \
-I={output.bam} \
-O={output.txt} \
-H={output.pdf} >> {log} 2>&1
+if [ {params.run_in_container} == True ]; then
+    picard-tools CollectInsertSizeMetrics \
+    I={output.bam} \
+    O={output.txt} \
+    H={output.pdf} >> {log} 2>&1
+else
+    picard -Dpicard.useLegacyParser=false CollectInsertSizeMetrics \
+    -I {output.bam} \
+    -O {output.txt} \
+    -H {output.pdf} >> {log} 2>&1
+fi
         """

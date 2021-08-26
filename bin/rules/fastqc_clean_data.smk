@@ -4,35 +4,26 @@
 
 rule qc_clean_fastq:
     input:
-        pr1 = OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
-        pr2 = OUT + "/clean_fastq/{sample}_pR2.fastq.gz"
+        OUT + "/clean_fastq/{sample}_p{read}.fastq.gz"
     output:
-        html1 = OUT + "/qc_clean_fastq/{sample}_pR1_fastqc.html",
-        zip1 = OUT + "/qc_clean_fastq/{sample}_pR1_fastqc.zip",
-        html2 = OUT + "/qc_clean_fastq/{sample}_pR2_fastqc.html",
-        zip2 = OUT + "/qc_clean_fastq/{sample}_pR2_fastqc.zip"
+        html = OUT + "/qc_clean_fastq/{sample}_p{read}_fastqc.html",
+        zip = OUT + "/qc_clean_fastq/{sample}_p{read}_fastqc.zip"
     conda:
-        "../../envs/fastqc_trimmomatic.yaml"
+        "../../envs/qc_and_clean.yaml"
     container:
         "docker://biocontainers/fastqc:v0.11.9_cv8"
     threads: config["threads"]["fastqc"]
     resources: mem_gb=config["mem_gb"]["fastqc"]
     log:
-        OUT + "/log/qc_clean_fastq/qc_clean_fastq_{sample}.log"
+        OUT + "/log/qc_clean_fastq/qc_clean_fastq_{sample}_{read}.log"
     params:
         output_dir = OUT + "/qc_clean_fastq/"
     shell:
         """
-if [ -s "{input.pr1}" ]
+if [ -s {input} ]
 then
-    fastqc --quiet --outdir {params.output_dir} {input.pr1} > {log}
-else
-    touch {output.html1} {output.zip1}
-fi
-if [ -s "{input.pr2}" ]
-then
-    fastqc --quiet --outdir {params.output_dir} {input.pr2} >> {log}
-else
-    touch {output.html2} {output.zip2}
+    fastqc --quiet --outdir {params.output_dir} {input} >> {log} 
+else  
+    touch {output}
 fi
     """

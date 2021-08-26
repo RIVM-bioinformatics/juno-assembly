@@ -19,7 +19,8 @@ import sys
 import warnings
 import yaml
 
-class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
+class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
+                        base_juno_pipeline.base_juno_pipeline.RunSnakemake):
     """Class with the arguments and specifications that are only for the 
     Juno_assembly pipeline but inherit from PipelineStartup and RunSnakemake
     """
@@ -29,6 +30,11 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
                 output_dir, 
                 genus=None,
                 metadata=None,
+                mean_quality_threshold=28,
+                window_size=5,
+                min_read_length=50,
+                kmer_size=[21,33,55,77,99],
+                contig_length_threshold=500,
                 help_genera=False,
                 cores=300,
                 local=False,
@@ -36,7 +42,11 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
                 unlock=False,
                 rerunincomplete=False,
                 dryrun=False,
-                update_dbs=False):
+                update_dbs=False,
+                run_in_container=False,
+                singularity_prefix=None,
+                conda_prefix=None,
+                **kwargs):
         """Initiating Juno_assembly pipeline"""
         
         if help_genera:
@@ -44,27 +54,53 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
             os.system("cat files/accepted_genera_checkm.txt")
             sys.exit(0)
 
-        # Pipeline attributes
-        self.pipeline_info = {'pipeline_name': "Juno_assembly",
-                                'pipeline_version': "2.0"}
-        self.snakefile = "Snakefile"
-        self.sample_sheet = "config/sample_sheet.yaml"
+        # From StartupPipeline
+        self.input_dir = pathlib.Path(input_dir).resolve()
+        self.input_type = 'fastq'
+        self.min_file_size = -1
+
+        # From RunSnakemake 
+        self.pipeline_name = 'Juno_assembly'
+        self.pipeline_version = '2.0'
+        self.output_dir = pathlib.Path(output_dir).resolve()
         self.workdir = pathlib.Path(__file__).parent.absolute()
-        self.useconda = False
-        self.usesingularity = True
-        self.user_parameters = pathlib.Path("config/user_parameters.yaml")
-        self.restarttimes = 1 
-        self.latency_wait = 90
+        self.sample_sheet = "config/sample_sheet.yaml"
+        self.user_parameters = pathlib.Path('config/user_parameters.yaml')
+        self.fixed_parameters = pathlib.Path('config/pipeline_parameters.yaml')
+        self.snakefile = 'Snakefile'
+        self.cores = cores
+        self.local = local
+        self.path_to_audit = self.output_dir.joinpath('audit_trail')
+        self.snakemake_report = str(self.path_to_audit.joinpath('juno_assembly_report.html'))
+        self.queue = queue
+        self.unlock = unlock
+        self.dryrun = dryrun
+        self.rerunincomplete = rerunincomplete
+        if run_in_container:
+            self.useconda = False
+            self.usesingularity = True
+        else:
+            self.useconda = True
+            self.usesingularity = False
+        self.conda_frontend = 'mamba'
+        self.conda_prefix = conda_prefix
+        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir}"
+        self.singularity_prefix = singularity_prefix
+        self.restarttimes = 1
+        self.latency = 60
+        self.kwargs = kwargs
+
+        # Specific for Juno assembly
+        self.mean_quality_threshold = int(mean_quality_threshold)
+        self.window_size = int(window_size)
+        self.min_read_length = int(min_read_length)
+        self.kmer_size = ','.join([str(ks) for ks in kmer_size])
+        self.contig_length_threshold = int(contig_length_threshold)
         self.supported_genera=[]
         with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:
             for line in file_:
                 genus_name = line.replace('\n', '').lower()
                 self.supported_genera.append(genus_name)
-
-        self.input_dir = pathlib.Path(input_dir).resolve()
-        self.output_dir = pathlib.Path(output_dir).resolve()
-        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir}"
-        
         if genus is not None:
             self.genus = genus.strip().lower()
             self.__check_genus_is_supported(self.genus)
@@ -74,29 +110,18 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
             self.metadata = pathlib.Path(metadata)
         else:
             self.metadata = None
-        # Start pipeline
-        self.startup = self.start_pipeline()
-        self.user_params = self.write_userparameters()
-        snakemake_run = base_juno_pipeline.RunSnakemake(pipeline_name = self.pipeline_info['pipeline_name'],
-                                            pipeline_version = self.pipeline_info['pipeline_version'],
-                                            sample_sheet = self.sample_sheet,
-                                            output_dir = self.output_dir,
-                                            workdir = self.workdir,
-                                            snakefile = self.snakefile,
-                                            cores = cores,
-                                            local = local,
-                                            queue = queue,
-                                            unlock = unlock,
-                                            rerunincomplete = rerunincomplete,
-                                            dryrun = dryrun,
-                                            useconda = self.useconda,
-                                            usesingularity = self.usesingularity,
-                                            singularityargs = self.singularityargs,
-                                            restarttimes = self.restarttimes,
-                                            latency_wait = self.latency_wait)
         
-        self.successful_run = snakemake_run.run_snakemake()
+        # Start pipeline
+        self.start_juno_assembly_pipeline()
+        self.user_params = self.write_userparameters()
+        self.get_run_info()
+        if not self.dryrun or self.unlock:
+            self.path_to_audit.mkdir(parents=True, exist_ok=True)
+            self.audit_trail = self.generate_audit_trail()
+        self.successful_run = self.run_snakemake()
         assert self.successful_run, f'Please check the log files'
+        if not self.dryrun or self.unlock:
+            self.make_snakemake_report()
 
     def __check_genus_is_supported(self, genus):
         if genus.lower() in self.supported_genera:
@@ -108,7 +133,7 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
                     )
                 )
 
-    def add_metadata(self, samples_dic):
+    def add_metadata(self):
         assert self.metadata.is_file(), f"Provided metadata file ({self.metadata}) does not exist"
         # Load species file
         with warnings.catch_warnings():
@@ -118,44 +143,59 @@ class JunoAssemblyRun(base_juno_pipeline.helper_functions.JunoHelpers):
         species_dic['Genus'] = species_dic['Genus'].apply(lambda x: x.strip().lower())
         species_dic = species_dic.transpose().to_dict()
         # Update dictionary with species
-        for sample_name in samples_dic :
+        for sample_name in self.sample_dict :
             try:
                 self.__check_genus_is_supported(species_dic[sample_name]['Genus'])
-                samples_dic[sample_name]['genus'] =  species_dic[sample_name]['Genus']
+                self.sample_dict[sample_name]['genus'] =  species_dic[sample_name]['Genus']
             except KeyError :
                 pass
 
-    def start_pipeline(self):
+    def start_juno_assembly_pipeline(self):
         """Function to start the pipeline (some steps from PipelineStartup 
         need to be modified for the Juno_assembly pipeline to accept metadata
         """
-        
-        startup = base_juno_pipeline.PipelineStartup(self.input_dir, input_type = 'fastq')
-        
+        self.start_juno_pipeline()
         # Add genus metadata if existing
-        for sample in startup.sample_dict:
-            startup.sample_dict[sample]['genus'] = self.genus
+        for sample in self.sample_dict:
+            self.sample_dict[sample]['genus'] = self.genus
         if self.metadata is not None:
             print('\nAdding genus information from metadata file...\n')
-            self.add_metadata(startup.sample_dict)
+            self.add_metadata()
         # Write sample_sheet
         with open(self.sample_sheet, 'w') as file:
-            yaml.dump(startup.sample_dict, file, default_flow_style=False)
-        return startup
+            yaml.dump(self.sample_dict, file, default_flow_style=False)
     
     def write_userparameters(self):
 
         config_params = {'input_dir': str(self.input_dir),
                         'out': str(self.output_dir),
                         'genus': self.genus,
-                        'using_containers': self.usesingularity}
+                        'mean_quality_threshold': self.mean_quality_threshold,
+                        'window_size': self.window_size,
+                        'min_read_length': self.min_read_length,
+                        'kmer_size': self.kmer_size, 
+                        'contig_length_threshold': self.contig_length_threshold,
+                        'run_in_container': self.usesingularity}
         
         with open(self.user_parameters, 'w') as file:
             yaml.dump(config_params, file, default_flow_style=False)
 
         return config_params
-    
-    
+
+class SnakemakeExtraArgsAction(argparse.Action,
+                                base_juno_pipeline.base_juno_pipeline.helper_functions.JunoHelpers):
+    def __call__(self, parser, namespace, values, option_string=None):
+        keyword_dict = {}
+        for arg in values: 
+            pieces = arg.split('=')
+            if len(pieces) == 2:
+                if pieces[1].startswith('['):
+                    pieces[1] = pieces[1].replace('[', '').replace(']', '').split(',')
+                keyword_dict[pieces[0]] = pieces[1]
+            else: 
+                msg = f'The argument {arg} is not valid. Did you try to pass an extra argument to Snakemkake? Make sure that you used the API format and that you use the argument int he form: arg=value.'
+                raise argparse.ArgumentTypeError(self.error_formatter(msg))
+        setattr(namespace, self.dest, keyword_dict)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -199,6 +239,52 @@ if __name__ == '__main__':
         help = "Relative or absolute path to the output directory. If non is given, an 'output' directory will be created in the current directory."
     )
     parser.add_argument(
+        "-mpt",
+        "--mean-quality-threshold",
+        type = int,
+        metavar = "INT",
+        default = 28,
+        help = "Phred score to be used as threshold for cleaning (filtering) fastq files."
+    )
+    parser.add_argument(
+        "-w",
+        "--window-size",
+        type = int,
+        metavar = "INT",
+        default = 5,
+        help = "Window size to use for cleaning (filtering) fastq files."
+    )
+    parser.add_argument(
+        "-ml",
+        "--minimum-length",
+        type = int,
+        metavar = "INT",
+        default = 50,
+        help = "Minimum length for fastq reads to be kept after trimming."
+    )
+    parser.add_argument(
+        "-k",
+        "--kmer-size",
+        type = str,
+        nargs='+',
+        metavar = "INT INT...",
+        default = [21,33,55,77,99],
+        help = "Kmersizes to be used for the de novo assembly."
+    )
+    parser.add_argument(
+        "-cl",
+        "--contig-length-threshold",
+        type = str,
+        metavar = "INT",
+        default = 500,
+        help = "Minimum length to filter the contigs generated by the de novo assembly."
+    )
+    parser.add_argument(
+        "--not-run-in-containers",
+        action = 'store_false',
+        help = "Use conda environments instead of containers."
+    )
+    parser.add_argument(
         "-c",
         "--cores",
         type = int,
@@ -237,6 +323,13 @@ if __name__ == '__main__':
         action='store_true',
         help="Re-run jobs if they are marked as incomplete (passed to snakemake)."
     )
+    parser.add_argument(
+        "--snakemake-args",
+        nargs='*',
+        default={},
+        action=SnakemakeExtraArgsAction,
+        help="Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html)."
+    )
     args = parser.parse_args()
     juno_assembly_run = JunoAssemblyRun(input_dir=args.input, 
                                             genus=args.genus,
@@ -248,4 +341,11 @@ if __name__ == '__main__':
                                             queue=args.queue,
                                             unlock=args.unlock,
                                             rerunincomplete=args.rerunincomplete,
-                                            dryrun=args.dryrun)
+                                            dryrun=args.dryrun,
+                                            run_in_container=args.not_run_in_containers,
+                                            mean_quality_threshold=args.mean_quality_threshold,
+                                            window_size=args.window_size,
+                                            min_read_length=args.minimum_length,
+                                            kmer_size=args.kmer_size,
+                                            contig_length_threshold=args.contig_length_threshold,
+                                            **args.snakemake_args)

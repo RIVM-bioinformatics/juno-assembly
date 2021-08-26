@@ -1,9 +1,11 @@
+[![C.I.](https://github.com/RIVM-bioinformatics/Juno_pipeline/actions/workflows/juno_assembly_test.yaml/badge.svg)](https://github.com/RIVM-bioinformatics/Juno_pipeline/actions/workflows/juno_assembly_test.yaml)
+
 <div align="center">
     <h1>Juno-assembly</h1>
     <br />
     <h2>Pipeline to process bacterial raw sequencing data up to de-novo assembly and the accompanying statistics.</h2>
     <br />
-    <img src="https://via.placeholder.com/150" alt="pipeline logo">
+    <img src="files/juno_assembly_lightbg.png" alt="pipeline logo">
 </div>
 
 ## Pipeline information

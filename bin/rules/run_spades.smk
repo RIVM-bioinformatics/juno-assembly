@@ -38,7 +38,7 @@ rule de_novo_assembly:
     params:
         output_dir = OUT + "/de_novo_assembly/{sample}",
         max_GB_RAM="100",
-        kmersizes=config["spades"]["kmersizes"]
+        kmersizes=config["kmer_size"]
     log:
         OUT + "/log/de_novo_assembly/{sample}_de_novo_assembly.log"
     shell:
@@ -79,10 +79,10 @@ rule filter_de_novo_assembly:
     container:
         "library://alesr13/default/seqtk_gawk:v1.3.1"
     # TODO: put appropriate number of threads and mem_gb
-    threads: config["threads"]["spades"],
-    resources: mem_gb=config["mem_gb"]["spades"]
+    threads: config["threads"]["parsing"],
+    resources: mem_gb=config["mem_gb"]["parsing"]
     params:
-        minlen=config["scaffold_minLen_filter"]["minlen"]
+        minlen=config["contig_length_threshold"]
     log:
         OUT + "/log/de_novo_assembly/{sample}_filter_assembly.log"
     shell:

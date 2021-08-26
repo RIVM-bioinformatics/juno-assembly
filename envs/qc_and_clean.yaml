@@ -4,6 +4,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-    - fastqc==0.11.8
-    - trimmomatic==0.38
-    - openjdk==10.0.2
+    - fastqc==0.11.9
+    - fastp==0.20.1
