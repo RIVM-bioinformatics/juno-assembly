@@ -10,6 +10,7 @@ test_output_sing/
 __pycache__/
 .java/
 .cache/
+.config/
 src/
 
 # Files to ignore

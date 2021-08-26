@@ -197,6 +197,7 @@ class SnakemakeExtraArgsAction(argparse.Action,
                 raise argparse.ArgumentTypeError(self.error_formatter(msg))
         setattr(namespace, self.dest, keyword_dict)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description = "Juno_assembly pipeline. Automated pipeline for pre-processing, QC and assembly of bacterial NGS sequencing data."
@@ -228,7 +229,7 @@ if __name__ == '__main__':
         type = pathlib.Path,
         default = None,
         metavar = "FILE",
-        help = "Relative or absolute path to the metadata .csv file. If provided, it must contain at least one column with the 'Sample' name (name of the file but removing _R1.fastq.gz) and a column called 'Genus' (mind the capital in the first letter). The genus provided will be used to choose the reference genome to analyze de QC of the de novo assembly."
+        help = "Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'Sample' name (name of the file but removing _R1.fastq.gz) and a column called 'Genus' (mind the capital in the first letter). The genus provided will be used to choose the reference genome to analyze de QC of the de novo assembly."
     )
     parser.add_argument(
         "-o",
@@ -289,8 +290,8 @@ if __name__ == '__main__':
         "--cores",
         type = int,
         metavar = "INT",
-        default = 300,
-        help="Number of cores to use. Default is 300"
+        default = 300 if not '--local' in sys.argv else 4,
+        help="Number of cores to use. Default is 4 if running locally (--local) or 300 otherwise."
     )
     parser.add_argument(
         "-q",
@@ -304,7 +305,7 @@ if __name__ == '__main__':
         "-l",
         "--local",
         action='store_true',
-        help="Running pipeline locally (instead of in a computer cluster). Default is running it in a cluster."
+        help="If this flag is present, the pipeline will be run locally (not attempting to send the jobs to an HPC cluster**). The default is to assume that you are working on a cluster. **Note that currently only LSF clusters are supported."
     )
     parser.add_argument(
         "-u",
