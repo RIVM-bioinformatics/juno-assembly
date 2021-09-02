@@ -48,7 +48,12 @@ include: "bin/rules/fastqc_clean_data.smk"
     #############################################################################
     ##### De novo assembly                                                  #####
     #############################################################################
-include: "bin/rules/run_spades.smk"
+include: "bin/rules/de_novo_assembly.smk"
+
+    #############################################################################
+    ##### Species identification                                            #####
+    #############################################################################
+include: "bin/rules/identify_species.smk"
 
     #############################################################################
     ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
@@ -102,10 +107,11 @@ rule all:
         expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['R1', 'R2']),   
         expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2']),
         expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2']),
-        expand(OUT + "/de_novo_assembly/{sample}/contigs.fasta", sample = SAMPLES),
-        # expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
+        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
         OUT + "/qc_de_novo_assembly/quast/report.tsv",
         expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample = SAMPLES),
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv",
+        expand(OUT + '/identify_species/{sample}_species_content.txt', sample = SAMPLES),
+        expand(OUT + '/identify_species/{sample}_bracken_species.kreport2', sample = SAMPLES),
         OUT + "/multiqc/multiqc.html"

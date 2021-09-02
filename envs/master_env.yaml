@@ -14,5 +14,5 @@ dependencies:
   - snakemake==6.6.1
   - pip:
     - numpy
-    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2#egg=base_juno_pipeline"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@master#egg=base_juno_pipeline"
     # - "--editable=/mnt/scratch_dir/hernanda/base_juno_pipeline"

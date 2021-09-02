@@ -8,8 +8,6 @@ dependencies:
     - bbmap==38.86
     - bwa-mem2==2.2.1
     - picard==2.26.0
-    - gawk
-    - seqtk==1.3
-    - r-base==3.5.1 # r-base is sometimes required for picard to run. this isn't listed in the picard dependency list.
+    - r-base # r-base is sometimes required for picard to run. this isn't listed in the picard dependency list.
     - openjdk
 

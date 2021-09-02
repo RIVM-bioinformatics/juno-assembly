@@ -4,12 +4,12 @@
 
 rule de_novo_assembly:
     input:
-        r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",        
-        r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
-        fastq_unpaired=OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz"
+        r1 = OUT + "/clean_fastq/{sample}_pR1.fastq.gz",        
+        r2 = OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
+        fastq_unpaired = OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz"
     output:
-        # all_scaffolds = OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
-        contigs=OUT + "/de_novo_assembly/{sample}/contigs.fasta",
+        scaffolds = OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
+        contigs = temp(OUT + "/de_novo_assembly/{sample}/contigs.fasta"),
         k21 = temp(directory(OUT + "/de_novo_assembly/{sample}/K21")),
         k33 = temp(directory(OUT + "/de_novo_assembly/{sample}/K33")),
         k55 = temp(directory(OUT + "/de_novo_assembly/{sample}/K55")),
@@ -23,12 +23,13 @@ rule de_novo_assembly:
         fastg=temp(OUT + "/de_novo_assembly/{sample}/assembly_graph.fastg"),
         gfa=temp(OUT + "/de_novo_assembly/{sample}/assembly_graph_with_scaffolds.gfa"),
         before=temp(OUT + "/de_novo_assembly/{sample}/before_rr.fasta"),
-        # contpath=temp(OUT + "/de_novo_assembly/{sample}/contigs.paths"),
+        contpath=temp(OUT + "/de_novo_assembly/{sample}/contigs.paths"),
         ds=temp(OUT + "/de_novo_assembly/{sample}/dataset.info"),
         dsyaml=temp(OUT + "/de_novo_assembly/{sample}/input_dataset.yaml"),
         params=temp(OUT + "/de_novo_assembly/{sample}/params.txt"),
-        # scaffpath=temp(OUT + "/de_novo_assembly/{sample}/scaffolds.paths"),
-        splog=temp(OUT + "/de_novo_assembly/{sample}/spades.log")
+        scaffpath=temp(OUT + "/de_novo_assembly/{sample}/scaffolds.paths"),
+        splog=temp(OUT + "/de_novo_assembly/{sample}/spades.log"),
+        gfa_simplified=temp(OUT + "/de_novo_assembly/{sample}/assembly_graph_after_simplification.gfa")
     conda:
         "../../envs/spades.yaml"
     container:
@@ -37,8 +38,7 @@ rule de_novo_assembly:
     resources: mem_gb=config["mem_gb"]["spades"]
     params:
         output_dir = OUT + "/de_novo_assembly/{sample}",
-        max_GB_RAM="100",
-        kmersizes=config["kmer_size"]
+        kmersizes = config["kmer_size"]
     log:
         OUT + "/log/de_novo_assembly/{sample}_de_novo_assembly.log"
     shell:
@@ -46,22 +46,25 @@ rule de_novo_assembly:
 unpaired_file_size=$(wc {input.fastq_unpaired} | awk '{{print $1}}')
 
 if [ ${{unpaired_file_size}} -gt 0 ];then
-    spades.py --isolate --only-assembler\
+    echo "Running spades without using unpaired reads to make scaffolds (there were no unpaired reads).\n" > {log}
+    spades.py --isolate \
         -1 {input.r1} \
         -2 {input.r2} \
         -s {input.fastq_unpaired} \
         -o {params.output_dir} \
         -k {params.kmersizes} \
         -m {resources.mem_gb} \
-        -t {threads} > {log}
+        -t {threads} >> {log}
+    cp {output.contigs} {output.scaffolds}
 else
-    spades.py --isolate --only-assembler\
+    echo "Running spades using unpaired reads to make scaffolds.\n" > {log}
+    spades.py --isolate \
         -1 {input.r1} \
         -2 {input.r2} \
         -o {params.output_dir} \
         -k {params.kmersizes} \
         -m {resources.mem_gb} \
-        -t {threads} > {log}
+        -t {threads} >> {log}
 fi
         """
 
@@ -70,15 +73,13 @@ fi
 
 rule filter_de_novo_assembly:
     input:
-        OUT + "/de_novo_assembly/{sample}/contigs.fasta"
-        # OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
+        OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
     output:
         OUT + "/de_novo_assembly_filtered/{sample}.fasta"
     conda:
         "../../envs/spades.yaml"
     container:
         "library://alesr13/default/seqtk_gawk:v1.3.1"
-    # TODO: put appropriate number of threads and mem_gb
     threads: config["threads"]["parsing"],
     resources: mem_gb=config["mem_gb"]["parsing"]
     params:

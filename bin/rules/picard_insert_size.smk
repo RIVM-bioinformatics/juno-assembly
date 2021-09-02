@@ -18,7 +18,7 @@ rule picard_insert_size:
     container:
         "library://alesr13/default/samtools_bwa_picard:v0.1"
     log:
-        OUT + "/log/picard_insert_size/picard_insert_size_{sample}.log"
+        OUT + "/log/qc_de_novo_assembly/picard_insert_size/picard_insert_size_{sample}.log"
     threads: config["threads"]["picard"],
     resources: mem_gb=config["mem_gb"]["picard"]
     params:

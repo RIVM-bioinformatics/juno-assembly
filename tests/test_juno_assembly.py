@@ -9,6 +9,11 @@ main_script_path = str(pathlib.Path(pathlib.Path(__file__).parent.absolute()).pa
 path.insert(0, main_script_path)
 import juno_assembly
 
+def make_non_empty_file(file_path, num_lines=1000):
+    content='a\n'*num_lines
+    with open(file_path, 'w') as file_:
+        file_.write(content)
+        
 class TestJunoAssemblyDryRun(unittest.TestCase):
     """Testing the junoassembly class (code specific for this pipeline)"""
 
@@ -26,7 +31,7 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         for folder in fake_dirs:
             pathlib.Path(folder).mkdir(exist_ok = True)
         for file_ in fake_files:
-            pathlib.Path(file_).touch(exist_ok = True)
+            make_non_empty_file(file_)
 
         with open('fake_dir_wsamples/fake_metadata.csv', mode='w') as metadata_file:
             metadata_writer = csv.writer(metadata_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -121,8 +126,8 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         a metadata file. If both a genus and metadata are provided, the
         metadata should overwrite the genus (unless sample not present)
         """
-        pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').touch(exist_ok = True)
-        pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').touch(exist_ok = True)
+        make_non_empty_file('fake_dir_wsamples/missingsamp_1.fastq')
+        make_non_empty_file('fake_dir_wsamples/missingsamp_2.fastq')
         
         input_dir = 'fake_dir_wsamples'
         full_input_dir = pathlib.Path(input_dir).resolve()
@@ -152,8 +157,8 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         metadata file and if a sample is not present in the metadata, then no genus
         is assigned
         """
-        pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').touch(exist_ok = True)
-        pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').touch(exist_ok = True)
+        make_non_empty_file('fake_dir_wsamples/missingsamp_1.fastq')
+        make_non_empty_file('fake_dir_wsamples/missingsamp_2.fastq')
         input_dir = 'fake_dir_wsamples'
         full_input_dir = pathlib.Path(input_dir).resolve()
         pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir,

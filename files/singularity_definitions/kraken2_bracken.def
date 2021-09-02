@@ -1,0 +1,29 @@
+Bootstrap: docker
+From: staphb/kraken2:2.1.2-no-db
+
+%labels
+    Autor "Alejandra Hernández Segura"
+    Department "Infectious Disease Research, Diagnostics and laboratory Surveillance (IDS, RIVM)"
+    Description "Image containing Kraken2 and Bracken"
+
+%environment
+    export PATH="/opt/Bracken/:${PATH}"
+
+%post
+    apt-get update -y
+    apt-get install -y git
+    apt-get install -y python3.9
+    # Make Symlink for python (alias python=python3 will not work after installation)
+    PY3=$(which python3)
+    ln -sf ${PY3} /usr/bin/python
+    cd /opt/
+    git clone --branch "v2.6.1" https://github.com/jenniferlu717/Bracken.git
+    bash Bracken/install_bracken.sh
+
+%runscript
+    alias python=python3
+    eval $@
+
+%startscript
+    alias python=python3
+    eval $@
