@@ -13,12 +13,8 @@ Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-a
 ##### Import config file, sample_sheet and set output folder names          #####
 #################################################################################
 
-from pandas import *
-import pathlib
-import pprint
 import os
 import yaml
-import json
 
 #################################################################################
 ##### Load samplesheet, load genus dict and define output directory         #####
@@ -85,14 +81,6 @@ onstart:
         if not os.path.exists(filename):
             raise FileNotFoundError(filename)
 
-#@################################################################################
-#@#### These are the conditional cleanup rules                               #####
-#@################################################################################
-
-# onsuccess:
-#     shell("""
-#     """)
-
 
 #################################################################################
 ##### Specify final output:                                                 #####
@@ -107,11 +95,13 @@ rule all:
         expand(OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['R1', 'R2']),   
         expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2']),
         expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2']),
-        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),   
+        expand(OUT + "/de_novo_assembly/{sample}/scaffolds.fasta", sample = SAMPLES),
+        expand(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv", sample = SAMPLES),   
         OUT + "/qc_de_novo_assembly/quast/report.tsv",
         expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample = SAMPLES),
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv",
         expand(OUT + '/identify_species/{sample}_species_content.txt', sample = SAMPLES),
         expand(OUT + '/identify_species/{sample}_bracken_species.kreport2', sample = SAMPLES),
+        OUT + '/identify_species/top1_species_multireport.csv',
         OUT + "/multiqc/multiqc.html"

@@ -6,7 +6,7 @@ rule identify_species:
         bracken_s = OUT + '/identify_species/{sample}_species_content.txt',
         bracken_kreport = OUT + '/identify_species/{sample}_bracken_species.kreport2'
     log:
-        OUT + '/log/kraken2/{sample}_kraken2.log'
+        OUT + '/log/identify_species/{sample}.log'
     threads: 
         config["threads"]["kraken2"]
     conda:
@@ -19,6 +19,8 @@ rule identify_species:
         mem_gb=config["mem_gb"]["kraken2"]
     shell:
         """
+# Adding --confidence 0.05 causes 0 kmers assigned to species in some samples
+# That breaks bracken
 kraken2 --db {params.kraken_db} \
     --threads {threads} \
     --report {output.kraken2_kreport} \
@@ -31,4 +33,22 @@ bracken -d {params.kraken_db} \
     -l S \
     -t 0  &>> {log} 
 
+        """
+
+
+rule top_species_multireport:
+    input: 
+        expand(OUT + '/identify_species/{sample}_species_content.txt', sample = SAMPLES)
+    output:
+        OUT + '/identify_species/top1_species_multireport.csv'
+    log:
+        OUT + '/log/identify_species/multireport.log'
+    threads: 
+        config["threads"]["parsing"]
+    resources:
+        mem_gb=config["mem_gb"]["parsing"]
+    shell:
+        """
+python bin/make_summary_main_species.py --input-files {input} \
+                                        --output-multireport {output} > {log}
         """

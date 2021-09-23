@@ -22,8 +22,8 @@ custom_data:
     plot_type: 'table'
 
 sp:
-    CheckM_stats:
-        fn: 'checkm_report*'
+  CheckM_stats:
+    fn: 'checkm_report*'
 
 table_cond_formatting_rules:
   completeness:

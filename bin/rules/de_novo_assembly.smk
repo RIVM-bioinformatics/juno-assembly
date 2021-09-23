@@ -55,7 +55,6 @@ if [ ${{unpaired_file_size}} -gt 0 ];then
         -k {params.kmersizes} \
         -m {resources.mem_gb} \
         -t {threads} >> {log}
-    cp {output.contigs} {output.scaffolds}
 else
     echo "Running spades using unpaired reads to make scaffolds.\n" > {log}
     spades.py --isolate \
@@ -65,6 +64,10 @@ else
         -k {params.kmersizes} \
         -m {resources.mem_gb} \
         -t {threads} >> {log}
+fi
+
+if [ -f {output.scaffolds} ]; then
+    cp {output.contigs} {output.scaffolds}
 fi
         """
 
