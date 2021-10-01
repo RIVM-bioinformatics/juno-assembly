@@ -107,6 +107,7 @@ class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
             self.__check_genus_is_supported(self.genus)
         else:
             self.genus = None
+            print(self.message_formatter(f'No --genus argument was provided. The pipeline will use the results of the identify_species step to choose a reference genome to assess completeness of the assembly (using CheckM)!'))
         if metadata is not None:
             self.metadata = pathlib.Path(metadata)
         else:

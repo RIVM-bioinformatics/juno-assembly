@@ -19,13 +19,20 @@ class BrackenResult():
 
     def read_bracken_result(self):
         '''Read the <sample>_species_content.txt produced by Bracken'''
-        return pd.read_csv(self.filepath, sep = '\t')
+        bracken_result = pd.read_csv(self.filepath, sep = '\t')
+        sample_name = str(self.filepath.name)
+        sample_name = sample_name.replace('_species_content.txt', '')
+        return sample_name, bracken_result
 
     def find_top_hit(self):
         print(f"Finding top species for {self.filepath}")
-        bracken_result = self.read_bracken_result()
+        sample_name, bracken_result = self.read_bracken_result()
         idx_top_species = bracken_result['fraction_total_reads'].argmax()
-        return bracken_result.loc[[idx_top_species],['name', 'taxonomy_id', 'fraction_total_reads']]
+        bracken_result = bracken_result.loc[[idx_top_species],['name', 'taxonomy_id', 'fraction_total_reads']]
+        bracken_result.insert(0, 'sample', [sample_name])
+        bracken_result.insert(2, 'genus', bracken_result.name.str.split().str.get(0))
+        bracken_result.insert(3, 'species', bracken_result.name.str.split().str.get(1))
+        return bracken_result
 
 
 
