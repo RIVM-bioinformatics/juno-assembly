@@ -29,9 +29,11 @@ class BrackenResult():
         sample_name, bracken_result = self.read_bracken_result()
         idx_top_species = bracken_result['fraction_total_reads'].argmax()
         bracken_result = bracken_result.loc[[idx_top_species],['name', 'taxonomy_id', 'fraction_total_reads']]
+        bracken_result.rename(columns = {'name':'full_species_name'}, inplace = True)
         bracken_result.insert(0, 'sample', [sample_name])
-        bracken_result.insert(2, 'genus', bracken_result.name.str.split().str.get(0))
-        bracken_result.insert(3, 'species', bracken_result.name.str.split().str.get(1))
+        full_species_name = bracken_result.full_species_name.str.lower().str.split()
+        bracken_result.insert(2, 'genus', full_species_name.str.get(0))
+        bracken_result.insert(3, 'species', full_species_name.str.get(1))
         return bracken_result
 
 
@@ -73,6 +75,7 @@ class BrackenMultireport():
         print(f"Writing multireport to file {self.output_multireport}...")
         report.to_csv(self.output_multireport, index = False)
         return True
+
 
 if __name__ == '__main__':
     argument_parser = argparse.ArgumentParser(description='Make bracken results multireport with top 1 species (species with higher score per sample).')
