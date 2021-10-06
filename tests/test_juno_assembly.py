@@ -35,7 +35,7 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
 
         with open('fake_dir_wsamples/fake_metadata.csv', mode='w') as metadata_file:
             metadata_writer = csv.writer(metadata_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            metadata_writer.writerow(['Sample', 'Genus', 'Species'])
+            metadata_writer.writerow(['sample', 'genus', 'species'])
             metadata_writer.writerow(['sample1', 'Salmonella', 'enterica'])
             metadata_writer.writerow(['sample2', 'Escherichia', 'coli'])
             metadata_writer.writerow(['1234', 'campylobacter', 'jejuni'])
@@ -103,9 +103,8 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         """
         pathlib.Path('fake_dir_wsamples/missingsamp_1.fastq').unlink()
         pathlib.Path('fake_dir_wsamples/missingsamp_2.fastq').unlink()
-        input_dir = 'fake_dir_wsamples'
-        full_input_dir = pathlib.Path(input_dir).resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = input_dir, 
+        full_input_dir = pathlib.Path('fake_dir_wsamples').resolve()
+        pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = full_input_dir, 
                                     metadata= str(full_input_dir.joinpath('fake_metadata.csv')),
                                     output_dir = pathlib.Path('test_output'), 
                                     dryrun = True)
@@ -120,6 +119,24 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
                                             'genus': 'campylobacter'} }
         self.assertTrue(pipeline_dry_run.successful_run, 'Exception raised when running a dryrun')
         self.assertEqual(pipeline_dry_run.sample_dict, expected_sample_sheet, pipeline_dry_run.sample_dict)
+
+    def test_junoassembly_dryrun_wrong_metadata_colnames(self):
+        """
+        Tests whether a good error message is given if the metadata does not have the 
+        expected column names
+        """
+        with open('fake_dir_wsamples/fake_metadata2.csv', mode='w') as metadata_file:
+            metadata_writer = csv.writer(metadata_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            metadata_writer.writerow(['Sample', 'Genus', 'Species'])
+            metadata_writer.writerow(['sample1', 'Salmonella', 'enterica'])
+            metadata_writer.writerow(['sample2', 'Escherichia', 'coli'])
+            metadata_writer.writerow(['1234', 'campylobacter', 'jejuni'])
+        full_input_dir = pathlib.Path('fake_dir_wsamples').resolve()
+        with self.assertRaisesRegex(AssertionError, 'does not contain one or more of the expected column names'):
+            pipeline_dry_run = juno_assembly.JunoAssemblyRun(input_dir = full_input_dir, 
+                                                            metadata= str(full_input_dir.joinpath('fake_metadata2.csv')),
+                                                            output_dir = pathlib.Path('test_output'), 
+                                                            dryrun = True)
 
     def test_metadata_overwrites_genus(self):
         """Testing the pipeline runs properly as a dry run when providing 
@@ -205,7 +222,8 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         os.system('rm -rf test_output_sing')
 
     def test_junoassembly_run_wMetadata_in_conda(self):
-        """Testing the pipeline runs properly with real samples when providing
+        """
+        Testing the pipeline runs properly with real samples when providing
         a metadata file
         """
         juno_assembly_run = juno_assembly.JunoAssemblyRun(input_dir = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly', 
@@ -226,9 +244,10 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
                                                 'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample4_R2.fastq.gz',
                                                 'genus': 'shigella'} }
 
-        self.assertEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
+        self.assertDictEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
         self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
         self.assertTrue(pathlib.Path('test_output').joinpath('multiqc', 'multiqc.html').exists())
+        self.assertTrue(pathlib.Path('test_output_sing').joinpath('identify_species', 'top1_species_multireport.csv').exists())
         self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_git.yaml').exists())
         self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_pipeline.yaml').exists())
         self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_conda.txt').exists())
@@ -261,6 +280,7 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         self.assertEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
         self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
         self.assertTrue(pathlib.Path('test_output_sing').joinpath('multiqc', 'multiqc.html').exists())
+        self.assertTrue(pathlib.Path('test_output_sing').joinpath('identify_species', 'top1_species_multireport.csv').exists())
         self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_git.yaml').exists())
         self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_pipeline.yaml').exists())
         self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_conda.txt').exists())

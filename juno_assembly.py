@@ -9,8 +9,8 @@ Date: 18-08-2021
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
 """
 
-import atexit
-import base_juno_pipeline
+# import atexit
+from base_juno_pipeline import *
 import argparse
 import os
 import pandas as pd
@@ -19,8 +19,8 @@ import sys
 import warnings
 import yaml
 
-class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
-                        base_juno_pipeline.base_juno_pipeline.RunSnakemake):
+class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
+                        base_juno_pipeline.RunSnakemake):
     """Class with the arguments and specifications that are only for the 
     Juno_assembly pipeline but inherit from PipelineStartup and RunSnakemake
     """
@@ -54,42 +54,35 @@ class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
             os.system("cat files/accepted_genera_checkm.txt")
             sys.exit(0)
 
-        # From StartupPipeline
-        self.input_dir = pathlib.Path(input_dir).resolve()
-        self.input_type = 'fastq'
-        self.min_num_lines = 1000 # TODO: Find ideal min num of reads/lines needed
-
-        # From RunSnakemake 
-        self.pipeline_name = 'Juno_assembly'
-        self.pipeline_version = '2.0'
-        self.output_dir = pathlib.Path(output_dir).resolve()
+        # Build class
+        output_dir = pathlib.Path(output_dir).resolve()
+        workdir = pathlib.Path(__file__).parent.resolve()
         self.db_dir = pathlib.Path(db_dir).resolve()
-        self.workdir = pathlib.Path(__file__).parent.resolve()
-        self.sample_sheet = "config/sample_sheet.yaml"
-        self.user_parameters = pathlib.Path('config/user_parameters.yaml')
-        self.fixed_parameters = pathlib.Path('config/pipeline_parameters.yaml')
-        self.snakefile = 'Snakefile'
-        self.cores = cores
-        self.local = local
-        self.path_to_audit = self.output_dir.joinpath('audit_trail')
-        self.snakemake_report = str(self.path_to_audit.joinpath('juno_assembly_report.html'))
-        self.queue = queue
-        self.unlock = unlock
-        self.dryrun = dryrun
-        self.rerunincomplete = rerunincomplete
-        if run_in_container:
-            self.useconda = False
-            self.usesingularity = True
-        else:
-            self.useconda = True
-            self.usesingularity = False
-        self.conda_frontend = 'mamba'
-        self.conda_prefix = conda_prefix
-        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir} --bind {self.db_dir}:{self.db_dir}"
-        self.singularity_prefix = singularity_prefix
-        self.restarttimes = 0
-        self.latency = 60
-        self.kwargs = kwargs
+        self.path_to_audit = output_dir.joinpath('audit_trail')
+        base_juno_pipeline.PipelineStartup.__init__(self,
+            input_dir=pathlib.Path(input_dir).resolve(), 
+            input_type='fastq',
+            min_num_lines=1000) # TODO: Find ideal min num of reads/lines needed
+        base_juno_pipeline.RunSnakemake.__init__(self,
+            pipeline_name='Juno_assembly',
+            pipeline_version='v2.0',
+            output_dir=output_dir,
+            workdir=workdir,
+            cores=cores,
+            local=local,
+            queue=queue,
+            unlock=unlock,
+            rerunincomplete=rerunincomplete,
+            dryrun=dryrun,
+            useconda=not run_in_container,
+            conda_prefix=conda_prefix,
+            usesingularity=run_in_container,
+            singularityargs=f"--bind {self.input_dir}:{self.input_dir} --bind {output_dir}:{output_dir} --bind {db_dir}:{db_dir}",
+            singularity_prefix=singularity_prefix,
+            restarttimes=1,
+            latency_wait=60,
+            name_snakemake_report=str(self.path_to_audit.joinpath('juno_assembly_report.html')),
+            **kwargs)
 
         # Specific for Juno assembly
         self.mean_quality_threshold = int(mean_quality_threshold)
@@ -102,39 +95,33 @@ class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
             for line in file_:
                 genus_name = line.replace('\n', '').lower()
                 self.supported_genera.append(genus_name)
-        if genus is not None:
-            self.genus = genus.strip().lower()
-            self.__check_genus_is_supported(self.genus)
-        else:
-            self.genus = None
-            print(self.message_formatter(f'No --genus argument was provided. The pipeline will use the results of the identify_species step to choose a reference genome to assess completeness of the assembly (using CheckM)!'))
-        if metadata is not None:
-            self.metadata = pathlib.Path(metadata)
-        else:
-            self.metadata = None
+        self.genus = genus
+        self.metadata_file = metadata
         
         # Start pipeline
-        self.start_juno_assembly_pipeline()
-        self.user_params = self.write_userparameters()
-        self.get_run_info()
-        if not self.dryrun or self.unlock:
-            self.__validate_kraken2_db_dir()
-            self.path_to_audit.mkdir(parents=True, exist_ok=True)
-            self.audit_trail = self.generate_audit_trail()
-        self.successful_run = self.run_snakemake()
-        assert self.successful_run, f'Please check the log files'
-        if not self.dryrun or self.unlock:
-            self.make_snakemake_report()
+        self.run_juno_assembly_pipeline()
 
-    def __check_genus_is_supported(self, genus):
-        if genus.lower() in self.supported_genera:
-            return True
-        else:
-            raise ValueError(
-                self.error_formatter(
-                    f'The genus {genus} is not supported. You can leave the "genus" empty for samples with unsupported genera.'
+    def __get_supported_genera(self):
+        supported_genera=[]
+        with open(self.workdir.joinpath('files', 'accepted_genera_checkm.txt')) as file_:
+            for line in file_:
+                genus_name = line.replace('\n', '').lower()
+                supported_genera.append(genus_name)
+        self.supported_genera = supported_genera
+
+    def __check_genus_is_supported(self):
+        self.__get_supported_genera()
+        if self.genus is not None:
+            if self.genus.strip().lower() in self.supported_genera:
+                return True
+            else:
+                raise ValueError(
+                    self.error_formatter(
+                        f'The genus {self.genus} is not supported. You can leave the "genus" empty for samples with unsupported genera.'
+                        )
                     )
-                )
+        else:
+            return True
 
     def __validate_kraken2_db_dir(self):
         hash_file_exists = self.db_dir.joinpath('hash.k2d').exists()
@@ -145,35 +132,22 @@ class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
         else:
             raise ValueError(f'The provided path to the database for Kraken2 ({str(self.db_dir)}) does not contain the expected files. Please download it again!')
 
-    def add_metadata(self):
-        assert self.metadata.is_file(), f"Provided metadata file ({self.metadata}) does not exist"
-        # Load species file
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            species_dic = pd.read_csv(self.metadata, usecols=['Sample', 'Genus'], index_col=0)
-        species_dic.index = species_dic.index.map(str)
-        species_dic['Genus'] = species_dic['Genus'].apply(lambda x: x.strip().lower())
-        species_dic = species_dic.transpose().to_dict()
-        # Update dictionary with species
-        for sample_name in self.sample_dict :
+    def update_sample_dict_with_metadata(self):
+        self.__check_genus_is_supported()
+        self.get_metadata_from_csv_file(filepath=self.metadata_file, expected_colnames=['sample', 'genus'])
+        for sample in self.sample_dict:
             try:
-                self.__check_genus_is_supported(species_dic[sample_name]['Genus'])
-                self.sample_dict[sample_name]['genus'] =  species_dic[sample_name]['Genus']
-            except KeyError :
-                pass
+                self.sample_dict[sample]['genus'] = self.juno_metadata[sample]['genus'].strip().lower()
+            except (KeyError, TypeError):
+                self.sample_dict[sample]['genus'] = self.genus
 
     def start_juno_assembly_pipeline(self):
-        """Function to start the pipeline (some steps from PipelineStartup 
-        need to be modified for the Juno_assembly pipeline to accept metadata
+        """
+        Function to start the pipeline (some steps from PipelineStartup need to
+        be modified for the Juno_assembly pipeline to accept metadata
         """
         self.start_juno_pipeline()
-        # Add genus metadata if existing
-        for sample in self.sample_dict:
-            self.sample_dict[sample]['genus'] = self.genus
-        if self.metadata is not None:
-            print('\nAdding genus information from metadata file...\n')
-            self.add_metadata()
-        # Write sample_sheet
+        self.update_sample_dict_with_metadata()
         with open(self.sample_sheet, 'w') as file:
             yaml.dump(self.sample_dict, file, default_flow_style=False)
     
@@ -195,20 +169,19 @@ class JunoAssemblyRun(base_juno_pipeline.base_juno_pipeline.PipelineStartup,
 
         return config_params
 
-class SnakemakeExtraArgsAction(argparse.Action,
-                                base_juno_pipeline.base_juno_pipeline.helper_functions.JunoHelpers):
-    def __call__(self, parser, namespace, values, option_string=None):
-        keyword_dict = {}
-        for arg in values: 
-            pieces = arg.split('=')
-            if len(pieces) == 2:
-                if pieces[1].startswith('['):
-                    pieces[1] = pieces[1].replace('[', '').replace(']', '').split(',')
-                keyword_dict[pieces[0]] = pieces[1]
-            else: 
-                msg = f'The argument {arg} is not valid. Did you try to pass an extra argument to Snakemkake? Make sure that you used the API format and that you use the argument int he form: arg=value.'
-                raise argparse.ArgumentTypeError(self.error_formatter(msg))
-        setattr(namespace, self.dest, keyword_dict)
+    def run_juno_assembly_pipeline(self):
+        self.start_juno_assembly_pipeline()
+        self.user_params = self.write_userparameters()
+        self.get_run_info()
+        if not self.dryrun or self.unlock:
+            self.__validate_kraken2_db_dir()
+            self.path_to_audit.mkdir(parents=True, exist_ok=True)
+            self.audit_trail = self.generate_audit_trail()
+        self.successful_run = self.run_snakemake()
+        assert self.successful_run, f'Please check the log files'
+        if not self.dryrun or self.unlock:
+            self.make_snakemake_report()
+
 
 
 if __name__ == '__main__':
@@ -349,7 +322,7 @@ if __name__ == '__main__':
         "--snakemake-args",
         nargs='*',
         default={},
-        action=SnakemakeExtraArgsAction,
+        action=helper_functions.SnakemakeKwargsAction,
         help="Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html)."
     )
     args = parser.parse_args()
