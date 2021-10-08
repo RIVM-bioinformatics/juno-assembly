@@ -25,6 +25,7 @@ rule checkm:
     shell:
         """
 if [ "{params.genus}" == "None" ];then
+    # Get top (first appearing) species from the bracken.kreport
     genus=$(grep "\sG\s" {input.genus_bracken} | head -n 1 | cut -f6 | xargs)
     genus_capitalized=${{genus^}}
     checkm taxonomy_wf genus "${{genus_capitalized}}" \
