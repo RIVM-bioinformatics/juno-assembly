@@ -11,8 +11,8 @@
 ## Pipeline information
 
 * **Author(s):**            Alejandra Hernández Segura, Robert Verhagen and Ernst Hamer.
-* **Organization:**         Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-* **Department:**           Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
+* **Organization:**         National Institute for Public Health and the Environment (RIVM)
+* **Department:**           Centre for Research Infectious Diseases Diagnostics and Screening (IDS), Bacteriology (BPD)
 * **Start date:**           01 - 04 - 2020
 * **Commissioned by:**      Maaike van den Beld
 
@@ -29,32 +29,31 @@ The pipeline uses the following tools:
 6. To assess the quality of the microbial genomes, [CheckM](https://ecogenomics.github.io/CheckM/) (Parks, Imelfort, Skennerton, Hugenholtz, & Tyson, 2015) is used. CheckM calculates scores for completeness, contamination and strain heterogeneity 
 7. [Bbtools](https://jgi.doe.gov/data-and-tools/bbtools/) (Bushnell, 2014) is used to generate scaffold alignment metrics 
 8. [MultiQC](https://multiqc.info/) (Ewels, Magnusson, Lundin, & Käller, 2016) is used to summarize analysis results and quality assessments in a single report for dynamic visualization.
+9. [Kraken2](https://ccb.jhu.edu/software/kraken2/) and [Bracken](http://ccb.jhu.edu/software/bracken/) for identification of bacterial species.  
 
-![Image of pipeline](https://github.com/RIVM-bioinformatics/Juno_pipeline/blob/master/files/juno_assembly_diagram.png)
+![Image of pipeline](https://github.com/RIVM-bioinformatics/Juno_pipeline/blob/master/files/DAG.svg)
 
 ## Prerequisities
 
 * **Linux + conda** A Linux-like environment with at least 'miniconda' installed
-* Preferentially **[Singularity](https://sylabs.io/guides/3.8/user-guide/)** installed and working
-* **Python3.7.6** .
+* Preferentially **[Singularity](https://sylabs.io/guides/3.8/user-guide/)** installed and working. If you are not using singularity, you have to run the pipeline using the argument `--no-containers`.
 
 
 ## Installation
 
-**IMPORTANT NOTE**: You need to have [Conda](https://docs.conda.io/en/latest/) installed and, preferentially, also [Singularity](https://sylabs.io/guides/3.8/user-guide/) so that every step is containerized and therefore more reproducible. There is an option to run without using singularity (option `--not-run-in-containers`) but Conda is mandatory. 
+**IMPORTANT NOTE**: You need to have [Conda](https://docs.conda.io/en/latest/) installed and, preferentially, also [Singularity](https://sylabs.io/guides/3.8/user-guide/) so that every step is containerized and therefore more reproducible. There is an option to run without using singularity (option `--no-containers`) but Conda is mandatory. 
 
 1. Clone the repository:
 
 ```
 git clone https://github.com/RIVM-bioinformatics/Juno_pipeline.git
 ```
-Alternatively, you can download it manually as a zip file (you will need to unzip it then).
+Alternatively, you can download it manually as a zip file (you will need to unzip it then). If you decide to download the zip only, the pipeline version will not be stored in the audit trail.
 
-2. Enter the directory with the pipeline and install the master environment:
+2. Enter the directory with the pipeline and install the pipeline:
 
 ```
-cd Juno_pipeline
-conda env install -f envs/master_env.yaml
+bash install_juno_assembly.sh
 ```
 
 ## Parameters & Usage
@@ -72,11 +71,11 @@ conda env install -f envs/master_env.yaml
 
 * `--genus` Genus of the samples to be analyzed. Only one name is allowed, so if multiple samples are included in the input directory, it will be assumed that they all have the same genus. If metadata is given, the genus in the metadata will overwrite the one given through this option. If no `--genus` and no `--metadata` are provided, then CheckM will not be run. Keep in mind that if that is the case, the coverage of the assembly and other stats calculated by CheckM will not be obtained.
 
-* `-m --metadata` Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'Sample' name (name of the file but removing _R1.fastq.gz) and a column called 'Genus' (mind the capital in the first letter). The genus provided will be used to choose the reference genome to analyze de QC of the de novo assembly. Mind the capital in the column names. Default is: None. An example metadata would be:
+* `-m --metadata` Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'sample' name (name of the file but removing _S##_R1.fastq.gz) and a column called 'genus' (mind the small letters). The genus provided will be used to choose the reference genome to analyze de QC of the _de novo_ assembly. Default is: None. An example metadata would be:
 
-| __Monsternummer__ | __genus__ |
+| __sample__ | __genus__ |
 | :---: | :--- |
-| sample1 | Salmonella |
+| sample1 | salmonella |
 
 *Note:* The fastq files corresponding to this sample would probably be something like sample1_S1_R1_0001.fastq.gz and sample1_S1_R2_0001.fastq.gz.
 
@@ -86,12 +85,12 @@ conda env install -f envs/master_env.yaml
 * `-ml --minimum-length` Minimum length for fastq reads to be kept after trimming. Default is 50.
 * `-k --kmer-size` Kmersizes to be used for the de novo assembly. Default is 21,33,55,77,99. Note that the kmer size must be given without commas (`-k 21 33 55 77 99`)
 * `-cl --contig-length-threshold` Minimum length to filter the contigs generated by the de novo assembly. Default is 500. 
-* `--not-run-in-containers` Use conda environments instead of containers. Default is to run in docker/singularity containers. Note that **YOU NEED TO HAVE SINGULARITY INSTALLED AND WORKING** to use the containers option.
+* `--no-containers` Use conda environments instead of containers. Default is to run in docker/singularity containers. Note that **YOU NEED TO HAVE SINGULARITY INSTALLED AND WORKING** to use the containers option.
 * ```-c --cores```  Number of cores to use. Default is 4 if running locally (--local) or 300 otherwise.
 * ```-l --local```  If this flag is present, the pipeline will be run locally (not attempting to send the jobs to an HPC cluster**). The default is to assume that you are working on a cluster because the pipeline was developed in an environment where it is the case. **Note that currently only LSF clusters are supported.
 * ```-q --queue```  Name of the queue that the job will be submitted to if working on a cluster. This argument will be ignored if working locally (`--local`). It defaults to 'bio'. 
 * ```-n --dryrun```, ```-u --unlock``` and ```--rerunincomplete``` are all parameters passed to Snakemake. If you want the explanation of these parameters, please refer to the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/).
-* `--snakemake-args` Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html). Passed in arg=value form. 
+* `--snakemake-args` Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html). Passed in arg=value form. Only use this if you are familiar with the pipeline and with which parameters cannot be accepted as extra argument. 
 
 ### The base command to run this program. 
 
