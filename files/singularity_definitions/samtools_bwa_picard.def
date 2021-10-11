@@ -1,0 +1,32 @@
+Bootstrap: docker
+From: biocontainers/samtools:v1.9-4-deb_cv1
+
+%labels
+    Autor "Alejandra Hernández Segura"
+    Department "Infectious Disease Research, Diagnostics and laboratory Surveillance (IDS, RIVM)"
+    Description "Image containing Samtools, BWA and Picard"
+
+%environment
+    export PATH="/opt/bwa-mem2-2.2.1_x64-linux:${PATH}"
+
+%post
+    # Install dependencies needed for installing BWA
+    apt-get update -y
+    apt-get install -y wget
+    # Install BWA
+    cd /opt/
+    wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.2.1/bwa-mem2-2.2.1_x64-linux.tar.bz2
+    tar -xjf bwa-mem2-2.2.1_x64-linux.tar.bz2 --no-same-owner
+    rm -f bwa-mem2-2.2.1_x64-linux.tar.bz2
+    cd /opt/bwa-mem2-2.2.1_x64-linux
+    # Install picard 2.26.0
+    apt-get install -t buster-backports -y picard-tools=2.26.0 || apt-get install -y picard-tools
+    apt-get clean
+    apt-get purge
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    /bin/bash $@
+
+%startscript
+    /bin/bash $@

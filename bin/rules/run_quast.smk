@@ -10,13 +10,15 @@ rule run_quast_combined:
         OUT + "/qc_de_novo_assembly/quast/report.tsv"
     conda:
         "../../envs/quast.yaml"
+    container:
+        "docker://staphb/quast:5.0.2"
     threads: config["threads"]["quast"],
-    resources: mem_mb=config["mem_mb"]["quast"]
+    resources: mem_gb=config["mem_gb"]["quast"]
     params:
         output_dir = OUT + "/qc_de_novo_assembly/quast"
     log:
         OUT + "/log/qc_de_novo_assembly/quast.log"
     shell:
         """
-        quast --threads {threads} {input:q} --output-dir {params.output_dir:q} > {log:q}
+quast.py --threads {threads} {input} --output-dir {params.output_dir} > {log}
         """

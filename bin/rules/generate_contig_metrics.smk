@@ -11,19 +11,18 @@ rule pileup_contig_metrics:
         perScaffold = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv",
     conda:
         "../../envs/scaffold_analyses.yaml"
+    container:
+        "docker://staphb/bbtools:38.86"
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_{sample}.log"
-    benchmark:
-        OUT + "/log/benchmark/pileup_contig_metrics_{sample}.txt"
     threads: config["threads"]["pileup"]
-    resources: mem_mb=config["mem_mb"]["pileup"]
+    resources: mem_gb=config["mem_gb"]["pileup"]
     shell:
         """
 pileup.sh in={input.bam} \
-ref={input.fasta} \
-out={output.perScaffold} \
-secondary=f \
-samstreamer=t > {log} 2>&1
-cp {log} {output.summary}
+    ref={input.fasta} \
+    out={output.perScaffold} \
+    secondary=f \
+    samstreamer=t > {output.summary} 2> {log}
         """
 

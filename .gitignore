@@ -1,8 +1,22 @@
-.snakemake
+# Folders to ignore
+.snakemake/
 out
 output
 raw_data
+envs/src/
+unused/
+test_output/
+test_output_sing/
+__pycache__/
+.java/
+.cache/
+.config/
+src/
+.quast/
+
+# Files to ignore
 sample_sheet.yaml
+config/sample_sheet.yaml
 config/variables.yaml
 config/juno_call.txt 
 config/user_parameters.yaml

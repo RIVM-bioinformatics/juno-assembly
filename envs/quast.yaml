@@ -1,9 +1,6 @@
 name: quast
 channels:
   - bioconda
-  - conda-forge
   - defaults
-  - r
 dependencies:
-    - quast==4.6.3
-    - ca-certificates==2018.03.07-0 
+    - quast==5.0.2
