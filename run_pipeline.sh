@@ -44,6 +44,7 @@ echo -e "\nUpdating necessary environments to run the pipeline..."
 # are set or not
 set +euo pipefail 
 bash install_juno_assembly.sh
+source activate "${MAMBA_NAME}"
 source activate "${MASTER_NAME}"
 
 #----------------------------------------------#
