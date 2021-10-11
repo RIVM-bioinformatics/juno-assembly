@@ -10,6 +10,26 @@ input_dir="${1%/}"
 output_dir="${2%/}"
 PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
+cd ${DIR}
+
+# Sanity checks
+if [ ! -z "${1}" ] || [ ! -z "${2}" ] || [ ! -z "${irods_input_projectID}" ]
+then
+  INPUTDIR="${1}"
+  OUTPUTDIR="${2}"
+  PROJECT_NAME="${irods_input_projectID}"
+else
+  echo "No inputdir, outputdir or project name (param 1, 2 or irods_input_projectID)"
+  exit 1
+fi
+
+if [ ! -d "${INPUTDIR}" ] || [ ! -d "${OUTPUTDIR}" ]
+then
+  echo "inputdir $INPUTDIR or output dir $OUTPUTDIR does not exist!"
+  exit 1
+fi
+
 #----------------------------------------------#
 # Create/update necessary environments
 PATH_MAMBA_YAML="envs/mamba.yaml"
