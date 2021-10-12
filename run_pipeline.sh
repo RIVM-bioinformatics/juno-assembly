@@ -98,6 +98,9 @@ else
 fi
 
 # Propagate metadata
+
+set +euo pipefail
+
 SEQ_KEYS=
 SEQ_ENV=`env | grep irods_input_sequencing`
 for SEQ_AVU in ${SEQ_ENV}
@@ -116,6 +119,7 @@ do
 done
 
 exit ${result}
+
 # Produce svg with rules
 # snakemake --config sample_sheet=config/sample_sheet.yaml \
 #             --configfiles config/pipeline_parameters.yaml config/user_parameters.yaml \
