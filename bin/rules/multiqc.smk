@@ -11,7 +11,7 @@ rule multiqc:
         OUT + "/qc_de_novo_assembly/checkm/checkm_report.tsv",
         expand(OUT + "/log/clean_fastq/clean_fastq_{sample}.log", sample = SAMPLES),
         expand(OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_metrics.txt", sample = SAMPLES),
-        expand(OUT + '/identify_species/{sample}_bracken_species.kreport2', sample = SAMPLES)
+        expand(OUT + '/identify_species/{sample}/{sample}_bracken_species.kreport2', sample = SAMPLES)
     output:
         OUT + "/multiqc/multiqc.html",
     conda:
