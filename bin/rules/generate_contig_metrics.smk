@@ -23,6 +23,8 @@ pileup.sh in={input.bam} \
     ref={input.fasta} \
     out={output.perScaffold} \
     secondary=f \
-    samstreamer=t > {output.summary} 2> {log}
+    samstreamer=t 2> {output.summary} 
+    
+cp {output.summary} {log}
         """
 

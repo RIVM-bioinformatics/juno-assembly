@@ -85,12 +85,12 @@ fi
 
 set -euo pipefail
 
-if [ "${GENUS_ALL}" == "NotProvided" ]; then
-    python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}"
-    result=$?
-elif [ ${irods_input_projectID} == "refsamp" ]; then
-    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.xlsx)`
+if [ "${irods_input_projectID}" == "refsamp" ]; then
+    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
     python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}" --metadata "${GENUS_FILE}"
+    result=$?
+elif [ "${GENUS_ALL}" == "NotProvided" ]; then
+    python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}"
     result=$?
 else
     python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}" --genus "${GENUS_ALL}"
