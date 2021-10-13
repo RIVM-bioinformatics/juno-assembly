@@ -101,7 +101,7 @@ rule all:
         expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample = SAMPLES),
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv",
-        expand(OUT + '/identify_species/{sample}_species_content.txt', sample = SAMPLES),
-        expand(OUT + '/identify_species/{sample}_bracken_species.kreport2', sample = SAMPLES),
+        expand(OUT + '/identify_species/{sample}/{sample}_species_content.txt', sample = SAMPLES),
+        expand(OUT + '/identify_species/{sample}/{sample}_bracken_species.kreport2', sample = SAMPLES),
         OUT + '/identify_species/top1_species_multireport.csv',
         OUT + "/multiqc/multiqc.html"

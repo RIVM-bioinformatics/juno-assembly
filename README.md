@@ -65,13 +65,13 @@ bash install_juno_assembly.sh
 
 ### Required parameters
 
-* ```-i, --input``` Relative or absolute path to the input directory. It must contain all the raw reads (fastq) files for all samples to be processed (not in subfolders). The input files should have the extension '.fastq', '.fastq.gz', '.fq' or '.fq.gz'. Important, any very small file (smaller than 3 kilobytes) will be ignored and not included in the pipeline results since they are probably empty or failed samples.  
+* ```-i, --input``` Relative or absolute path to the input directory. It must contain all the raw reads (fastq) files for all samples to be processed (not in subfolders). The input files should have the extension '.fastq', '.fastq.gz', '.fq' or '.fq.gz'. Important, fastq files are expected to have at least 1000 lines (so not be empty), otherwise they will be ignored (with a warning) and not included in the pipeline results since they are probably failed samples.  
 
 ### Optional parameters
 
 * `--genus` Genus of the samples to be analyzed. Only one name is allowed, so if multiple samples are included in the input directory, it will be assumed that they all have the same genus. If metadata is given, the genus in the metadata will overwrite the one given through this option. If no `--genus` and no `--metadata` are provided, then CheckM will not be run. Keep in mind that if that is the case, the coverage of the assembly and other stats calculated by CheckM will not be obtained.
 
-* `-m --metadata` Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'sample' name (name of the file but removing _S##_R1.fastq.gz) and a column called 'genus' (mind the small letters). The genus provided will be used to choose the reference genome to analyze de QC of the _de novo_ assembly. Default is: None. An example metadata would be:
+* `-m --metadata` Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'sample' name (name of the file but removing \_S##\_R1.fastq.gz) and a column called 'genus' (mind the small letters). The genus provided will be used to choose the reference genome to analyze de QC of the _de novo_ assembly. Default is: None. An example metadata would be:
 
 | __sample__ | __genus__ |
 | :---: | :--- |
@@ -130,6 +130,7 @@ conda deactivate
     - qc_clean_fastq: results of the quality control for fastq files. Run after filtering and trimming.
     - qc_de_novo_assembly: results of the quality control of the assemblies. Includes results of different tools (refer to those tools for interpretation).
     - qc_raw_fastq: results of the quality control for fastq files. Run before filtering and trimming. 
+    - identify_species: results of bracken for species identification. The main result is a file called top1_species_multireport.csv which summarizes the main species found in the sample.  
         
 ## Issues  
 

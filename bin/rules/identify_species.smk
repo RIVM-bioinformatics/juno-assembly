@@ -2,9 +2,9 @@ rule identify_species:
     input: 
         OUT + "/de_novo_assembly_filtered/{sample}.fasta"
     output:
-        kraken2_kreport = temp(OUT + '/identify_species/{sample}.kreport2'),
-        bracken_s = OUT + '/identify_species/{sample}_species_content.txt',
-        bracken_kreport = OUT + '/identify_species/{sample}_bracken_species.kreport2'
+        kraken2_kreport = temp(OUT + '/identify_species/{sample}/{sample}.kreport2'),
+        bracken_s = OUT + '/identify_species/{sample}/{sample}_species_content.txt',
+        bracken_kreport = OUT + '/identify_species/{sample}/{sample}_bracken_species.kreport2'
     log:
         OUT + '/log/identify_species/{sample}.log'
     threads: 
@@ -38,7 +38,7 @@ bracken -d {params.kraken_db} \
 
 rule top_species_multireport:
     input: 
-        expand(OUT + '/identify_species/{sample}_species_content.txt', sample = SAMPLES)
+        expand(OUT + '/identify_species/{sample}/{sample}_species_content.txt', sample = SAMPLES)
     output:
         OUT + '/identify_species/top1_species_multireport.csv'
     log:
