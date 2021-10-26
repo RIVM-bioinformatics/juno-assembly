@@ -13,10 +13,10 @@ Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-a
 from base_juno_pipeline import *
 import argparse
 import os
-import pandas as pd
+# import pandas as pd
 import pathlib
 import sys
-import warnings
+# import warnings
 import yaml
 
 class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
@@ -175,8 +175,6 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
         self.get_run_info()
         if not self.dryrun or self.unlock:
             self.__validate_kraken2_db_dir()
-            self.path_to_audit.mkdir(parents=True, exist_ok=True)
-            self.audit_trail = self.generate_audit_trail()
         self.successful_run = self.run_snakemake()
         assert self.successful_run, f'Please check the log files'
         if not self.dryrun or self.unlock:
