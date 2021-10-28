@@ -85,6 +85,10 @@ fi
 
 set -euo pipefail
 
+# Setting up the tmpdir for singularity as the current directory (default is /tmp but it gets full easily)
+# Containers will use it for storing tmp files when building a container
+export SINGULARITY_TMPDIR="$(pwd)"
+
 if [ "${irods_input_projectID}" == "refsamp" ]; then
     GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
     python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}" --metadata "${GENUS_FILE}"
