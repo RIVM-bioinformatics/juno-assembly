@@ -14,7 +14,7 @@ mem_gb:
     parsing: 4
     trimmomatic: 12
     picard: 12
-    spades: 100
+    spades: 30
     pileup: 6
     multiqc: 8
     checkm: 12
