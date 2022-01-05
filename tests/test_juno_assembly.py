@@ -220,16 +220,19 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
     def tearDownClass():
         os.system('rm -rf test_output')
         os.system('rm -rf test_output_sing')
+        os.system('rm -rf test_output_sing_prefix')
+        os.system('rm -rf sing_containers')
 
     def test_junoassembly_run_wMetadata_in_conda(self):
         """
         Testing the pipeline runs properly with real samples when providing
         a metadata file
         """
+        output_dir = pathlib.Path('test_output')
         juno_assembly_run = juno_assembly.JunoAssemblyRun(input_dir = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly', 
                                     metadata = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/metadata.csv',
                                     dryrun=False,
-                                    output_dir = pathlib.Path('test_output'),
+                                    output_dir = output_dir,
                                     run_in_container = False)
         expected_sample_sheet = {'sample1': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R1_001.fastq.gz',
                                                 'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R2_001.fastq.gz',
@@ -246,23 +249,24 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
 
         self.assertDictEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
         self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
-        self.assertTrue(pathlib.Path('test_output').joinpath('multiqc', 'multiqc.html').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('identify_species', 'top1_species_multireport.csv').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_git.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_pipeline.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'log_conda.txt').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'juno_assembly_report.html').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'sample_sheet.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output').joinpath('audit_trail', 'user_parameters.yaml').exists())
+        self.assertTrue(output_dir.joinpath('multiqc', 'multiqc.html').exists())
+        self.assertTrue(output_dir.joinpath('identify_species', 'top1_species_multireport.csv').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_git.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_pipeline.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_conda.txt').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'juno_assembly_report.html').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'sample_sheet.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'user_parameters.yaml').exists())
 
     def test_junoassembly_run_in_singularity(self):
         """Testing the pipeline runs properly with real samples when providing
         a metadata file
         """
+        output_dir = pathlib.Path('test_output_sing')
         juno_assembly_run = juno_assembly.JunoAssemblyRun(input_dir = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly', 
                                     metadata = None,
                                     dryrun=False,
-                                    output_dir = pathlib.Path('test_output_sing'),
+                                    output_dir = output_dir,
                                     run_in_container = True)
         expected_sample_sheet = {'sample1': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R1_001.fastq.gz',
                                                 'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R2_001.fastq.gz',
@@ -279,14 +283,49 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
 
         self.assertEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
         self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('multiqc', 'multiqc.html').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('identify_species', 'top1_species_multireport.csv').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_git.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_pipeline.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'log_conda.txt').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'juno_assembly_report.html').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'sample_sheet.yaml').exists())
-        self.assertTrue(pathlib.Path('test_output_sing').joinpath('audit_trail', 'user_parameters.yaml').exists())
+        self.assertTrue(output_dir.joinpath('multiqc', 'multiqc.html').exists())
+        self.assertTrue(output_dir.joinpath('identify_species', 'top1_species_multireport.csv').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_git.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_pipeline.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_conda.txt').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'juno_assembly_report.html').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'sample_sheet.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'user_parameters.yaml').exists())
+
+    def test_junoassembly_wsingularity_prefix(self):
+        """Testing the pipeline runs properly with real samples when providing
+        a metadata file
+        """
+        output_dir = pathlib.Path('test_output_sing_prefix')
+        juno_assembly_run = juno_assembly.JunoAssemblyRun(input_dir = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly', 
+                                    metadata = None,
+                                    dryrun=False,
+                                    output_dir = output_dir,
+                                    run_in_container = True,
+                                    prefix="sing_containers")
+        expected_sample_sheet = {'sample1': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R1_001.fastq.gz',
+                                                'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample1_S14_R2_001.fastq.gz',
+                                                'genus': None},
+                                'sample2': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample2_R1.fastq.gz',
+                                                'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample2_R2.fastq.gz',
+                                                'genus': None},
+                                'sample3': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample3_R1_001.fastq.gz',
+                                                'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample3_R2_001.fastq.gz',
+                                                'genus': None},
+                                'sample4': {'R1': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample4_R1.fastq.gz',
+                                                'R2': '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly/sample4_R2.fastq.gz',
+                                                'genus': None} }
+
+        self.assertEqual(juno_assembly_run.sample_dict, expected_sample_sheet, juno_assembly_run.sample_dict)
+        self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
+        self.assertTrue(output_dir.joinpath('multiqc', 'multiqc.html').exists())
+        self.assertTrue(output_dir.joinpath('identify_species', 'top1_species_multireport.csv').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_git.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_pipeline.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'log_conda.txt').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'juno_assembly_report.html').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'sample_sheet.yaml').exists())
+        self.assertTrue(output_dir.joinpath('audit_trail', 'user_parameters.yaml').exists())
 
 
 if __name__ == '__main__':
