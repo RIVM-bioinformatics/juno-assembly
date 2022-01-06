@@ -90,15 +90,36 @@ set -euo pipefail
 export SINGULARITY_TMPDIR="$(pwd)"
 
 if [ "${irods_input_projectID}" == "refsamp" ]; then
+    
     GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-    python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}" --metadata "${GENUS_FILE}"
+    
+    python juno_assembly.py --queue "${QUEUE}" \
+      -i "${input_dir}" \
+      -o "${output_dir}" \
+      --metadata "${GENUS_FILE}" \
+      --prefix "/mnt/db/juno/sing_containers"
+    
     result=$?
+
 elif [ "${GENUS_ALL}" == "NotProvided" ]; then
-    python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}"
+
+    python juno_assembly.py --queue "${QUEUE}" \
+      -i "${input_dir}" \
+      -o "${output_dir}" \
+      --prefix "/mnt/db/juno/sing_containers"
+
     result=$?
+
 else
-    python juno_assembly.py --queue "${QUEUE}" -i "${input_dir}" -o "${output_dir}" --genus "${GENUS_ALL}"
+
+    python juno_assembly.py --queue "${QUEUE}" \
+      -i "${input_dir}" \
+      -o "${output_dir}" \
+      --genus "${GENUS_ALL}" \
+      --prefix "/mnt/db/juno/sing_containers"
+    
     result=$?
+
 fi
 
 # Propagate metadata

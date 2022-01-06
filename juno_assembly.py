@@ -9,14 +9,11 @@ Date: 18-08-2021
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
 """
 
-# import atexit
 from base_juno_pipeline import *
 import argparse
 import os
-# import pandas as pd
 import pathlib
 import sys
-# import warnings
 import yaml
 
 class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
@@ -44,8 +41,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
                 rerunincomplete=False,
                 dryrun=False,
                 run_in_container=False,
-                singularity_prefix=None,
-                conda_prefix=None,
+                prefix=None,
                 **kwargs):
         """Initiating Juno_assembly pipeline"""
         
@@ -65,7 +61,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
             min_num_lines=1000) # TODO: Find ideal min num of reads/lines needed
         base_juno_pipeline.RunSnakemake.__init__(self,
             pipeline_name='Juno_assembly',
-            pipeline_version='v2.0',
+            pipeline_version='v2.0.2',
             output_dir=output_dir,
             workdir=workdir,
             cores=cores,
@@ -75,10 +71,10 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
             rerunincomplete=rerunincomplete,
             dryrun=dryrun,
             useconda=not run_in_container,
-            conda_prefix=conda_prefix,
+            conda_prefix=prefix,
             usesingularity=run_in_container,
             singularityargs=f"--bind {self.input_dir}:{self.input_dir} --bind {output_dir}:{output_dir} --bind {db_dir}:{db_dir}",
-            singularity_prefix=singularity_prefix,
+            singularity_prefix=prefix,
             restarttimes=1,
             latency_wait=60,
             name_snakemake_report=str(self.path_to_audit.joinpath('juno_assembly_report.html')),
@@ -278,6 +274,14 @@ if __name__ == '__main__':
         help = "Use conda environments instead of containers."
     )
     parser.add_argument(
+        "-p",
+        "--prefix",
+        type = pathlib.Path,
+        metavar="PATH",
+        default=None,
+        help = "Conda or singularity prefix. Basically a path to the place where you want to store the conda environments or the singularity images."
+    )
+    parser.add_argument(
         "-c",
         "--cores",
         type = int,
@@ -342,4 +346,5 @@ if __name__ == '__main__':
                                             min_read_length=args.minimum_length,
                                             kmer_size=args.kmer_size,
                                             contig_length_threshold=args.contig_length_threshold,
+                                            prefix=args.prefix,
                                             **args.snakemake_args)
