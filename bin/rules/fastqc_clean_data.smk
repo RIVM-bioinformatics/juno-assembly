@@ -8,6 +8,7 @@ rule qc_clean_fastq:
     output:
         html = OUT + "/qc_clean_fastq/{sample}_p{read}_fastqc.html",
         zip = OUT + "/qc_clean_fastq/{sample}_p{read}_fastqc.zip"
+    message: "Running FastQC after filtering/trimming {wildcards.sample}."
     conda:
         "../../envs/qc_and_clean.yaml"
     container:

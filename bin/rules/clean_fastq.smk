@@ -7,6 +7,7 @@ rule clean_fastq:
         unpaired = OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz",
         html = OUT + "/clean_fastq/{sample}_fastp.html",
         json = OUT + "/clean_fastq/{sample}_fastp.json"
+    message: "Filtering low quality reads for {wildcards.sample}."
     conda:
         "../../envs/qc_and_clean.yaml"
     container:

@@ -30,6 +30,7 @@ rule de_novo_assembly:
         scaffpath=temp(OUT + "/de_novo_assembly/{sample}/scaffolds.paths"),
         splog=temp(OUT + "/de_novo_assembly/{sample}/spades.log"),
         gfa_simplified=temp(OUT + "/de_novo_assembly/{sample}/assembly_graph_after_simplification.gfa")
+    message: "Making de novo assembly for {wildcards.sample}."
     conda:
         "../../envs/spades.yaml"
     container:
@@ -79,6 +80,7 @@ rule filter_de_novo_assembly:
         OUT + "/de_novo_assembly/{sample}/scaffolds.fasta"
     output:
         OUT + "/de_novo_assembly_filtered/{sample}.fasta"
+    message: "Filtering out small contigs for the de novo assembly of {wildcards.sample}."
     conda:
         "../../envs/spades.yaml"
     container:

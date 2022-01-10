@@ -13,6 +13,7 @@ rule picard_insert_size:
         bam_bai=temp(OUT + "/qc_de_novo_assembly/insert_size/{sample}_sorted.bam.bai"),
         txt=OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_metrics.txt",
         pdf=OUT + "/qc_de_novo_assembly/insert_size/{sample}_insert_size_histogram.pdf"
+    message: "Calculating insert size for {wildcards.sample}."
     conda:
         "../../envs/scaffold_analyses.yaml"
     container:

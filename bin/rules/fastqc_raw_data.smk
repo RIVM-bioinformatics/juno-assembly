@@ -8,6 +8,7 @@ rule qc_raw_fastq:
     output:
         html = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.html",
         zip = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip"
+    message: "Running FastQC in the raw data for {wildcards.sample}."
     conda:
         "../../envs/qc_and_clean.yaml"
     container:

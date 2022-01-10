@@ -10,6 +10,7 @@ rule checkm:
         result = OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv",
         tmp_dir1 = temp(directory(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/bins")),
         tmp_dir2 = temp(directory(OUT + "/qc_de_novo_assembly/checkm/per_sample/{sample}/storage"))
+    message: "Running CheckM for {wildcards.sample}."
     conda:
         "../../envs/checkm.yaml"
     container:

@@ -8,6 +8,7 @@ rule run_quast_combined:
         expand(OUT + "/de_novo_assembly_filtered/{sample}.fasta", sample=SAMPLES)
     output:
         OUT + "/qc_de_novo_assembly/quast/report.tsv"
+    message: "Running QUAST in all samples and creating multireport."
     conda:
         "../../envs/quast.yaml"
     container:

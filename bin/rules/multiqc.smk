@@ -14,6 +14,7 @@ rule multiqc:
         expand(OUT + '/identify_species/{sample}/{sample}_bracken_species.kreport2', sample = SAMPLES)
     output:
         OUT + "/multiqc/multiqc.html",
+    message: "Making MultiQC report."
     conda:
         "../../envs/multiqc.yaml"
     container:

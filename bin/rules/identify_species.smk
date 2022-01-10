@@ -5,6 +5,7 @@ rule identify_species:
         kraken2_kreport = temp(OUT + '/identify_species/{sample}/{sample}.kreport2'),
         bracken_s = OUT + '/identify_species/{sample}/{sample}_species_content.txt',
         bracken_kreport = OUT + '/identify_species/{sample}/{sample}_bracken_species.kreport2'
+    message: "Running species identification for {wildcards.sample}."
     log:
         OUT + '/log/identify_species/{sample}.log'
     threads: 
@@ -41,6 +42,7 @@ rule top_species_multireport:
         expand(OUT + '/identify_species/{sample}/{sample}_species_content.txt', sample = SAMPLES)
     output:
         OUT + '/identify_species/top1_species_multireport.csv'
+    message: "Generating multireport for spcies identification."
     log:
         OUT + '/log/identify_species/multireport.log'
     threads: 

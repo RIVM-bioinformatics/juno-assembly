@@ -9,6 +9,7 @@ rule pileup_contig_metrics:
     output:
         summary = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv",
         perScaffold = OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_perMinLenFiltScaffold.tsv",
+    message: "Making pileup and calculating contig metrics for {wildcards.sample}."
     conda:
         "../../envs/scaffold_analyses.yaml"
     container:

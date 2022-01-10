@@ -7,6 +7,7 @@ rule parse_bbtools_summary:
         expand(OUT + "/qc_de_novo_assembly/bbtools_scaffolds/per_sample/{sample}_MinLenFiltSummary.tsv", sample=SAMPLES)
     output:
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv"
+    message: "Parsing the results of bbtools (pileup contig metrics) and making a multireport."
     threads: config["threads"]["parsing"]
     resources: mem_gb=config["mem_gb"]["parsing"]
     log:
