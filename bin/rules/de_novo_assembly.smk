@@ -2,6 +2,8 @@
 ##### De novo assembly                                                  #####
 #############################################################################
 
+expected_assembly_folders = [temp(directory(OUT + "/de_novo_assembly/{sample}/" + f"K{kmer_size}")) for kmer_size in config["kmer_size"].split(',')]
+
 rule de_novo_assembly:
     input:
         r1 = OUT + "/clean_fastq/{sample}_pR1.fastq.gz",        
@@ -10,11 +12,7 @@ rule de_novo_assembly:
     output:
         scaffolds = OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
         contigs = temp(OUT + "/de_novo_assembly/{sample}/contigs.fasta"),
-        k21 = temp(directory(OUT + "/de_novo_assembly/{sample}/K21")),
-        k33 = temp(directory(OUT + "/de_novo_assembly/{sample}/K33")),
-        k55 = temp(directory(OUT + "/de_novo_assembly/{sample}/K55")),
-        k77 = temp(directory(OUT + "/de_novo_assembly/{sample}/K77")),
-        k99 = temp(directory(OUT + "/de_novo_assembly/{sample}/K99")),
+        k21 = expected_assembly_folders,
         misc = temp(directory(OUT + "/de_novo_assembly/{sample}/misc")),
         tmp = temp(directory(OUT + "/de_novo_assembly/{sample}/tmp")),
         state = temp(directory(OUT + "/de_novo_assembly/{sample}/pipeline_state")),

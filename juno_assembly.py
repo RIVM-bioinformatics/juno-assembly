@@ -158,7 +158,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
                         'kmer_size': self.kmer_size, 
                         'contig_length_threshold': self.contig_length_threshold,
                         'run_in_container': self.usesingularity,
-                        'db_dir': self.db_dir}
+                        'db_dir': str(self.db_dir)}
         
         with open(self.user_parameters, 'w') as file:
             yaml.dump(config_params, file, default_flow_style=False)

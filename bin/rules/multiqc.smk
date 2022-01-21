@@ -30,5 +30,5 @@ rule multiqc:
         """
 multiqc --force --config {params.config_file} \
     -o {params.output_dir} \
-    -n multiqc.html {input} > {log} 2>&1
+    -n multiqc.html {input} &> {log}
     """

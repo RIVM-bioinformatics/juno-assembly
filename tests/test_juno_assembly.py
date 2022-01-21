@@ -327,6 +327,22 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         self.assertTrue(output_dir.joinpath('audit_trail', 'sample_sheet.yaml').exists())
         self.assertTrue(output_dir.joinpath('audit_trail', 'user_parameters.yaml').exists())
 
+    def test_junoassembly_wdifferent_kmersize(self):
+        """Testing the pipeline runs properly with real samples when providing
+        a metadata file
+        """
+        output_dir = pathlib.Path('test_output_sing_prefix')
+        juno_assembly_run = juno_assembly.JunoAssemblyRun(
+                                    input_dir = '/data/BioGrid/hernanda/test_data_per_pipeline/Juno_assembly', 
+                                    metadata = None,
+                                    dryrun=False,
+                                    output_dir = output_dir,
+                                    run_in_container = True,
+                                    kmer_size=[21,33,55,77],
+                                    prefix="sing_containers"
+        )
+        self.assertTrue(juno_assembly_run.successful_run, 'Exception raised when running Juno assembly')
+
 
 if __name__ == '__main__':
 	unittest.main()
