@@ -1,10 +1,11 @@
+import argparse
 
 def parse_bbtools_summary(input_bbtools, output_bbtools):
     summary_dict = {}
 
-    for input_file in str(input_bbtools).split():
+    for input_file in input_bbtools:
         # get the sample name from the file name
-        sample_name = str(input_file).split("sample/")[1].split("_")[0]
+        sample_name = input_file.split("sample/")[1].split("_")[0]
         variable_name_list = []
         value_list = []
 
@@ -34,4 +35,23 @@ def parse_bbtools_summary(input_bbtools, output_bbtools):
         
     outfile.close()
 
-parse_bbtools_summary(snakemake.input, snakemake.output)
+def main(input, output):
+    parse_bbtools_summary(input, output)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-i', '--input', 
+        type=str,
+        required=True,
+        metavar='PATH',
+        nargs='+'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        type=str,
+        required=True,
+        metavar='FILE'
+    )
+    args = parser.parse_args()
+    main(args.input, args.output)

@@ -12,5 +12,5 @@ rule parse_bbtools_summary:
     resources: mem_gb=config["mem_gb"]["parsing"]
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_combined.log"
-    script:
-        "../parse_bbtools_summary.py"
+    shell:
+        "python bin/parse_bbtools_summary.py -i {input} -o {output} > {log}"
