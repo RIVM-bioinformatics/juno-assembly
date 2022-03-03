@@ -35,6 +35,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
                 contig_length_threshold=500,
                 help_genera=False,
                 cores=300,
+                time_limit=60,
                 local=False,
                 queue='bio',
                 unlock=False,
@@ -65,6 +66,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
             output_dir=output_dir,
             workdir=workdir,
             cores=cores,
+            time_limit=time_limit,
             local=local,
             queue=queue,
             unlock=unlock,
@@ -304,6 +306,14 @@ if __name__ == '__main__':
         help="If this flag is present, the pipeline will be run locally (not attempting to send the jobs to an HPC cluster**). The default is to assume that you are working on a cluster. **Note that currently only LSF clusters are supported."
     )
     parser.add_argument(
+        "-tl",
+        "--time-limit",
+        type = int,
+        metavar = "INT",
+        default = 60,
+        help="Time limit per job in minutes (passed as -W argument to bsub). Jobs will be killed if not finished in this time."
+    )
+    parser.add_argument(
         "-u",
         "--unlock",
         action = 'store_true',
@@ -328,23 +338,26 @@ if __name__ == '__main__':
         help="Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html)."
     )
     args = parser.parse_args()
-    juno_assembly_run = JunoAssemblyRun(input_dir=args.input, 
-                                            genus=args.genus,
-                                            output_dir=args.output, 
-                                            db_dir=args.db_dir,
-                                            help_genera=args.help_genera,
-                                            metadata=args.metadata,
-                                            cores=args.cores,
-                                            local=args.local,
-                                            queue=args.queue,
-                                            unlock=args.unlock,
-                                            rerunincomplete=args.rerunincomplete,
-                                            dryrun=args.dryrun,
-                                            run_in_container=args.no_containers,
-                                            mean_quality_threshold=args.mean_quality_threshold,
-                                            window_size=args.window_size,
-                                            min_read_length=args.minimum_length,
-                                            kmer_size=args.kmer_size,
-                                            contig_length_threshold=args.contig_length_threshold,
-                                            prefix=args.prefix,
-                                            **args.snakemake_args)
+    juno_assembly_run = JunoAssemblyRun(
+        input_dir=args.input, 
+        genus=args.genus,
+        output_dir=args.output, 
+        db_dir=args.db_dir,
+        help_genera=args.help_genera,
+        metadata=args.metadata,
+        cores=args.cores,
+        time_limit=args.time_limit,
+        local=args.local,
+        queue=args.queue,
+        unlock=args.unlock,
+        rerunincomplete=args.rerunincomplete,
+        dryrun=args.dryrun,
+        run_in_container=args.no_containers,
+        mean_quality_threshold=args.mean_quality_threshold,
+        window_size=args.window_size,
+        min_read_length=args.minimum_length,
+        kmer_size=args.kmer_size,
+        contig_length_threshold=args.contig_length_threshold,
+        prefix=args.prefix,
+        **args.snakemake_args
+    )
