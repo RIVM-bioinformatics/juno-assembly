@@ -88,6 +88,7 @@ bash install_juno_assembly.sh
 * `--no-containers` Use conda environments instead of containers. Default is to run in docker/singularity containers. Note that **YOU NEED TO HAVE SINGULARITY INSTALLED AND WORKING** to use the containers option.
 * `-p --prefix`     Conda or singularity prefix. Basically a path to the place where you want to store the conda environments or the singularity images.
 * ```-c --cores```  Number of cores to use. Default is 4 if running locally (--local) or 300 otherwise.
+* `-tl --time-limit` Time (in minutes) that is expected for a job to finished. If a job takes longer than this time, it will be killed. Default: 60. Note that if you use this pipeline in longer reads than usual (>150bp), the assembly might take longer than 60 min.
 * ```-l --local```  If this flag is present, the pipeline will be run locally (not attempting to send the jobs to an HPC cluster**). The default is to assume that you are working on a cluster because the pipeline was developed in an environment where it is the case. **Note that currently only LSF clusters are supported.
 * ```-q --queue```  Name of the queue that the job will be submitted to if working on a cluster. This argument will be ignored if working locally (`--local`). It defaults to 'bio'. 
 * ```-n --dryrun```, ```-u --unlock``` and ```--rerunincomplete``` are all parameters passed to Snakemake. If you want the explanation of these parameters, please refer to the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/).
