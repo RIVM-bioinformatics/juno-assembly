@@ -65,8 +65,10 @@ else
         -t {threads} >> {log}
 fi
 
-if [ -f {output.scaffolds} ]; then
+if [ ! -f {output.scaffolds} ]; then
     cp {output.contigs} {output.scaffolds}
+    touch {output.contpath}
+    touch {output.scaffpath}
 fi
         """
 
