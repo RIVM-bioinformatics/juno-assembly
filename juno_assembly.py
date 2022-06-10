@@ -25,6 +25,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
     def __init__(self, 
                 input_dir, 
                 output_dir, 
+                exclusion_file,
                 db_dir='/mnt/db/juno/kraken2_db',
                 genus=None,
                 metadata=None,
@@ -83,6 +84,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
             **kwargs)
 
         # Specific for Juno assembly
+        self.exclusion_file = exclusion_file
         self.mean_quality_threshold = int(mean_quality_threshold)
         self.window_size = int(window_size)
         self.min_read_length = int(min_read_length)
@@ -153,6 +155,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
 
         config_params = {'input_dir': str(self.input_dir),
                         'out': str(self.output_dir),
+                        'exclusion_file': str(self.exclusion_file),
                         'genus': self.genus,
                         'mean_quality_threshold': self.mean_quality_threshold,
                         'window_size': self.window_size,
@@ -212,6 +215,14 @@ if __name__ == '__main__':
         default = None,
         metavar = "FILE",
         help = "Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'Sample' name (name of the file but removing _R1.fastq.gz) and a column called 'Genus' (mind the capital in the first letter). The genus provided will be used to choose the reference genome to analyze de QC of the de novo assembly."
+    )
+    parser.add_argument(
+        '-ex',
+        '--exclusionfile',
+        type=pathlib.Path,
+        metavar='FILE',
+        dest="exclusion_file",
+        help='Path to the file that contains samplenames to be excluded.'  
     )
     parser.add_argument(
         "-o",
@@ -341,7 +352,8 @@ if __name__ == '__main__':
     juno_assembly_run = JunoAssemblyRun(
         input_dir=args.input, 
         genus=args.genus,
-        output_dir=args.output, 
+        output_dir=args.output,
+        exclusion_file=args.exclusion_file, 
         db_dir=args.db_dir,
         help_genera=args.help_genera,
         metadata=args.metadata,
