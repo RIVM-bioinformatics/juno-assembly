@@ -9,6 +9,13 @@ set -euo pipefail
 input_dir="${1%/}"
 output_dir="${2%/}"
 PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
+EXCLUSION_FILE = ""
+
+#check if there is an exclusion file, if so change the parameter
+if [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing_run_id}.exclude"];
+then
+  EXCLUSION_FILE = "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing_run_id}.exclude"
+fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 cd ${DIR}
@@ -96,6 +103,7 @@ if [ "${irods_input_projectID}" == "refsamp" ]; then
     python juno_assembly.py --queue "${QUEUE}" \
       -i "${input_dir}" \
       -o "${output_dir}" \
+      -ex "${EXCLUSION_FILE}" \
       --metadata "${GENUS_FILE}" \
       --prefix "/mnt/db/juno/sing_containers"
     
@@ -106,6 +114,7 @@ elif [ "${GENUS_ALL}" == "NotProvided" ]; then
     python juno_assembly.py --queue "${QUEUE}" \
       -i "${input_dir}" \
       -o "${output_dir}" \
+      -ex "${EXCLUSION_FILE}" \
       --prefix "/mnt/db/juno/sing_containers"
 
     result=$?
@@ -115,12 +124,13 @@ else
     python juno_assembly.py --queue "${QUEUE}" \
       -i "${input_dir}" \
       -o "${output_dir}" \
+      -ex "${EXCLUSION_FILE}" \
       --genus "${GENUS_ALL}" \
       --prefix "/mnt/db/juno/sing_containers"
     
     result=$?
 
-fi
+fi 
 
 # Propagate metadata
 
