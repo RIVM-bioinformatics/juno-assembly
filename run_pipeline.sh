@@ -11,24 +11,25 @@ output_dir="${2%/}"
 PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
 EXCLUSION_FILE=""
 
-#check if there is an exclusion file, if so change the parameter
-if [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude" ]
-then
-  EXCLUSION_FILE="/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
-fi
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 cd ${DIR}
 
 # Sanity checks
-if [ ! -z "${1}" ] || [ ! -z "${2}" ] || [ ! -z "${irods_input_projectID}" ]
+if [ ! -z "${1}" ] || [ ! -z "${2}" ] || [ ! -z "${irods_input_projectID}" ] || [ ! -z "${irods_input_sequencing__run_id}" ]
 then
   INPUTDIR="${1}"
   OUTPUTDIR="${2}"
   PROJECT_NAME="${irods_input_projectID}"
+  EXCLUSION_FILE=""
 else
-  echo "No inputdir, outputdir or project name (param 1, 2 or irods_input_projectID)"
+  echo "No inputdir, outputdir or project name (param 1, 2, irods_input_projectID or irods_input_sequencing__run_id)"
   exit 1
+fi
+
+#check if there is an exclusion file, if so change the parameter
+if [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude" ]
+then
+  EXCLUSION_FILE="/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
 fi
 
 if [ ! -d "${INPUTDIR}" ] || [ ! -d "${OUTPUTDIR}" ]
