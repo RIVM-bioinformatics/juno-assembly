@@ -9,12 +9,12 @@ set -euo pipefail
 input_dir="${1%/}"
 output_dir="${2%/}"
 PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
-EXCLUSION_FILE = ""
+EXCLUSION_FILE=""
 
 #check if there is an exclusion file, if so change the parameter
-if [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing_run_id}.exclude"];
+if [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude" ]
 then
-  EXCLUSION_FILE = "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing_run_id}.exclude"
+  EXCLUSION_FILE="/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
