@@ -97,7 +97,43 @@ set -euo pipefail
 # Containers will use it for storing tmp files when building a container
 export SINGULARITY_TMPDIR="$(pwd)"
 
-if [ "${irods_input_projectID}" == "refsamp" ]; then
+#without exclusion file
+if ["${EXCLUSION_FILE}" == "" ]; then
+  if [ "${irods_input_projectID}" == "refsamp" ]; then
+    
+    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
+    
+    python juno_assembly.py --queue "${QUEUE}" \
+      -i "${input_dir}" \
+      -o "${output_dir}" \
+      --metadata "${GENUS_FILE}" \
+      --prefix "/mnt/db/juno/sing_containers"
+    
+    result=$?
+
+  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
+
+      python juno_assembly.py --queue "${QUEUE}" \
+        -i "${input_dir}" \
+        -o "${output_dir}" \
+        --prefix "/mnt/db/juno/sing_containers"
+
+      result=$?
+
+  else
+
+      python juno_assembly.py --queue "${QUEUE}" \
+        -i "${input_dir}" \
+        -o "${output_dir}" \
+        --genus "${GENUS_ALL}" \
+        --prefix "/mnt/db/juno/sing_containers"
+      
+      result=$?
+
+  fi 
+#with exclusion file
+else
+  if [ "${irods_input_projectID}" == "refsamp" ]; then
     
     GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
     
@@ -110,28 +146,30 @@ if [ "${irods_input_projectID}" == "refsamp" ]; then
     
     result=$?
 
-elif [ "${GENUS_ALL}" == "NotProvided" ]; then
+  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
 
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      -ex "${EXCLUSION_FILE}" \
-      --prefix "/mnt/db/juno/sing_containers"
+      python juno_assembly.py --queue "${QUEUE}" \
+        -i "${input_dir}" \
+        -o "${output_dir}" \
+        -ex "${EXCLUSION_FILE}" \
+        --prefix "/mnt/db/juno/sing_containers"
 
-    result=$?
+      result=$?
 
-else
+  else
 
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      -ex "${EXCLUSION_FILE}" \
-      --genus "${GENUS_ALL}" \
-      --prefix "/mnt/db/juno/sing_containers"
-    
-    result=$?
+      python juno_assembly.py --queue "${QUEUE}" \
+        -i "${input_dir}" \
+        -o "${output_dir}" \
+        -ex "${EXCLUSION_FILE}" \
+        --genus "${GENUS_ALL}" \
+        --prefix "/mnt/db/juno/sing_containers"
+      
+      result=$?
 
-fi 
+  fi 
+
+fi
 
 # Propagate metadata
 
