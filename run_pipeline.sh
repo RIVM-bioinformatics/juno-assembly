@@ -98,7 +98,7 @@ set -euo pipefail
 export SINGULARITY_TMPDIR="$(pwd)"
 
 #without exclusion file
-if ["${EXCLUSION_FILE}" == "" ]; then
+if [ "${EXCLUSION_FILE}" == "" ]; then
   if [ "${irods_input_projectID}" == "refsamp" ]; then
     
     GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
