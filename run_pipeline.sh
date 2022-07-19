@@ -92,6 +92,7 @@ else
 fi
 
 set -euo pipefail
+set -x
 
 # Setting up the tmpdir for singularity as the current directory (default is /tmp but it gets full easily)
 # Containers will use it for storing tmp files when building a container
