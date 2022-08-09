@@ -29,8 +29,8 @@ if [ "{params.genus}" == "None" ];then
     # Get top (first appearing) species from the bracken.kreport
     genus=$(grep "\sG\s" {input.genus_bracken} | head -n 1 | cut -f6 | xargs)
     genus_capitalized=${{genus^}}
-    if [ "$genus_capitalized" == "MYCOBACTEROIDES" ];then
-        genus_capitalized=MYCOBACTERIUM
+    if [ "$genus_capitalized" == "Mycobacteroides" ];then
+        genus_capitalized=Mycobacterium
     fi
     checkm taxonomy_wf genus "${{genus_capitalized}}" \
         {params.input_dir} \
@@ -38,7 +38,7 @@ if [ "{params.genus}" == "None" ];then
         -t {threads} \
         -x scaffolds.fasta > {output.result}
     mv {params.output_dir}/checkm.log {log}
-    echo "\nNOTE: No genus was provided and therefore the top 1 genus (${{genus}}) detected by Kraken2 + Bracken was used for reference." >> {log}
+    echo "\nNOTE: No genus was provided and therefore the top 1 genus (${{genus_capitalized}}) detected by Kraken2 + Bracken was used for reference." >> {log}
 else
     genus_capitalized={params.genus}
     genus_capitalized=${{genus_capitalized^}}
