@@ -21,7 +21,7 @@ rule qc_raw_fastq:
         output_dir = OUT + "/qc_raw_fastq"
     shell:
         """
-fastqc --quiet --outdir {params.output_dir} {input} &> {log} 
+fastqc --outdir {params.output_dir} {input} &> {log}
 
 if [ ! -f {output.html} ]
 then
