@@ -18,10 +18,10 @@ rule qc_raw_fastq:
     resources:
         mem_gb=config["mem_gb"]["fastqc"],
     params:
-        output_dir=OUT + "/qc_raw_fastq",
+        output_dir=OUT + "/qc_raw_fastq/",
     log:
         OUT + "/log/qc_raw_fastq/qc_raw_fastq_{sample}_{read}.log",
     shell:
         """
-        bash bin/fastqc_wrapper.sh {input} {params.output_dir} {output.html} {output.zip} {log}
+        bash bin/fastqc_wrapper.sh {input} {params.output_dir} {output.html} {output.zip} {log} > {log} 2>&1
         """
