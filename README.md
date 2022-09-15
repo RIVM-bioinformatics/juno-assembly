@@ -10,7 +10,7 @@
 
 ## Pipeline information
 
-* **Author(s):**            Alejandra Hernández Segura, Roxanne Wolthuis, Karim Hajji, Florian Zwagemaker, Robert Verhagen, Ernst Hamer, Dennis Schmitz.
+* **Authors:**            Alejandra Hernández Segura, Roxanne Wolthuis, Karim Hajji, Florian Zwagemaker, Robert Verhagen, Ernst Hamer, Dennis Schmitz.
 * **Organization:**         National Institute for Public Health and the Environment (RIVM)
 * **Department:**           Centre for Research Infectious Diseases Diagnostics and Screening (IDS), Bacteriology (BPD)
 * **Start date:**           01 - 04 - 2020
