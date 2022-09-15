@@ -1,7 +1,7 @@
-[![C.I.](https://github.com/RIVM-bioinformatics/Juno_pipeline/actions/workflows/juno_assembly_test.yaml/badge.svg)](https://github.com/RIVM-bioinformatics/Juno_pipeline/actions/workflows/juno_assembly_test.yaml)
+[![C.I.](https://github.com/RIVM-bioinformatics/juno-assembly/actions/workflows/juno_assembly_test.yaml/badge.svg)](https://github.com/RIVM-bioinformatics/juno-assembly/actions/workflows/juno_assembly_test.yaml)
 
 <div align="center">
-    <h1>Juno Assembly</h1>
+    <h1>Juno-Assembly</h1>
     <br />
     <h2>Pipeline to process bacterial raw sequencing data up to de-novo assembly and the accompanying statistics.</h2>
     <br />
@@ -31,7 +31,7 @@ The pipeline uses the following tools:
 8. [MultiQC](https://multiqc.info/) (Ewels, Magnusson, Lundin, & Käller, 2016) is used to summarize analysis results and quality assessments in a single report for dynamic visualization.
 9. [Kraken2](https://ccb.jhu.edu/software/kraken2/) and [Bracken](http://ccb.jhu.edu/software/bracken/) for identification of bacterial species.  
 
-![Image of pipeline](https://github.com/RIVM-bioinformatics/Juno_pipeline/blob/master/files/DAG.svg)
+![Image of pipeline](https://github.com/RIVM-bioinformatics/juno-assembly/blob/master/files/DAG.svg)
 
 ## Prerequisities
 
@@ -46,7 +46,7 @@ The pipeline uses the following tools:
 1. Clone the repository:
 
 ```
-git clone https://github.com/RIVM-bioinformatics/Juno_pipeline.git
+git clone https://github.com/RIVM-bioinformatics/juno-assembly.git
 ```
 Alternatively, you can download it manually as a zip file (you will need to unzip it then). If you decide to download the zip only, the pipeline version will not be stored in the audit trail.
 
@@ -136,7 +136,7 @@ conda deactivate
 ## Issues  
 
 * The pipeline currently only supports LSF clusters.
-* Any issue can be reported in the [Issues section](https://github.com/RIVM-bioinformatics/Juno_pipeline/issues) of this repository.
+* Any issue can be reported in the [Issues section](https://github.com/RIVM-bioinformatics/juno-assembly/issues) of this repository.
 
 ## Future ideas for this pipeline
 
