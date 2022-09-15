@@ -45,14 +45,15 @@ The pipeline uses the following tools:
 
 1. Clone the repository:
 
-```
+```bash
 git clone https://github.com/RIVM-bioinformatics/juno-assembly.git
 ```
 Alternatively, you can download it manually as a zip file (you will need to unzip it then). If you decide to download the zip only, the pipeline version will not be stored in the audit trail.
 
 2. Enter the directory with the pipeline and install the pipeline:
 
-```
+```bash
+cd juno-assembly
 bash install_juno_assembly.sh
 ```
 
@@ -97,23 +98,20 @@ bash install_juno_assembly.sh
 
 Before running the pipeline you should always activate the conda environment.
 
-```
+```bash
 conda activate juno_assembly
-```
-
-```
 python juno_assembly.py -i [path/to/input/dir] -o [path/to/output/dir]
 ```
 
 You can deactivate the environment once you are finished.
 
-```
+```bash
 conda deactivate
 ```
 
 ### An example on how to run the pipeline.
 
-```
+```bash
 conda activate juno_assembly
 python juno_assembly.py -i my_data -o my_results --genus Salmonella --local
 conda deactivate
