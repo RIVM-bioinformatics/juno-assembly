@@ -10,7 +10,7 @@
 
 ## Pipeline information
 
-* **Author(s):**            Alejandra Hernández Segura, Robert Verhagen and Ernst Hamer.
+* **Author(s):**            Alejandra Hernández Segura, Roxanne Wolthuis, Karim Hajji, Florian Zwagemaker, Robert Verhagen, Ernst Hamer, Dennis Schmitz.
 * **Organization:**         National Institute for Public Health and the Environment (RIVM)
 * **Department:**           Centre for Research Infectious Diseases Diagnostics and Screening (IDS), Bacteriology (BPD)
 * **Start date:**           01 - 04 - 2020
@@ -146,5 +146,5 @@ conda deactivate
 This pipeline is licensed with an AGPL3 license. Detailed information can be found inside the 'LICENSE' file in this repository.
 
 ## Contact
-* **Contact person:**       Alejandra Hernández Segura
-* **Email**                 alejandra.hernandez.segura@rivm.nl
+* **Contact person:**       Roxanne Wolthuis
+* **Email**                 roxanne.wolthuis@rivm.nl
