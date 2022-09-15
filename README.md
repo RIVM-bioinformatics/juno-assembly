@@ -36,7 +36,7 @@ The pipeline uses the following tools:
 ## Prerequisities
 
 * **Linux + conda** A Linux-like environment with at least 'miniconda' installed
-* Preferentially **[Singularity](https://sylabs.io/guides/3.8/user-guide/)** installed and working. If you are not using singularity, you have to run the pipeline using the argument `--no-containers`.
+* Preferentially **[Singularity](https://sylabs.io/guides/latest/user-guide/)** installed and working. If you are not using singularity, you have to run the pipeline using the argument `--no-containers`.
 
 
 ## Installation
