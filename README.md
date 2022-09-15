@@ -41,7 +41,7 @@ The pipeline uses the following tools:
 
 ## Installation
 
-**IMPORTANT NOTE**: You need to have [Conda](https://docs.conda.io/en/latest/) installed and, preferentially, also [Singularity](https://sylabs.io/guides/3.8/user-guide/) so that every step is containerized and therefore more reproducible. There is an option to run without using singularity (option `--no-containers`) but Conda is mandatory. 
+**IMPORTANT NOTE**: You need to have [Conda](https://docs.conda.io/en/latest/) installed and, preferentially, also [Singularity](https://sylabs.io/guides/latest/user-guide/) so that every step is containerized and therefore more reproducible. There is an option to run without using singularity (option `--no-containers`) but Conda is mandatory. 
 
 1. Clone the repository:
 
