@@ -21,3 +21,22 @@ mem_gb:
     quast: 8
     fastqc: 8
     kraken2: 32
+
+keepgoing: True
+cores: 300
+nodes: 300
+conda_frontend: "mamba"
+latency_wait: 60
+restart_times: 0
+cluster: 'bsub -q %s \
+                    -n {threads} \
+                    -o {cluster_log_dir}/{name}_{wildcards}_{jobid}.out \
+                    -e {cluster_log_dir}/{name}_{wildcards}_{jobid}.err \
+                    -R "span[hosts=1]" \
+                    -R "rusage[mem={resources.mem_gb}G]" \
+                    -M {resources.mem_gb}G \
+                    -W 60'
+jobname: "_name.jobid{jobid}"
+rerunincomplete: True
+use_singularity: True
+local: False

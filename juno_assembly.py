@@ -9,15 +9,15 @@ Date: 18-08-2021
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
 """
 
-from base_juno_pipeline import *
+from juno_library import PipelineStartup, RunSnakemake, error_formatter, SnakemakeKwargsAction
 import argparse
 import os
 import pathlib
 import sys
 import yaml
 
-class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
-                        base_juno_pipeline.RunSnakemake):
+class JunoAssemblyRun(PipelineStartup,
+                        RunSnakemake):
     """Class with the arguments and specifications that are only for the 
     Juno_assembly pipeline but inherit from PipelineStartup and RunSnakemake
     """
@@ -57,11 +57,11 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
         workdir = pathlib.Path(__file__).parent.resolve()
         self.db_dir = pathlib.Path(db_dir).resolve()
         self.path_to_audit = output_dir.joinpath('audit_trail')
-        base_juno_pipeline.PipelineStartup.__init__(self,
+        PipelineStartup.__init__(self,
             input_dir=pathlib.Path(input_dir).resolve(), 
             input_type='fastq',
             min_num_lines=1000) # TODO: Find ideal min num of reads/lines needed
-        base_juno_pipeline.RunSnakemake.__init__(self,
+        RunSnakemake.__init__(self,
             pipeline_name='Juno_assembly',
             pipeline_version='v2.0.2',
             output_dir=output_dir,
@@ -116,7 +116,7 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
                 return True
             else:
                 raise ValueError(
-                    self.error_formatter(
+                    error_formatter(
                         f'The genus {self.genus} is not supported. You can leave the "genus" empty for samples with unsupported genera.'
                         )
                     )
@@ -173,7 +173,6 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
     def run_juno_assembly_pipeline(self):
         self.start_juno_assembly_pipeline()
         self.user_params = self.write_userparameters()
-        self.get_run_info()
         if not self.dryrun or self.unlock:
             self.__validate_kraken2_db_dir()
         self.successful_run = self.run_snakemake()
@@ -345,7 +344,7 @@ if __name__ == '__main__':
         "--snakemake-args",
         nargs='*',
         default={},
-        action=helper_functions.SnakemakeKwargsAction,
+        action=SnakemakeKwargsAction,
         help="Extra arguments to be passed to snakemake API (https://snakemake.readthedocs.io/en/stable/api_reference/snakemake.html)."
     )
     args = parser.parse_args()

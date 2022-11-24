@@ -12,4 +12,4 @@ set -euo pipefail
 
 # Delete previous installations
 rm -rf envs/src/
-mamba env update -f envs/master_env.yaml
+mamba env update -f envs/juno_assembly.yaml
