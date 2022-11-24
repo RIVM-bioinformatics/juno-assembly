@@ -25,12 +25,12 @@ jobs:
           mamba-version: "0.9.2"
           channels: conda-forge, anaconda, bioconda, biocore, defaults
           channel-priority: true
-          environment-file: envs/junuo_assembly.yaml 
+          environment-file: envs/juno_assembly.yaml 
           activate-environment: juno_typing
           auto-activate-base: false
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Test the python wrapper using base_juno_pipeline.
+      - name: Test the python wrapper using juno_library.
         shell: bash -l {0}
         run: python ./tests/test_juno_assembly.py
