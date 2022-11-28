@@ -20,4 +20,4 @@ dependencies:
   - dask=2022.11.0
   - git=2.38.*
   - pip:
-    - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@a7be45694ca#egg=juno_library"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@9299279#egg=juno_library"

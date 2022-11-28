@@ -23,8 +23,8 @@ class JunoAssemblyRun(PipelineStartup,
     """
 
     def __init__(self, 
-                input_dir, 
-                output_dir, 
+                input_dir,
+                output_dir,
                 exclusion_file=None,
                 db_dir='/mnt/db/juno/kraken2_db',
                 genus=None,
@@ -51,7 +51,7 @@ class JunoAssemblyRun(PipelineStartup,
             print("The accepted genera are:")
             os.system("cat files/accepted_genera_checkm.txt")
             sys.exit(0)
-
+            
         # Build class
         output_dir = pathlib.Path(output_dir).resolve()
         workdir = pathlib.Path(__file__).parent.resolve()
@@ -138,7 +138,7 @@ class JunoAssemblyRun(PipelineStartup,
         for sample in self.sample_dict:
             try:
                 self.sample_dict[sample]['genus'] = self.juno_metadata[sample]['genus'].strip().lower()
-            except (KeyError, TypeError):
+            except:
                 self.sample_dict[sample]['genus'] = self.genus
 
     def start_juno_assembly_pipeline(self):
