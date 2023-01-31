@@ -1,2 +1,0 @@
-numpy
---editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2.9#egg=base_juno
