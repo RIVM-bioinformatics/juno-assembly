@@ -19,13 +19,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Setting up mamba
         uses: mamba-org/provision-with-micromamba@main
         with:
-          micromamba-version: "0.24"
           environment-file: envs/master_env.yaml
           environment-name: juno_assembly
-          auto-activate-base: false
+          cache-env: true
 
       - name: Mamba list
         shell: bash -l {0}
