@@ -24,7 +24,7 @@ jobs:
         with:
           micromamba-version: "0.24"
           environment-file: envs/master_env.yaml
-          activate-environment: juno_assembly
+          environment-name: juno_assembly
           auto-activate-base: false
 
       - name: Mamba list
