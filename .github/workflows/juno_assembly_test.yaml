@@ -19,18 +19,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setting up conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Setting up mamba
+        uses: mamba-org/provision-wih-micromamba@main
         with:
-          mamba-version: "*"
-          channels: anaconda,bioconda,conda-forge,defaults
-          environment-file: envs/master_env.yaml 
+          micromamba-version: "0.24"
+          environment-file: envs/master_env.yaml
           activate-environment: juno_assembly
           auto-activate-base: false
 
       - name: Conda list
         shell: bash -l {0}
-        run: conda list
+        run: mamba list
 
       - name: Test the python wrapper using base_juno_pipeline.
         shell: bash -l {0}
