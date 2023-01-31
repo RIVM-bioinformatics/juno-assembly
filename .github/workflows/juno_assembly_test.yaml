@@ -18,16 +18,16 @@ jobs:
     name: Testing Juno_assembly ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setting up mamba
-        uses: mamba-org/provision-wih-micromamba@main
+        uses: mamba-org/provision-with-micromamba@main
         with:
           micromamba-version: "0.24"
           environment-file: envs/master_env.yaml
           activate-environment: juno_assembly
           auto-activate-base: false
 
-      - name: Conda list
+      - name: Mamba list
         shell: bash -l {0}
         run: mamba list
 
