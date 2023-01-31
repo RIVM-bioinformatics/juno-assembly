@@ -18,18 +18,20 @@ jobs:
     name: Testing Juno_assembly ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setting up mamba
-        uses: mamba-org/provision-with-micromamba@main
+      - uses: actions/checkout@v2
+      - name: Setting up conda
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: envs/master_env.yaml
-          environment-name: juno_assembly
-          cache-env: true
+          mamba-version: "0.15.3"
+          channels: bioconda, biocore, conda-forge, anaconda
+          channel-priority: true
+          environment-file: envs/master_env.yaml 
+          activate-environment: juno_assembly
+          auto-activate-base: false
 
-      - name: Mamba list
+      - name: Conda list
         shell: bash -l {0}
-        run: mamba list
+        run: conda list
 
       - name: Test the python wrapper using base_juno_pipeline.
         shell: bash -l {0}
