@@ -13,7 +13,7 @@ rule run_quast_combined:
     conda:
         "../../envs/quast.yaml"
     container:
-        "docker://staphb/quast:5.0.2"
+        "docker://quay.io/biocontainers/checkm-genome:5.2.0--py310pl5321hc8f18ef_2"
     threads: config["threads"]["quast"]
     resources:
         mem_gb=config["mem_gb"]["quast"],
