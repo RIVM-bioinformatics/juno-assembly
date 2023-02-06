@@ -41,7 +41,7 @@ fi
 #----------------------------------------------#
 # Create/update necessary environments
 PATH_MAMBA_YAML="envs/mamba.yaml"
-PATH_MASTER_YAML="envs/master_env.yaml"
+PATH_MASTER_YAML="envs/juno_assembly.yaml"
 MAMBA_NAME=$(head -n 1 ${PATH_MAMBA_YAML} | cut -f2 -d ' ')
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')
 

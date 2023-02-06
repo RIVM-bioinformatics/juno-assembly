@@ -27,6 +27,6 @@ jobs:
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Test the python wrapper using base_juno_pipeline.
+      - name: Test the python wrapper using juno_library.
         shell: bash -l {0}
         run: python ./tests/test_juno_assembly.py

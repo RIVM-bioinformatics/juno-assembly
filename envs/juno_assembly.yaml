@@ -1,0 +1,19 @@
+name: juno_assembly
+channels:
+  - anaconda
+  - bioconda
+  - biocore
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.10.*
+  - mamba=0.27.0
+  - pandas=1.5.2
+  - snakemake=7.18.*
+  - xlrd=2.0.*
+  - pyyaml=0.6
+  - numpy=1.23.*
+  - git=2.38.*
+  - pip=22.3.*
+  - pip:
+    - "--editable=git+https://github.com/RIVM-bioinformatics/juno_library.git@v1.0.2#egg=juno_library"
