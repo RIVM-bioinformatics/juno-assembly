@@ -9,95 +9,72 @@ Date: 18-08-2021
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
 """
 
-import juno_library
+from juno_library.helper_functions import error_formatter
 import argparse
 import os
-import pathlib
+from pathlib import Path
 import sys
 import yaml
+from dataclasses import dataclass, field
+from version import __package_name__, __version__, __description__
+from typing import Any
+
+from juno_library import PipelineStartup, RunSnakemake, helper_functions
 
 
-class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
+@dataclass(kw_only=True)
+class JunoAssemblyRun(PipelineStartup, RunSnakemake):
     """Class with the arguments and specifications that are only for the
     Juno_assembly pipeline but inherit from PipelineStartup and RunSnakemake
     """
 
-    def __init__(
+    input_type: str = "fastq"
+    pipeline_name: str = __package_name__
+    pipeline_version: str = __version__
+    workdir: Path = Path(__file__).parent.resolve()
+    db_dir: Path = Path("/mnt/db/juno/kraken2_db")
+    min_num_lines: int = 1000  # TODO: Find ideal min num of reads/lines needed
+    name_snakemake_report: str = "juno_assembly_report.html"
+
+    exclusion_file: None | Path = None
+    genus: None | str = None
+    metadata_file: None | Path = None
+    mean_quality_threshold: int = 28
+    window_size: int = 5
+    min_read_length: int = 50
+    kmer_size: list[int] = field(default_factory=lambda: [21, 33, 55, 77, 99])
+    contig_length_threshold: int = 500
+    help_genera: bool = False
+    cores: int = 300
+    time_limit: int = 60
+    local: bool = False
+    queue: str = "bio"
+    unlock: bool = False
+    rerunincomplete: bool = False
+    dryrun: bool = False
+    run_in_container: bool = False
+    singularity_prefix: None | str = None
+
+    def __post_init__(
         self,
-        input_dir,
-        output_dir,
-        exclusion_file=None,
-        db_dir="/mnt/db/juno/kraken2_db",
-        genus=None,
-        metadata=None,
-        mean_quality_threshold=28,
-        window_size=5,
-        min_read_length=50,
-        kmer_size=[21, 33, 55, 77, 99],
-        contig_length_threshold=500,
-        help_genera=False,
-        cores=300,
-        time_limit=60,
-        local=False,
-        queue="bio",
-        unlock=False,
-        rerunincomplete=False,
-        dryrun=False,
-        run_in_container=False,
-        prefix=None,
-        **kwargs,
-    ):
+        **kwargs: dict[str, Any],
+    ) -> None:
         """Initiating Juno_assembly pipeline"""
 
-        if help_genera:
+        if self.help_genera:
             print("The accepted genera are:")
             os.system("cat files/accepted_genera_checkm.txt")
             sys.exit(0)
 
+        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir} --bind {self.db_dir}:{self.db_dir}"
         # Build class
-        output_dir = pathlib.Path(output_dir).resolve()
-        workdir = pathlib.Path(__file__).parent.resolve()
-        self.db_dir = pathlib.Path(db_dir).resolve()
-        self.path_to_audit = output_dir.joinpath("audit_trail")
-        juno_library.PipelineStartup.__init__(
+        PipelineStartup.__post_init__(self)
+        RunSnakemake.__post_init__(
             self,
-            input_dir=pathlib.Path(input_dir).resolve(),
-            input_type="fastq",
-            min_num_lines=1000,
-        )  # TODO: Find ideal min num of reads/lines needed
-        juno_library.RunSnakemake.__init__(
-            self,
-            pipeline_name="Juno_assembly",
-            pipeline_version="v2.0.2",
-            output_dir=output_dir,
-            workdir=workdir,
-            cores=cores,
-            time_limit=time_limit,
-            local=local,
-            queue=queue,
-            unlock=unlock,
-            rerunincomplete=rerunincomplete,
-            dryrun=dryrun,
-            useconda=not run_in_container,
-            conda_prefix=prefix,
-            usesingularity=run_in_container,
-            singularityargs=f"--bind {self.input_dir}:{self.input_dir} --bind {output_dir}:{output_dir} --bind {db_dir}:{db_dir}",
-            singularity_prefix=prefix,
-            restarttimes=2,
-            latency_wait=60,
-            name_snakemake_report=str(
-                self.path_to_audit.joinpath("juno_assembly_report.html")
-            ),
             **kwargs,
         )
 
         # Specific for Juno assembly
-        self.exclusion_file = exclusion_file
-        self.mean_quality_threshold = int(mean_quality_threshold)
-        self.window_size = int(window_size)
-        self.min_read_length = int(min_read_length)
-        self.kmer_size = ",".join([str(ks) for ks in kmer_size])
-        self.contig_length_threshold = int(contig_length_threshold)
         self.supported_genera = []
         with open(
             self.workdir.joinpath("files", "accepted_genera_checkm.txt")
@@ -105,37 +82,21 @@ class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
             for line in file_:
                 genus_name = line.replace("\n", "").lower()
                 self.supported_genera.append(genus_name)
-        self.genus = genus
-        self.metadata_file = metadata
 
-        # Start pipeline
-        self.run_juno_assembly_pipeline()
-
-    def __get_supported_genera(self):
-        supported_genera = []
-        with open(
-            self.workdir.joinpath("files", "accepted_genera_checkm.txt")
-        ) as file_:
-            for line in file_:
-                genus_name = line.replace("\n", "").lower()
-                supported_genera.append(genus_name)
-        self.supported_genera = supported_genera
-
-    def __check_genus_is_supported(self):
-        self.__get_supported_genera()
+    def __check_genus_is_supported(self) -> bool:
         if self.genus is not None:
             if self.genus.strip().lower() in self.supported_genera:
                 return True
             else:
                 raise ValueError(
-                    self.error_formatter(
+                    error_formatter(
                         f'The genus {self.genus} is not supported. You can leave the "genus" empty for samples with unsupported genera.'
                     )
                 )
         else:
             return True
 
-    def __validate_kraken2_db_dir(self):
+    def __validate_kraken2_db_dir(self) -> bool:
         hash_file_exists = self.db_dir.joinpath("hash.k2d").exists()
         opts_file_exists = self.db_dir.joinpath("opts.k2d").exists()
         taxo_file_exists = self.db_dir.joinpath("taxo.k2d").exists()
@@ -146,7 +107,7 @@ class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
                 f"The provided path to the database for Kraken2 ({str(self.db_dir)}) does not contain the expected files. Please download it again!"
             )
 
-    def update_sample_dict_with_metadata(self):
+    def update_sample_dict_with_metadata(self) -> None:
         self.__check_genus_is_supported()
         self.get_metadata_from_csv_file(
             filepath=self.metadata_file, expected_colnames=["sample", "genus"]
@@ -159,18 +120,7 @@ class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
             except (KeyError, TypeError):
                 self.sample_dict[sample]["genus"] = self.genus
 
-    def start_juno_assembly_pipeline(self):
-        """
-        Function to start the pipeline (some steps from PipelineStartup need to
-        be modified for the Juno_assembly pipeline to accept metadata
-        """
-        self.start_juno_pipeline()
-        self.update_sample_dict_with_metadata()
-        with open(self.sample_sheet, "w") as file:
-            yaml.dump(self.sample_dict, file, default_flow_style=False)
-
-    def write_userparameters(self):
-
+    def write_userparameters(self) -> dict[str, Any]:
         config_params = {
             "input_dir": str(self.input_dir),
             "out": str(self.output_dir),
@@ -190,10 +140,12 @@ class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
 
         return config_params
 
-    def run_juno_assembly_pipeline(self):
-        self.start_juno_assembly_pipeline()
+    def run_juno_assembly_pipeline(self) -> None:
+        self.update_sample_dict_with_metadata()
+        with open(self.sample_sheet, "w") as file:
+            yaml.dump(self.sample_dict, file, default_flow_style=False)
+
         self.user_params = self.write_userparameters()
-        self.get_run_info()
         if not self.dryrun or self.unlock:
             self.__validate_kraken2_db_dir()
         self.successful_run = self.run_snakemake()
@@ -202,10 +154,8 @@ class JunoAssemblyRun(juno_library.PipelineStartup, juno_library.RunSnakemake):
             self.make_snakemake_report()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Juno_assembly pipeline. Automated pipeline for pre-processing, QC and assembly of bacterial NGS sequencing data."
-    )
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument(
         "--help-genera",
         action="store_true",
@@ -214,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--input",
-        type=pathlib.Path,
+        type=Path,
         required=not "--help-genera" in sys.argv,
         metavar="DIR",
         help="Relative or absolute path to the input directory. It must contain all the raw reads (fastq) files for all samples to be processed (not in subfolders).",
@@ -230,7 +180,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--metadata",
-        type=pathlib.Path,
+        type=Path,
         default=None,
         metavar="FILE",
         help="Relative or absolute path to a .csv file. If provided, it must contain at least one column with the 'Sample' name (name of the file but removing _R1.fastq.gz) and a column called 'Genus' (mind the capital in the first letter). The genus provided will be used to choose the reference genome to analyze de QC of the de novo assembly.",
@@ -238,7 +188,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-ex",
         "--exclusionfile",
-        type=pathlib.Path,
+        type=Path,
         metavar="FILE",
         dest="exclusion_file",
         help="Path to the file that contains samplenames to be excluded.",
@@ -246,7 +196,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output",
-        type=pathlib.Path,
+        type=Path,
         metavar="DIR",
         default="output",
         help="Relative or absolute path to the output directory. If non is given, an 'output' directory will be created in the current directory.",
@@ -254,7 +204,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--db-dir",
-        type=pathlib.Path,
+        type=Path,
         metavar="DIR",
         default="/mnt/db/juno/kraken2_db",
         help="Relative or absolute path to the Kraken2 database. Default: /mnt/db/juno/kraken2_db.",
@@ -286,8 +236,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-k",
         "--kmer-size",
-        type=str,
         nargs="+",
+        type=int,
         metavar="INT INT...",
         default=[21, 33, 55, 77, 99],
         help="Kmersizes to be used for the de novo assembly.",
@@ -308,7 +258,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--prefix",
-        type=pathlib.Path,
+        type=Path,
         metavar="PATH",
         default=None,
         help="Conda or singularity prefix. Basically a path to the place where you want to store the conda environments or the singularity images.",
@@ -370,12 +320,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     juno_assembly_run = JunoAssemblyRun(
         input_dir=args.input,
-        genus=args.genus,
         output_dir=args.output,
+        genus=args.genus,
         exclusion_file=args.exclusion_file,
         db_dir=args.db_dir,
         help_genera=args.help_genera,
-        metadata=args.metadata,
+        metadata_file=args.metadata,
         cores=args.cores,
         time_limit=args.time_limit,
         local=args.local,
@@ -389,6 +339,14 @@ if __name__ == "__main__":
         min_read_length=args.minimum_length,
         kmer_size=args.kmer_size,
         contig_length_threshold=args.contig_length_threshold,
-        prefix=args.prefix,
+        singularity_prefix=args.prefix,
+        restarttimes=2,
+        latency_wait=60,
         **args.snakemake_args,
     )
+    juno_assembly_run.setup_and_validate()
+    juno_assembly_run.run_juno_assembly_pipeline()
+
+
+if __name__ == "__main__":
+    main()

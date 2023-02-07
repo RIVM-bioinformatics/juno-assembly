@@ -4,7 +4,7 @@
 
 expected_assembly_folders = [
     temp(directory(OUT + "/de_novo_assembly/{sample}/" + f"K{kmer_size}"))
-    for kmer_size in config["kmer_size"].split(",")
+    for kmer_size in config["kmer_size"]
 ]
 
 

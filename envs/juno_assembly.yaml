@@ -16,4 +16,4 @@ dependencies:
   - git=2.38.*
   - pip=22.3.*
   - pip:
-    - "--editable=git+https://github.com/RIVM-bioinformatics/juno_library.git@v1.0.2#egg=juno_library"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@juno_assembly_compatibility#egg=juno_library"
