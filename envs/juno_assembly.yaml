@@ -11,7 +11,7 @@ dependencies:
   - pandas=1.5.2
   - snakemake=7.18.*
   - xlrd=2.0.*
-  - pyyaml=0.6
+  - pyyaml=6.0
   - numpy=1.23.*
   - git=2.38.*
   - pip=22.3.*
