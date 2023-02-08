@@ -35,6 +35,7 @@ class JunoAssemblyRun(PipelineStartup, RunSnakemake):
     db_dir: Path = Path("/mnt/db/juno/kraken2_db")
     min_num_lines: int = 1000  # TODO: Find ideal min num of reads/lines needed
     name_snakemake_report: str = "juno_assembly_report.html"
+    useconda: bool = False
 
     exclusion_file: None | Path = None
     genus: None | str = None
@@ -66,13 +67,13 @@ class JunoAssemblyRun(PipelineStartup, RunSnakemake):
             os.system("cat files/accepted_genera_checkm.txt")
             sys.exit(0)
 
-        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir} --bind {self.db_dir}:{self.db_dir}"
         # Build class
         PipelineStartup.__post_init__(self)
         RunSnakemake.__post_init__(
             self,
             **kwargs,
         )
+        self.singularityargs = f"--bind {self.input_dir}:{self.input_dir} --bind {self.output_dir}:{self.output_dir} --bind {self.db_dir}:{self.db_dir}"
 
         # Specific for Juno assembly
         self.supported_genera = []
@@ -117,7 +118,7 @@ class JunoAssemblyRun(PipelineStartup, RunSnakemake):
                 self.sample_dict[sample]["genus"] = (
                     self.juno_metadata[sample]["genus"].strip().lower()
                 )
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 self.sample_dict[sample]["genus"] = self.genus
 
     def write_userparameters(self) -> dict[str, Any]:
