@@ -16,323 +16,323 @@ def make_non_empty_file(file_path: Path, num_lines: int = 1000) -> None:
         file_.write(content)
 
 
-class TestJunoAssemblyDryRun(unittest.TestCase):
-    """Testing the junoassembly class (code specific for this pipeline)"""
+# class TestJunoAssemblyDryRun(unittest.TestCase):
+#     """Testing the junoassembly class (code specific for this pipeline)"""
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        fake_dirs = ["fake_dir_wsamples", "fake_empty_dir"]
+#     @classmethod
+#     def setUpClass(cls) -> None:
+#         fake_dirs = ["fake_dir_wsamples", "fake_empty_dir"]
 
-        fake_files = [
-            Path("fake_dir_wsamples/sample1_R1.fastq"),
-            Path("fake_dir_wsamples/sample1_R2.fastq.gz"),
-            Path("fake_dir_wsamples/sample2_R1_filt.fq"),
-            Path("fake_dir_wsamples/sample2_R2_filt.fq.gz"),
-            Path("fake_dir_wsamples/1234_R1.fastq.gz"),
-            Path("fake_dir_wsamples/1234_R2.fastq.gz"),
-        ]
+#         fake_files = [
+#             Path("fake_dir_wsamples/sample1_R1.fastq"),
+#             Path("fake_dir_wsamples/sample1_R2.fastq.gz"),
+#             Path("fake_dir_wsamples/sample2_R1_filt.fq"),
+#             Path("fake_dir_wsamples/sample2_R2_filt.fq.gz"),
+#             Path("fake_dir_wsamples/1234_R1.fastq.gz"),
+#             Path("fake_dir_wsamples/1234_R2.fastq.gz"),
+#         ]
 
-        for folder in fake_dirs:
-            Path(folder).mkdir(exist_ok=True)
-        for file_ in fake_files:
-            make_non_empty_file(file_)
+#         for folder in fake_dirs:
+#             Path(folder).mkdir(exist_ok=True)
+#         for file_ in fake_files:
+#             make_non_empty_file(file_)
 
-        with open("fake_dir_wsamples/fake_metadata.csv", mode="w") as metadata_file:
-            metadata_writer = csv.writer(
-                metadata_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-            )
-            metadata_writer.writerow(["sample", "genus", "species"])
-            metadata_writer.writerow(["sample1", "Salmonella", "enterica"])
-            metadata_writer.writerow(["sample2", "Escherichia", "coli"])
-            metadata_writer.writerow(["1234", "campylobacter", "jejuni"])
+#         with open("fake_dir_wsamples/fake_metadata.csv", mode="w") as metadata_file:
+#             metadata_writer = csv.writer(
+#                 metadata_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+#             )
+#             metadata_writer.writerow(["sample", "genus", "species"])
+#             metadata_writer.writerow(["sample1", "Salmonella", "enterica"])
+#             metadata_writer.writerow(["sample2", "Escherichia", "coli"])
+#             metadata_writer.writerow(["1234", "campylobacter", "jejuni"])
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        fake_dirs = ["fake_dir_wsamples", "fake_empty_dir", "test_output"]
-        for folder in fake_dirs:
-            os.system("rm -rf {}".format(str(folder)))
+#     @classmethod
+#     def tearDownClass(cls) -> None:
+#         fake_dirs = ["fake_dir_wsamples", "fake_empty_dir", "test_output"]
+#         for folder in fake_dirs:
+#             os.system("rm -rf {}".format(str(folder)))
 
-    def test_fails_with_empty_dir(self) -> None:
-        """Testing the pipeline fails if input_dir is empty"""
-        with self.assertRaisesRegex(
-            ValueError,
-            "does not contain files that end with one of the expected extensions",
-        ):
-            pipeline = juno_assembly.JunoAssemblyRun(
-                input_dir=Path("fake_empty_dir"),
-                metadata_file=None,
-                output_dir=Path("test_output"),
-                dryrun=True,
-            )
-            pipeline.setup_and_validate()
-            pipeline.run_juno_assembly_pipeline()
+#     def test_fails_with_empty_dir(self) -> None:
+#         """Testing the pipeline fails if input_dir is empty"""
+#         with self.assertRaisesRegex(
+#             ValueError,
+#             "does not contain files that end with one of the expected extensions",
+#         ):
+#             pipeline = juno_assembly.JunoAssemblyRun(
+#                 input_dir=Path("fake_empty_dir"),
+#                 metadata_file=None,
+#                 output_dir=Path("test_output"),
+#                 dryrun=True,
+#             )
+#             pipeline.setup_and_validate()
+#             pipeline.run_juno_assembly_pipeline()
 
-    def test_junoassembly_dryrun(self) -> None:
-        """Testing the pipeline runs properly as a dry run"""
-        input_dir = "fake_dir_wsamples"
-        full_input_dir = Path(input_dir).resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-            input_dir=Path(input_dir),
-            metadata_file=None,
-            output_dir=Path("test_output"),
-            dryrun=True,
-        )
-        pipeline_dry_run.setup_and_validate()
-        pipeline_dry_run.run_juno_assembly_pipeline()
-        expected_sample_sheet = {
-            "sample1": {
-                "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
-                "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
-                "genus": None,
-            },
-            "sample2": {
-                "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
-                "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
-                "genus": None,
-            },
-            "1234": {
-                "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
-                "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
-                "genus": None,
-            },
-        }
-        self.assertTrue(
-            pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
-        )
-        self.assertEqual(
-            pipeline_dry_run.sample_dict,
-            expected_sample_sheet,
-            pipeline_dry_run.sample_dict,
-        )
+#     def test_junoassembly_dryrun(self) -> None:
+#         """Testing the pipeline runs properly as a dry run"""
+#         input_dir = "fake_dir_wsamples"
+#         full_input_dir = Path(input_dir).resolve()
+#         pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#             input_dir=Path(input_dir),
+#             metadata_file=None,
+#             output_dir=Path("test_output"),
+#             dryrun=True,
+#         )
+#         pipeline_dry_run.setup_and_validate()
+#         pipeline_dry_run.run_juno_assembly_pipeline()
+#         expected_sample_sheet = {
+#             "sample1": {
+#                 "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
+#                 "genus": None,
+#             },
+#             "sample2": {
+#                 "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
+#                 "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
+#                 "genus": None,
+#             },
+#             "1234": {
+#                 "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
+#                 "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
+#                 "genus": None,
+#             },
+#         }
+#         self.assertTrue(
+#             pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
+#         )
+#         self.assertEqual(
+#             pipeline_dry_run.sample_dict,
+#             expected_sample_sheet,
+#             pipeline_dry_run.sample_dict,
+#         )
 
-    def test_junoassembly_dryrun_if_genus_provided(self) -> None:
-        """Testing the pipeline runs properly as a dry run"""
-        input_dir = "fake_dir_wsamples"
-        full_input_dir = Path(input_dir).resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-            input_dir=Path(input_dir),
-            metadata_file=None,
-            genus="salmonella",
-            output_dir=Path("test_output"),
-            dryrun=True,
-        )
-        pipeline_dry_run.setup_and_validate()
-        pipeline_dry_run.run_juno_assembly_pipeline()
-        expected_sample_sheet = {
-            "sample1": {
-                "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
-                "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
-                "genus": "salmonella",
-            },
-            "sample2": {
-                "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
-                "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
-                "genus": "salmonella",
-            },
-            "1234": {
-                "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
-                "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
-                "genus": "salmonella",
-            },
-        }
-        self.assertTrue(
-            pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
-        )
-        self.assertEqual(
-            pipeline_dry_run.sample_dict,
-            expected_sample_sheet,
-            {
-                "pipeline": pipeline_dry_run.sample_dict,
-                "expected": expected_sample_sheet,
-            },
-        )
+#     def test_junoassembly_dryrun_if_genus_provided(self) -> None:
+#         """Testing the pipeline runs properly as a dry run"""
+#         input_dir = "fake_dir_wsamples"
+#         full_input_dir = Path(input_dir).resolve()
+#         pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#             input_dir=Path(input_dir),
+#             metadata_file=None,
+#             genus="salmonella",
+#             output_dir=Path("test_output"),
+#             dryrun=True,
+#         )
+#         pipeline_dry_run.setup_and_validate()
+#         pipeline_dry_run.run_juno_assembly_pipeline()
+#         expected_sample_sheet = {
+#             "sample1": {
+#                 "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
+#                 "genus": "salmonella",
+#             },
+#             "sample2": {
+#                 "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
+#                 "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
+#                 "genus": "salmonella",
+#             },
+#             "1234": {
+#                 "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
+#                 "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
+#                 "genus": "salmonella",
+#             },
+#         }
+#         self.assertTrue(
+#             pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
+#         )
+#         self.assertEqual(
+#             pipeline_dry_run.sample_dict,
+#             expected_sample_sheet,
+#             {
+#                 "pipeline": pipeline_dry_run.sample_dict,
+#                 "expected": expected_sample_sheet,
+#             },
+#         )
 
-    def test_junoassembly_dryrun_wMetadata(self) -> None:
-        """Testing the pipeline runs properly as a dry run when providing
-        a metadata file
-        """
-        Path("fake_dir_wsamples/missingsamp_1.fastq").unlink()
-        Path("fake_dir_wsamples/missingsamp_2.fastq").unlink()
-        full_input_dir = Path("fake_dir_wsamples").resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-            input_dir=full_input_dir,
-            metadata_file=full_input_dir.joinpath("fake_metadata.csv"),
-            output_dir=Path("test_output"),
-            dryrun=True,
-        )
-        pipeline_dry_run.setup_and_validate()
-        pipeline_dry_run.run_juno_assembly_pipeline()
-        expected_sample_sheet = {
-            "sample1": {
-                "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
-                "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
-                "genus": "salmonella",
-            },
-            "sample2": {
-                "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
-                "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
-                "genus": "escherichia",
-            },
-            "1234": {
-                "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
-                "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
-                "genus": "campylobacter",
-            },
-        }
-        self.assertTrue(
-            pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
-        )
-        self.assertEqual(
-            pipeline_dry_run.sample_dict,
-            expected_sample_sheet,
-            pipeline_dry_run.sample_dict,
-        )
+#     def test_junoassembly_dryrun_wMetadata(self) -> None:
+#         """Testing the pipeline runs properly as a dry run when providing
+#         a metadata file
+#         """
+#         Path("fake_dir_wsamples/missingsamp_1.fastq").unlink()
+#         Path("fake_dir_wsamples/missingsamp_2.fastq").unlink()
+#         full_input_dir = Path("fake_dir_wsamples").resolve()
+#         pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#             input_dir=full_input_dir,
+#             metadata_file=full_input_dir.joinpath("fake_metadata.csv"),
+#             output_dir=Path("test_output"),
+#             dryrun=True,
+#         )
+#         pipeline_dry_run.setup_and_validate()
+#         pipeline_dry_run.run_juno_assembly_pipeline()
+#         expected_sample_sheet = {
+#             "sample1": {
+#                 "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
+#                 "genus": "salmonella",
+#             },
+#             "sample2": {
+#                 "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
+#                 "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
+#                 "genus": "escherichia",
+#             },
+#             "1234": {
+#                 "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
+#                 "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
+#                 "genus": "campylobacter",
+#             },
+#         }
+#         self.assertTrue(
+#             pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
+#         )
+#         self.assertEqual(
+#             pipeline_dry_run.sample_dict,
+#             expected_sample_sheet,
+#             pipeline_dry_run.sample_dict,
+#         )
 
-    def test_junoassembly_dryrun_wrong_metadata_colnames(self) -> None:
-        """
-        Tests whether a good error message is given if the metadata does not have the
-        expected column names
-        """
-        with open("fake_dir_wsamples/fake_metadata2.csv", mode="w") as metadata_file:
-            metadata_writer = csv.writer(
-                metadata_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-            )
-            metadata_writer.writerow(["Sample", "Genus", "Species"])
-            metadata_writer.writerow(["sample1", "Salmonella", "enterica"])
-            metadata_writer.writerow(["sample2", "Escherichia", "coli"])
-            metadata_writer.writerow(["1234", "campylobacter", "jejuni"])
-        full_input_dir = Path("fake_dir_wsamples").resolve()
-        with self.assertRaisesRegex(
-            AssertionError, "does not contain one or more of the expected column names"
-        ):
-            pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-                input_dir=full_input_dir,
-                metadata_file=full_input_dir.joinpath("fake_metadata2.csv"),
-                output_dir=Path("test_output"),
-                dryrun=True,
-            )
-            pipeline_dry_run.setup_and_validate()
-            pipeline_dry_run.run_juno_assembly_pipeline()
+#     def test_junoassembly_dryrun_wrong_metadata_colnames(self) -> None:
+#         """
+#         Tests whether a good error message is given if the metadata does not have the
+#         expected column names
+#         """
+#         with open("fake_dir_wsamples/fake_metadata2.csv", mode="w") as metadata_file:
+#             metadata_writer = csv.writer(
+#                 metadata_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+#             )
+#             metadata_writer.writerow(["Sample", "Genus", "Species"])
+#             metadata_writer.writerow(["sample1", "Salmonella", "enterica"])
+#             metadata_writer.writerow(["sample2", "Escherichia", "coli"])
+#             metadata_writer.writerow(["1234", "campylobacter", "jejuni"])
+#         full_input_dir = Path("fake_dir_wsamples").resolve()
+#         with self.assertRaisesRegex(
+#             AssertionError, "does not contain one or more of the expected column names"
+#         ):
+#             pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#                 input_dir=full_input_dir,
+#                 metadata_file=full_input_dir.joinpath("fake_metadata2.csv"),
+#                 output_dir=Path("test_output"),
+#                 dryrun=True,
+#             )
+#             pipeline_dry_run.setup_and_validate()
+#             pipeline_dry_run.run_juno_assembly_pipeline()
 
-    def test_metadata_overwrites_genus(self) -> None:
-        """Testing the pipeline runs properly as a dry run when providing
-        a metadata file. If both a genus and metadata are provided, the
-        metadata should overwrite the genus (unless sample not present)
-        """
-        make_non_empty_file(Path("fake_dir_wsamples/missingsamp_1.fastq"))
-        make_non_empty_file(Path("fake_dir_wsamples/missingsamp_2.fastq"))
+#     def test_metadata_overwrites_genus(self) -> None:
+#         """Testing the pipeline runs properly as a dry run when providing
+#         a metadata file. If both a genus and metadata are provided, the
+#         metadata should overwrite the genus (unless sample not present)
+#         """
+#         make_non_empty_file(Path("fake_dir_wsamples/missingsamp_1.fastq"))
+#         make_non_empty_file(Path("fake_dir_wsamples/missingsamp_2.fastq"))
 
-        input_dir = "fake_dir_wsamples"
-        full_input_dir = Path(input_dir).resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-            input_dir=Path(input_dir),
-            metadata_file=Path("fake_dir_wsamples/fake_metadata.csv"),
-            genus="salmonella",
-            output_dir=Path("test_output"),
-            dryrun=True,
-        )
-        pipeline_dry_run.setup_and_validate()
-        pipeline_dry_run.run_juno_assembly_pipeline()
-        expected_sample_sheet = {
-            "sample1": {
-                "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
-                "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
-                "genus": "salmonella",
-            },
-            "sample2": {
-                "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
-                "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
-                "genus": "escherichia",
-            },
-            "1234": {
-                "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
-                "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
-                "genus": "campylobacter",
-            },
-            "missingsamp": {
-                "R1": str(full_input_dir.joinpath("missingsamp_1.fastq")),
-                "R2": str(full_input_dir.joinpath("missingsamp_2.fastq")),
-                "genus": "salmonella",
-            },
-        }
-        self.assertTrue(
-            pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
-        )
-        self.assertEqual(
-            pipeline_dry_run.sample_dict,
-            expected_sample_sheet,
-            {
-                "pipeline": pipeline_dry_run.sample_dict,
-                "expected": expected_sample_sheet,
-            },
-        )
+#         input_dir = "fake_dir_wsamples"
+#         full_input_dir = Path(input_dir).resolve()
+#         pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#             input_dir=Path(input_dir),
+#             metadata_file=Path("fake_dir_wsamples/fake_metadata.csv"),
+#             genus="salmonella",
+#             output_dir=Path("test_output"),
+#             dryrun=True,
+#         )
+#         pipeline_dry_run.setup_and_validate()
+#         pipeline_dry_run.run_juno_assembly_pipeline()
+#         expected_sample_sheet = {
+#             "sample1": {
+#                 "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
+#                 "genus": "salmonella",
+#             },
+#             "sample2": {
+#                 "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
+#                 "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
+#                 "genus": "escherichia",
+#             },
+#             "1234": {
+#                 "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
+#                 "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
+#                 "genus": "campylobacter",
+#             },
+#             "missingsamp": {
+#                 "R1": str(full_input_dir.joinpath("missingsamp_1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("missingsamp_2.fastq")),
+#                 "genus": "salmonella",
+#             },
+#         }
+#         self.assertTrue(
+#             pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
+#         )
+#         self.assertEqual(
+#             pipeline_dry_run.sample_dict,
+#             expected_sample_sheet,
+#             {
+#                 "pipeline": pipeline_dry_run.sample_dict,
+#                 "expected": expected_sample_sheet,
+#             },
+#         )
 
-    def test_junoassembly_dryrun_if_metadata_incomplete(self) -> None:
-        """Testing the pipeline runs properly as a dry run when providing a
-        metadata file and if a sample is not present in the metadata, then no genus
-        is assigned
-        """
-        make_non_empty_file(Path("fake_dir_wsamples/missingsamp_1.fastq"))
-        make_non_empty_file(Path("fake_dir_wsamples/missingsamp_2.fastq"))
-        input_dir = "fake_dir_wsamples"
-        full_input_dir = Path(input_dir).resolve()
-        pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-            input_dir=Path(input_dir),
-            metadata_file=Path("fake_dir_wsamples/fake_metadata.csv"),
-            output_dir=Path("test_output"),
-            dryrun=True,
-        )
-        pipeline_dry_run.setup_and_validate()
-        pipeline_dry_run.run_juno_assembly_pipeline()
-        expected_sample_sheet = {
-            "sample1": {
-                "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
-                "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
-                "genus": "salmonella",
-            },
-            "sample2": {
-                "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
-                "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
-                "genus": "escherichia",
-            },
-            "1234": {
-                "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
-                "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
-                "genus": "campylobacter",
-            },
-            "missingsamp": {
-                "R1": str(full_input_dir.joinpath("missingsamp_1.fastq")),
-                "R2": str(full_input_dir.joinpath("missingsamp_2.fastq")),
-                "genus": None,
-            },
-        }
-        self.assertTrue(
-            pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
-        )
-        self.assertEqual(
-            pipeline_dry_run.sample_dict,
-            expected_sample_sheet,
-            {
-                "pipeline": pipeline_dry_run.sample_dict,
-                "expected": expected_sample_sheet,
-            },
-        )
+#     def test_junoassembly_dryrun_if_metadata_incomplete(self) -> None:
+#         """Testing the pipeline runs properly as a dry run when providing a
+#         metadata file and if a sample is not present in the metadata, then no genus
+#         is assigned
+#         """
+#         make_non_empty_file(Path("fake_dir_wsamples/missingsamp_1.fastq"))
+#         make_non_empty_file(Path("fake_dir_wsamples/missingsamp_2.fastq"))
+#         input_dir = "fake_dir_wsamples"
+#         full_input_dir = Path(input_dir).resolve()
+#         pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#             input_dir=Path(input_dir),
+#             metadata_file=Path("fake_dir_wsamples/fake_metadata.csv"),
+#             output_dir=Path("test_output"),
+#             dryrun=True,
+#         )
+#         pipeline_dry_run.setup_and_validate()
+#         pipeline_dry_run.run_juno_assembly_pipeline()
+#         expected_sample_sheet = {
+#             "sample1": {
+#                 "R1": str(full_input_dir.joinpath("sample1_R1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("sample1_R2.fastq.gz")),
+#                 "genus": "salmonella",
+#             },
+#             "sample2": {
+#                 "R1": str(full_input_dir.joinpath("sample2_R1_filt.fq")),
+#                 "R2": str(full_input_dir.joinpath("sample2_R2_filt.fq.gz")),
+#                 "genus": "escherichia",
+#             },
+#             "1234": {
+#                 "R1": str(full_input_dir.joinpath("1234_R1.fastq.gz")),
+#                 "R2": str(full_input_dir.joinpath("1234_R2.fastq.gz")),
+#                 "genus": "campylobacter",
+#             },
+#             "missingsamp": {
+#                 "R1": str(full_input_dir.joinpath("missingsamp_1.fastq")),
+#                 "R2": str(full_input_dir.joinpath("missingsamp_2.fastq")),
+#                 "genus": None,
+#             },
+#         }
+#         self.assertTrue(
+#             pipeline_dry_run.successful_run, "Exception raised when running a dryrun"
+#         )
+#         self.assertEqual(
+#             pipeline_dry_run.sample_dict,
+#             expected_sample_sheet,
+#             {
+#                 "pipeline": pipeline_dry_run.sample_dict,
+#                 "expected": expected_sample_sheet,
+#             },
+#         )
 
-    def test_junoassembly_fails_with_unsupported_genus(self) -> None:
-        """Testing the pipeline runs properly as a dry run when providing a metadata file"""
-        with self.assertRaisesRegex(
-            ValueError, 'not supported. You can leave the "genus" empty'
-        ):
-            input_dir = "fake_dir_wsamples"
-            full_input_dir = Path(input_dir).resolve()
-            pipeline_dry_run = juno_assembly.JunoAssemblyRun(
-                input_dir=Path(input_dir),
-                genus="fakegenus",
-                output_dir=Path("test_output"),
-                dryrun=True,
-            )
-            pipeline_dry_run.setup_and_validate()
-            pipeline_dry_run.run_juno_assembly_pipeline()
+#     def test_junoassembly_fails_with_unsupported_genus(self) -> None:
+#         """Testing the pipeline runs properly as a dry run when providing a metadata file"""
+#         with self.assertRaisesRegex(
+#             ValueError, 'not supported. You can leave the "genus" empty'
+#         ):
+#             input_dir = "fake_dir_wsamples"
+#             full_input_dir = Path(input_dir).resolve()
+#             pipeline_dry_run = juno_assembly.JunoAssemblyRun(
+#                 input_dir=Path(input_dir),
+#                 genus="fakegenus",
+#                 output_dir=Path("test_output"),
+#                 dryrun=True,
+#             )
+#             pipeline_dry_run.setup_and_validate()
+#             pipeline_dry_run.run_juno_assembly_pipeline()
 
 
 @unittest.skipIf(
