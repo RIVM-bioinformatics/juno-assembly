@@ -22,11 +22,12 @@ jobs:
       - name: Setting up conda
         uses: conda-incubator/setup-miniconda@v2
         with:
+          mamba-version: "0.27"
           environment-file: envs/juno_assembly.yaml 
-          activate-environment: juno_typing
+          activate-environment: juno_assembly
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Test the python wrapper using juno_library.
+      - name: Test the python wrapper using juno_assembly.
         shell: bash -l {0}
         run: python ./tests/test_juno_assembly.py
