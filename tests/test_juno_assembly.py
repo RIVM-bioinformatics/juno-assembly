@@ -370,7 +370,6 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
             output_dir=output_dir,
             run_in_container=False,
         )
-        juno_assembly_run.setup_and_validate()
         juno_assembly_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -439,7 +438,6 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
             output_dir=output_dir,
             run_in_container=True,
         )
-        juno_assembly_run.setup_and_validate()
         juno_assembly_run.run_juno_assembly_pipeline()
 
         expected_sample_sheet = {
@@ -508,9 +506,8 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
             dryrun=False,
             output_dir=output_dir,
             run_in_container=True,
-            prefix="sing_containers",
+            singularity_prefix="sing_containers",
         )
-        juno_assembly_run.setup_and_validate()
         juno_assembly_run.run_juno_assembly_pipeline()
 
         expected_sample_sheet = {
@@ -580,9 +577,8 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
             output_dir=output_dir,
             run_in_container=True,
             kmer_size=[21, 33, 55, 77],
-            prefix="sing_containers",
+            singularity_prefix="sing_containers",
         )
-        juno_assembly_run.setup_and_validate()
         juno_assembly_run.run_juno_assembly_pipeline()
         self.assertTrue(
             juno_assembly_run.successful_run,
