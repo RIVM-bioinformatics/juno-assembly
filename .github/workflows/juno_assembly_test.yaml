@@ -22,7 +22,7 @@ jobs:
       - name: Conda setup
         uses: conda-incubator/setup-miniconda@v2
         with:
-          mamba-version: "0.27"
+          mamba-version: "*"
           environment-file: envs/juno_assembly.yaml 
           activate-environment: juno_assembly
       - name: Conda list
