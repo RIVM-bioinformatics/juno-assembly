@@ -18,8 +18,8 @@ jobs:
     name: Testing Juno_assembly ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Setting up conda
+      - uses: actions/checkout@v3
+      - name: Conda setup
         uses: conda-incubator/setup-miniconda@v2
         with:
           mamba-version: "0.27"
@@ -28,6 +28,6 @@ jobs:
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Test the python wrapper using juno_assembly.
+      - name: Unit tests
         shell: bash -l {0}
         run: python ./tests/test_juno_assembly.py
