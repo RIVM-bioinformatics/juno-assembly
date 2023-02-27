@@ -29,6 +29,8 @@ rule multiqc:
         ),
     output:
         OUT + "/multiqc/multiqc.html",
+        phred = OUT + "/multiqc/multiqc_data/multiqc_data.json",
+        seq_len = OUT + "/multiqc/multiqc_data/multiqc_fastqc.txt",
     message:
         "Making MultiQC report."
     conda:

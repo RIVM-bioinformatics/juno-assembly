@@ -19,6 +19,6 @@ rule create_juno_QC_report:
     resources:
         mem_gb=config["mem_gb"]["parsing"],
     log:
-        #OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_combined.log",
-    script:
-        "../create_juno_qc_report.py"
+        OUT + "/log/create_juno_QC_report.log", 
+    shell:
+        "python bin/create_juno_qc_report.py {input} {output} > {log} 2>&1"

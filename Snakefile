@@ -130,4 +130,4 @@ rule all:
         ),
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
-        OUT + "/Juno_assembly_QC_report/QC_report.xlsx"
+        OUT + "/Juno_assembly_QC_report/QC_report.xlsx",

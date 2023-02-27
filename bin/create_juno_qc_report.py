@@ -3,6 +3,8 @@ Parse several QC outputs from the Juno pipeline and
 create a csv or excel file output
 """
 
+import sys
+print("something")
 import os
 import pandas as pd
 import glob
@@ -14,6 +16,7 @@ import json
 from pandas import json_normalize
 
 import numpy as np
+print("done with imports")
 
 #input and output directories
 input_dir = "/data/BioGrid/singhsp/Juno_assembly" # path given as -i in pipeline 
@@ -57,8 +60,8 @@ def get_phred_score(phred: str) -> pd.DataFrame:
 
     parsed6_df = parsed5_df.groupby('name')['phred'].mean().reset_index() #mean phred score of R1 and R2
     parsed6_df.rename(columns = {'name':'sample'}, inplace = True) #rename name to sample to match rest of outputs
-  
-  
+
+
     return parsed6_df
 
 
@@ -151,60 +154,60 @@ def get_range(min: int, max: int, actual: int) -> str:
         return 'color:black; background-color:palegreen'
     return ''
 
-def bacteria_colour(row: pd.Series) -> list(str):
+# def bacteria_colour(row: pd.Series) -> list(str):
 
-    """
-    Tolerance values for each parameter and bacterial species
-    """
+#     """
+#     Tolerance values for each parameter and bacterial species
+#     """
 
-    genus = str(row['genus']).lower().strip()
-    # print(genus)
-    if genus == 'salmonella':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
-        get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     genus = str(row['genus']).lower().strip()
+#     # print(genus)
+#     if genus == 'salmonella':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
+#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
-    elif genus == 'escherichia':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
-        get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'escherichia':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
+#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
-    elif genus == 'streptococcus':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
-        get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'streptococcus':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
+#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
-    elif genus == 'shigella':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(762, row['# contigs']), 
-        get_range(4.21, 5.03, row['Total length']), get_range(50.3, 51, row['GC (%)']), too_low(17500, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'shigella':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(762, row['# contigs']), 
+#         get_range(4.21, 5.03, row['Total length']), get_range(50.3, 51, row['GC (%)']), too_low(17500, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
 
-    elif genus == 'listeria':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
-        get_range(2.7, 3.23, row['Total length']), get_range(37.6, 38.2, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'listeria':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']), 
+#         get_range(2.7, 3.23, row['Total length']), get_range(37.6, 38.2, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
-    elif genus == 'campylobacter':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(100, row['# contigs']), 
-        get_range(1.5, 1.9, row['Total length']), get_range(29.5, 31.5, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'campylobacter':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(100, row['# contigs']), 
+#         get_range(1.5, 1.9, row['Total length']), get_range(29.5, 31.5, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
 
-    elif genus == 'yersinia':
-        return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(250, row['# contigs']), 
-        get_range(3.9, 5.2, row['Total length']), get_range(46.2, 48.8, row['GC (%)']), too_low(30000, row['N50']),
-        "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
+#     elif genus == 'yersinia':
+#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(250, row['# contigs']), 
+#         get_range(3.9, 5.2, row['Total length']), get_range(46.2, 48.8, row['GC (%)']), too_low(30000, row['N50']),
+#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
     
-    return ["", "", "", "", "", "", "", "", "", "", "", ""]
+#     return ["", "", "", "", "", "", "", "", "", "", "", ""]
 
 
-def highlight_dataframe(dataframe: pd.DataFrame):
-    """
-    Apply conditional formatting to dataframe
-    """
-    styler = dataframe.style.apply(bacteria_colour, axis=1)
+# def highlight_dataframe(dataframe: pd.DataFrame):
+#     """
+#     Apply conditional formatting to dataframe
+#     """
+#     styler = dataframe.style.apply(bacteria_colour, axis=1)
         
-    return styler
+#     return styler
 
 def bp_mbp(dataframe: pd.DataFrame, col: str) -> pd.DataFrame:
 
@@ -255,18 +258,21 @@ def get_excel_report(dataframe):
     Creates an excel format report with conditional formatting
     """
 
-    writer = pd.ExcelWriter(snakemake.output[0], engine='openpyxl')
+    writer = pd.ExcelWriter(sys.argv[-1], engine='openpyxl')
 
     for genus in dataframe['genus'].unique():
         newdf = dataframe[dataframe['genus'] == genus]
-        newdf = highlight_dataframe(newdf)
+        # newdf = highlight_dataframe(newdf)
         newdf.to_excel(writer, sheet_name = genus, index = False)
     writer.save()
+    writer.close()
     return writer
 
 def main(species, phred, seq_len, quast, bbtools, checkm):
     df_report = compile_report(species, phred, seq_len, quast, bbtools, checkm)
-
+    print("at least compiling worked")
     return get_excel_report(df_report)
 
-main(snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)
+print("running main")
+main(*sys.argv[1:-1])#snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)
+# (sys.argv[1:-1])
