@@ -60,7 +60,7 @@ include: "bin/rules/generate_contig_metrics.smk"
 include: "bin/rules/parse_bbtools.smk"
 include: "bin/rules/parse_bbtools_summary.smk"
 include: "bin/rules/multiqc.smk"
-
+include: "bin/rules/create_juno_qc.smk"
 
 # @################################################################################
 # @#### The `onstart` checker codeblock                                       #####
@@ -130,3 +130,4 @@ rule all:
         ),
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
+        OUT + "/Juno_assembly_QC_report/QC_report.xlsx"
