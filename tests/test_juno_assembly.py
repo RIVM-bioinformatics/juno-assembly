@@ -56,7 +56,7 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
         """Testing the pipeline fails if input_dir is empty"""
         with self.assertRaisesRegex(
             ValueError,
-            "does not contain files that end with one of the expected extensions",
+            "does not contain any files with the expected format/naming",
         ):
             pipeline = juno_assembly.JunoAssemblyRun(
                 input_dir=Path("fake_empty_dir"),
@@ -64,7 +64,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
                 output_dir=Path("test_output"),
                 dryrun=True,
             )
-            pipeline.setup_and_validate()
             pipeline.run_juno_assembly_pipeline()
 
     def test_junoassembly_dryrun(self) -> None:
@@ -77,7 +76,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
             output_dir=Path("test_output"),
             dryrun=True,
         )
-        pipeline_dry_run.setup_and_validate()
         pipeline_dry_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -116,7 +114,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
             output_dir=Path("test_output"),
             dryrun=True,
         )
-        pipeline_dry_run.setup_and_validate()
         pipeline_dry_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -160,7 +157,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
             output_dir=Path("test_output"),
             dryrun=True,
         )
-        pipeline_dry_run.setup_and_validate()
         pipeline_dry_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -211,7 +207,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
                 output_dir=Path("test_output"),
                 dryrun=True,
             )
-            pipeline_dry_run.setup_and_validate()
             pipeline_dry_run.run_juno_assembly_pipeline()
 
     def test_metadata_overwrites_genus(self) -> None:
@@ -231,7 +226,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
             output_dir=Path("test_output"),
             dryrun=True,
         )
-        pipeline_dry_run.setup_and_validate()
         pipeline_dry_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -282,7 +276,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
             output_dir=Path("test_output"),
             dryrun=True,
         )
-        pipeline_dry_run.setup_and_validate()
         pipeline_dry_run.run_juno_assembly_pipeline()
         expected_sample_sheet = {
             "sample1": {
@@ -331,7 +324,6 @@ class TestJunoAssemblyDryRun(unittest.TestCase):
                 output_dir=Path("test_output"),
                 dryrun=True,
             )
-            pipeline_dry_run.setup_and_validate()
             pipeline_dry_run.run_juno_assembly_pipeline()
 
 

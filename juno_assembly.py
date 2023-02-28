@@ -345,7 +345,6 @@ def main() -> None:
         latency_wait=60,
         **args.snakemake_args,
     )
-    juno_assembly_run.setup_and_validate()
     juno_assembly_run.run_juno_assembly_pipeline()
 
 
