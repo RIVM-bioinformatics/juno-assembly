@@ -29,7 +29,8 @@ def get_metadata(species: str) -> pd.DataFrame:
     """
     filepath = Path(f"{species}")
     df = pd.read_csv(filepath, usecols=['sample', 'genus'])
-    print(df)
+    df['sample'] = df['sample'].astype('string')
+    print(df.dtypes)
     return df
 
 def get_phred_score(phred: str) -> pd.DataFrame:
@@ -60,8 +61,9 @@ def get_phred_score(phred: str) -> pd.DataFrame:
 
     parsed6_df = parsed5_df.groupby('name')['phred'].mean().reset_index() #mean phred score of R1 and R2
     parsed6_df.rename(columns = {'name':'sample'}, inplace = True) #rename name to sample to match rest of outputs
+    parsed6_df['sample'] = parsed6_df['sample'].astype('string')
 
-
+    print(parsed6_df.dtypes)
     return parsed6_df
 
 
@@ -79,7 +81,8 @@ def get_sequence_len(seq_len: str) -> pd.DataFrame:
 
     seq_len_df = seq_len_df.groupby('sample')['avg_sequence_length'].mean().reset_index() # average sequence length of R1 and R2
     seq_len_df['avg_sequence_length'] = seq_len_df['avg_sequence_length'].round(decimals = 0)
-    #print(seq_len_df)
+    seq_len_df['sample'] = seq_len_df['sample'].astype('string')
+    print(seq_len_df.dtypes)
     
     return seq_len_df
 
@@ -93,7 +96,8 @@ def get_transposed_report(quast: str) -> pd.DataFrame:
     #print(trans_filepath)
     trans_report_df = pd.read_csv(trans_filepath, sep= '\t', usecols=['Assembly', 'Total length', '# contigs', 'N50', 'GC (%)'])
     trans_report_df.rename(columns = {'Assembly':'sample'}, inplace = True)
-    #print(trans_report_df)
+    trans_report_df['sample'] = trans_report_df['sample'].astype('string')
+    print(trans_report_df.dtypes)
     
     return trans_report_df
 
@@ -107,8 +111,9 @@ def get_checkm_report(checkm: str) -> pd.DataFrame:
     #print(checkm_filepath)
     checkm_report_df = pd.read_csv(checkm_filepath, sep= '\t', index_col=False, usecols=['sample', 'completeness', 'contamination'])
     checkm_report_df['sample'] = checkm_report_df['sample'].str[:-1]
+    checkm_report_df['sample'] = checkm_report_df['sample'].astype('string')
     
-    #print(checkm_report_df)
+    print(checkm_report_df.dtypes)
     
     return checkm_report_df
 
@@ -122,7 +127,8 @@ def get_bbtools_report(bbtools: str) -> pd.DataFrame:
     #print(bbtools_filepath)
     bbtools_report_df = pd.read_csv(bbtools_filepath, sep= '\t', usecols=['Sample', 'Reads', 'Average coverage'])
     bbtools_report_df.rename(columns = {'Sample':'sample'}, inplace = True)
-    #print(bbtools_report_df)
+    bbtools_report_df['sample'] = bbtools_report_df['sample'].astype('string')
+    print(bbtools_report_df.dtypes)
     
     return bbtools_report_df
 
@@ -233,6 +239,7 @@ def compile_report(species, phred, seq_len, quast, bbtools, checkm) -> pd.DataFr
 
     #make list of dataframes
     dfs = [df_meta, df_phred, df_seq_length, df_quast, df_bbtools, df_checkm]
+    # dfs = [df_meta, df_seq_length, df_quast, df_bbtools, df_checkm]
     
 
     #join dataframes
@@ -272,6 +279,11 @@ def main(species, phred, seq_len, quast, bbtools, checkm):
     df_report = compile_report(species, phred, seq_len, quast, bbtools, checkm)
     print("at least compiling worked")
     return get_excel_report(df_report)
+
+# def main(species, seq_len, quast, bbtools, checkm):
+#     df_report = compile_report(species, seq_len, quast, bbtools, checkm)
+#     print("at least compiling worked")
+#     return get_excel_report(df_report)
 
 print("running main")
 main(*sys.argv[1:-1])#snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)
