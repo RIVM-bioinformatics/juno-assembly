@@ -19,6 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: eWaterCycle/setup-singularity@v7
+        with:
+          singularity-version: 3.8.7
       - name: Conda setup
         uses: conda-incubator/setup-miniconda@v2
         with:
