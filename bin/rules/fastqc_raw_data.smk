@@ -7,9 +7,10 @@ rule qc_raw_fastq:
     input:
         lambda wildcards: SAMPLES[wildcards.sample][wildcards.read],
     output:
-        html = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.html",
-        zip = OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip"
-    message: "Running FastQC in the raw data for {wildcards.sample}."
+        html=OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.html",
+        zip=OUT + "/qc_raw_fastq/{sample}_{read}_fastqc.zip",
+    message:
+        "Running FastQC in the raw data for {wildcards.sample}."
     conda:
         "../../envs/qc_and_clean.yaml"
     container:
