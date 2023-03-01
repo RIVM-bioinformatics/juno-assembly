@@ -9,11 +9,7 @@ import pandas as pd
 from pathlib import Path
 from functools import reduce
 import openpyxl
-
 import json
-
-import numpy as np
-
 
 # input and output directories
 input_dir = "/data/BioGrid/singhsp/Juno_assembly"  # path given as -i in pipeline
@@ -128,7 +124,7 @@ def get_checkm_report(checkm: str) -> pd.DataFrame:
     Creates a dataframe with necessary parameters from the checkm report
     """
 
-    checkm_filepath = Path(f"{checkm}")
+    checkm_filepath = Path(checkm)
     checkm_report_df = pd.read_csv(
         checkm_filepath,
         sep="\t",
@@ -297,11 +293,5 @@ def get_excel_report(dataframe: pd.DataFrame) -> None:
             newdf.to_excel(writer, sheet_name=genus, index=False)
 
 
-def main(
-    species: str, phred: str, seq_len: str, quast: str, bbtools: str, checkm: str
-) -> None:
-    df_report = compile_report(species, phred, seq_len, quast, bbtools, checkm)
-    return get_excel_report(df_report)
-
-
-main(snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)  # type: ignore
+report_df = compile_report(snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)  # type: ignore
+get_excel_report(report_df)
