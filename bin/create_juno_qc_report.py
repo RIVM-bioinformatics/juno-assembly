@@ -33,7 +33,7 @@ def get_metadata(species: str) -> pd.DataFrame:
     """
     filepath = Path(f"{species}")
     df = pd.read_csv(filepath, usecols=["sample", "genus"])
-    df["sample"] = df["sample"].astype("string")
+    df["sample"] = df["sample"].astype(str)
     print(df.dtypes)
     return df
 
@@ -79,7 +79,7 @@ def get_phred_score(phred: str) -> pd.DataFrame:
     parsed6_df.rename(
         columns={"name": "sample"}, inplace=True
     )  # rename name to sample to match rest of outputs
-    parsed6_df["sample"] = parsed6_df["sample"].astype("string")
+    parsed6_df["sample"] = parsed6_df["sample"].astype(str)
 
     print(parsed6_df.dtypes)
     return parsed6_df
@@ -109,7 +109,7 @@ def get_sequence_len(seq_len: str) -> pd.DataFrame:
     seq_len_df["avg_sequence_length"] = seq_len_df["avg_sequence_length"].round(
         decimals=0
     )
-    seq_len_df["sample"] = seq_len_df["sample"].astype("string")
+    seq_len_df["sample"] = seq_len_df["sample"].astype(str)
     print(seq_len_df.dtypes)
 
     return seq_len_df
@@ -127,7 +127,7 @@ def get_transposed_report(quast: str) -> pd.DataFrame:
         usecols=["Assembly", "Total length", "# contigs", "N50", "GC (%)"],
     )
     trans_report_df.rename(columns={"Assembly": "sample"}, inplace=True)
-    trans_report_df["sample"] = trans_report_df["sample"].astype("string")
+    trans_report_df["sample"] = trans_report_df["sample"].astype(str)
     print(trans_report_df.dtypes)
 
     return trans_report_df
@@ -147,7 +147,7 @@ def get_checkm_report(checkm: str) -> pd.DataFrame:
         usecols=["sample", "completeness", "contamination"],
     )
     checkm_report_df["sample"] = checkm_report_df["sample"].str[:-1]
-    checkm_report_df["sample"] = checkm_report_df["sample"].astype("string")
+    checkm_report_df["sample"] = checkm_report_df["sample"].astype(str)
 
     print(checkm_report_df.dtypes)
 
@@ -165,7 +165,7 @@ def get_bbtools_report(bbtools: str) -> pd.DataFrame:
         bbtools_filepath, sep="\t", usecols=["Sample", "Reads", "Average coverage"]
     )
     bbtools_report_df.rename(columns={"Sample": "sample"}, inplace=True)
-    bbtools_report_df["sample"] = bbtools_report_df["sample"].astype("string")
+    bbtools_report_df["sample"] = bbtools_report_df["sample"].astype(str)
     print(bbtools_report_df.dtypes)
 
     return bbtools_report_df
@@ -293,7 +293,7 @@ def compile_report(species, phred, seq_len, quast, bbtools, checkm) -> pd.DataFr
     return final_df
 
 
-def get_csv_report(dataframe):
+def get_csv_report(dataframe: pd.DataFrame) -> None:
     """
     Create csv format report from dataframe
     """
@@ -301,20 +301,15 @@ def get_csv_report(dataframe):
     dataframe.to_csv("juno_out.csv", index=False)
 
 
-def get_excel_report(dataframe):
+def get_excel_report(dataframe: pd.DataFrame) -> None:
     """
     Creates an excel format report with conditional formatting
     """
-
-    writer = pd.ExcelWriter(sys.argv[-1], engine="openpyxl")
-
-    for genus in dataframe["genus"].unique():
-        newdf = dataframe[dataframe["genus"] == genus]
-        # newdf = highlight_dataframe(newdf)
-        newdf.to_excel(writer, sheet_name=genus, index=False)
-    writer.save()
-    writer.close()
-    return writer
+    with pd.ExcelWriter(sys.argv[-1], engine="openpyxl") as writer:
+        for genus in dataframe["genus"].unique():
+            newdf = dataframe[dataframe["genus"] == genus]
+            # newdf = highlight_dataframe(newdf)
+            newdf.to_excel(writer, sheet_name=genus, index=False)
 
 
 def main(species, phred, seq_len, quast, bbtools, checkm):
