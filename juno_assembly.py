@@ -78,7 +78,7 @@ class JunoAssemblyRun(PipelineStartup, RunSnakemake):
         # Specific for Juno assembly
         self.supported_genera = []
         with open(
-            self.workdir.joinpath("files", "accepted_genera_checkm.txt")
+            self.workdir.joinpath("files", "accepted_genera_checkm.txt"), mode="r"
         ) as file_:
             for line in file_:
                 genus_name = line.replace("\n", "").lower()
@@ -119,7 +119,7 @@ class JunoAssemblyRun(PipelineStartup, RunSnakemake):
                     self.juno_metadata[sample]["genus"].strip().lower()
                 )
             except (KeyError, TypeError, AttributeError):
-                self.sample_dict[sample]["genus"] = self.genus
+                self.sample_dict[sample]["genus"] = self.genus  # type: ignore
 
     def write_userparameters(self) -> dict[str, Any]:
         config_params = {
