@@ -5,20 +5,15 @@ create a csv or excel file output
 
 import sys
 
-print("something")
-import os
 import pandas as pd
-import glob
 from pathlib import Path
 from functools import reduce
 import openpyxl
 
 import json
-from pandas import json_normalize
 
 import numpy as np
 
-print("done with imports")
 
 # input and output directories
 input_dir = "/data/BioGrid/singhsp/Juno_assembly"  # path given as -i in pipeline
@@ -34,7 +29,6 @@ def get_metadata(species: str) -> pd.DataFrame:
     filepath = Path(f"{species}")
     df = pd.read_csv(filepath, usecols=["sample", "genus"])
     df["sample"] = df["sample"].astype(str)
-    print(df.dtypes)
     return df
 
 
@@ -81,7 +75,6 @@ def get_phred_score(phred: str) -> pd.DataFrame:
     )  # rename name to sample to match rest of outputs
     parsed6_df["sample"] = parsed6_df["sample"].astype(str)
 
-    print(parsed6_df.dtypes)
     return parsed6_df
 
 
@@ -110,7 +103,6 @@ def get_sequence_len(seq_len: str) -> pd.DataFrame:
         decimals=0
     )
     seq_len_df["sample"] = seq_len_df["sample"].astype(str)
-    print(seq_len_df.dtypes)
 
     return seq_len_df
 
@@ -120,7 +112,6 @@ def get_transposed_report(quast: str) -> pd.DataFrame:
     Creates a dataframe with necessary columns from the quast transposed report
     """
     trans_filepath = Path(f"{quast}")
-    # print(trans_filepath)
     trans_report_df = pd.read_csv(
         trans_filepath,
         sep="\t",
@@ -128,7 +119,6 @@ def get_transposed_report(quast: str) -> pd.DataFrame:
     )
     trans_report_df.rename(columns={"Assembly": "sample"}, inplace=True)
     trans_report_df["sample"] = trans_report_df["sample"].astype(str)
-    print(trans_report_df.dtypes)
 
     return trans_report_df
 
@@ -139,7 +129,6 @@ def get_checkm_report(checkm: str) -> pd.DataFrame:
     """
 
     checkm_filepath = Path(f"{checkm}")
-    # print(checkm_filepath)
     checkm_report_df = pd.read_csv(
         checkm_filepath,
         sep="\t",
@@ -148,8 +137,6 @@ def get_checkm_report(checkm: str) -> pd.DataFrame:
     )
     checkm_report_df["sample"] = checkm_report_df["sample"].str[:-1]
     checkm_report_df["sample"] = checkm_report_df["sample"].astype(str)
-
-    print(checkm_report_df.dtypes)
 
     return checkm_report_df
 
@@ -160,13 +147,11 @@ def get_bbtools_report(bbtools: str) -> pd.DataFrame:
     """
 
     bbtools_filepath = Path(f"{bbtools}")
-    # print(bbtools_filepath)
     bbtools_report_df = pd.read_csv(
         bbtools_filepath, sep="\t", usecols=["Sample", "Reads", "Average coverage"]
     )
     bbtools_report_df.rename(columns={"Sample": "sample"}, inplace=True)
     bbtools_report_df["sample"] = bbtools_report_df["sample"].astype(str)
-    print(bbtools_report_df.dtypes)
 
     return bbtools_report_df
 
@@ -312,19 +297,11 @@ def get_excel_report(dataframe: pd.DataFrame) -> None:
             newdf.to_excel(writer, sheet_name=genus, index=False)
 
 
-def main(species, phred, seq_len, quast, bbtools, checkm):
+def main(
+    species: str, phred: str, seq_len: str, quast: str, bbtools: str, checkm: str
+) -> None:
     df_report = compile_report(species, phred, seq_len, quast, bbtools, checkm)
-    print("at least compiling worked")
     return get_excel_report(df_report)
 
 
-# def main(species, seq_len, quast, bbtools, checkm):
-#     df_report = compile_report(species, seq_len, quast, bbtools, checkm)
-#     print("at least compiling worked")
-#     return get_excel_report(df_report)
-
-print("running main")
-main(
-    *sys.argv[1:-1]
-)  # snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)
-# (sys.argv[1:-1])
+main(snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)  # type: ignore
