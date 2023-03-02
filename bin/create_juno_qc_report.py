@@ -9,16 +9,8 @@ import sys
 sys.stdout = sys.stderr = open(snakemake.log[0], "w")  # type: ignore
 
 import pandas as pd
-from pathlib import Path
 from functools import reduce
-import openpyxl
 import json
-
-# input and output directories
-input_dir = "/data/BioGrid/singhsp/Juno_assembly"  # path given as -i in pipeline
-output_dir = (
-    "/data/BioGrid/singhsp/Juno_assembly/output"  # path given as -o in pipeline
-)
 
 
 def get_genus(species_csv: str) -> pd.DataFrame:
@@ -54,7 +46,7 @@ def get_phred_score(phred_json: str) -> pd.DataFrame:
     parsed2_df = parsed_df.drop("level_1", axis=1)
     parsed2_df.rename(columns={0: "phred", 1: "Sequences"}, inplace=True)
     # Remove reads containing _pR
-    parsed3_df = parsed2_df[parsed2_df["name"].str.contains("_pR") == False]
+    parsed3_df = parsed2_df[~parsed2_df["name"].str.contains("_pR")]
 
     # get phred score by taking the score associated with the highest number of sequences per read
     parsed4_df = parsed3_df.groupby("name")["Sequences"].max().reset_index()
@@ -77,7 +69,7 @@ def get_sequence_len(seq_len_tsv: str) -> pd.DataFrame:
     df = pd.read_csv(seq_len_tsv, sep="\t", usecols=["Sample", "avg_sequence_length"])
     df.rename(columns={"Sample": "sample"}, inplace=True)
     # remove reads containing _pR
-    df = df[df["sample"].str.contains("_pR") == False]
+    df = df[~df["sample"].str.contains("_pR")]
 
     # sample name to match metadata
     df["sample"] = df["sample"].apply(lambda x: x.split("_")[0])  # type: ignore
@@ -255,15 +247,15 @@ def compile_report(
     return final_df
 
 
-def write_excel_report(dataframe: pd.DataFrame, outfile: str) -> None:
+def write_excel_report(df: pd.DataFrame, outfile: str) -> None:
     """
     Creates an excel format report with conditional formatting
     """
     with pd.ExcelWriter(outfile, engine="openpyxl") as writer:
-        for genus in dataframe["genus"].unique():
-            newdf = dataframe[dataframe["genus"] == genus]
-            # newdf = highlight_dataframe(newdf)
-            newdf.to_excel(writer, sheet_name=genus, index=False)
+        for genus, genus_df in df.groupby("genus"):
+            genus_df["genus"] = str(genus)
+            # genus_df = highlight_dataframe(genus_df)
+            genus_df.to_excel(writer, sheet_name=str(genus), index=False)
 
 
 report_df = compile_report(
