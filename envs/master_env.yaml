@@ -4,7 +4,6 @@ channels:
   - bioconda
   - biocore
   - conda-forge
-  - defaults
 dependencies:
   - git
   - mamba>0.19
