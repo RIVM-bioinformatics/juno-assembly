@@ -1,5 +1,4 @@
 # Testing for pipeline python wrapper and scripts used inside rules
-# Based on: https://github.com/marketplace/actions/setup-miniconda#example-1-basic-usage
 
 name: Juno_assembly test
 
