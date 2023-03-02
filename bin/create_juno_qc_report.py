@@ -67,7 +67,7 @@ def get_sequence_len(seq_len_tsv: str) -> pd.DataFrame:
     Get the average sequence length from multiqc_fastqc.txt
     """
     df = pd.read_csv(seq_len_tsv, sep="\t", usecols=["Sample", "avg_sequence_length"])
-    df.rename(columns={"Sample": "sample"}, inplace=True)
+    df.rename(columns={"Sample": "sample", "avg_sequence_length": "avg_sequence_length (bp)"}, inplace=True)
     # remove reads containing _pR
     df = df[~df["sample"].str.contains("_pR")]
 
@@ -75,8 +75,8 @@ def get_sequence_len(seq_len_tsv: str) -> pd.DataFrame:
     df["sample"] = df["sample"].apply(lambda x: x.split("_")[0])  # type: ignore
 
     # average sequence length of R1 and R2
-    df = df.groupby("sample")["avg_sequence_length"].mean().reset_index()
-    df["avg_sequence_length"] = df["avg_sequence_length"].round(decimals=0)
+    df = df.groupby("sample")["avg_sequence_length (bp)"].mean().reset_index()
+    df["avg_sequence_length (bp)"] = df["avg_sequence_length (bp)"].round(decimals=0)
     df["sample"] = df["sample"].astype(str)
 
     return df
@@ -91,7 +91,7 @@ def get_transposed_report(quast_tsv: str) -> pd.DataFrame:
         sep="\t",
         usecols=["Assembly", "Total length", "# contigs", "N50", "GC (%)"],
     )
-    df.rename(columns={"Assembly": "sample"}, inplace=True)
+    df.rename(columns={"Assembly": "sample", "Total length": "Total length (Mbp)"}, inplace=True)
     df["sample"] = df["sample"].astype(str)
 
     return df
@@ -109,7 +109,7 @@ def get_checkm_report(checkm_tsv: str) -> pd.DataFrame:
     )
     df["sample"] = df["sample"].str[:-1]
     df["sample"] = df["sample"].astype(str)
-
+    df.rename(columns={"completeness": "completeness (%)", "contamination": "contamination (%)"}, inplace=True)
     return df
 
 
@@ -156,7 +156,7 @@ def compile_report(
     )
 
     # Convert base pairs to mega base pairs
-    final_df["Total length"] = final_df["Total length"] / 1_000_000
+    final_df["Total length (Mbp)"] = final_df["Total length (Mbp)"] / 1_000_000
 
     return final_df
 
