@@ -1,5 +1,4 @@
 # Testing for pipeline python wrapper and scripts used inside rules
-# Based on: https://github.com/marketplace/actions/setup-miniconda#example-1-basic-usage
 
 name: Juno_assembly test
 
@@ -18,20 +17,18 @@ jobs:
     name: Testing Juno_assembly ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.7
-      - name: Conda setup
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          mamba-version: "*"
-          activate-environment: juno_assembly
-          channel-priority: true
+          cache-downloads: true
           environment-file: envs/juno_assembly.yaml
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Unit tests
+      - name: Test the python wrapper using juno_assembly.
         shell: bash -l {0}
         run: python ./tests/test_juno_assembly.py
