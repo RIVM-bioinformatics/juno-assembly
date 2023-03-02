@@ -148,7 +148,6 @@ def compile_report(
 
     # make list of dataframes
     dfs = [df_meta, df_phred, df_seq_length, df_quast, df_bbtools, df_checkm]
-    # dfs = [df_meta, df_seq_length, df_quast, df_bbtools, df_checkm]
 
     # join dataframes
     final_df = reduce(
