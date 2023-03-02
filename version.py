@@ -1,0 +1,6 @@
+__package_name__ = "juno_assembly"
+__authors__ = "Alejandra Hernández Segura and Karim Hajji"
+__email__ = "karim.hajji@rivm.nl"
+__license__ = "AGPLv3"
+__version__ = "2.0.8"
+__description__ = "juno_library contains basic classes to make a bacteriology genomics pipeline with the format used in the IDS-bioinformatics department (RIVM)"

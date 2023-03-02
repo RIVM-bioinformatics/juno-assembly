@@ -16,6 +16,8 @@ import pathlib
 import sys
 import yaml
 
+from version import __package_name__, __version__, __description__
+
 class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
                         base_juno_pipeline.RunSnakemake):
     """Class with the arguments and specifications that are only for the 
@@ -62,8 +64,8 @@ class JunoAssemblyRun(base_juno_pipeline.PipelineStartup,
             input_type='fastq',
             min_num_lines=1000) # TODO: Find ideal min num of reads/lines needed
         base_juno_pipeline.RunSnakemake.__init__(self,
-            pipeline_name='Juno_assembly',
-            pipeline_version='v2.0.2',
+            pipeline_name=__package_name__,
+            pipeline_version=__version__,
             output_dir=output_dir,
             workdir=workdir,
             cores=cores,
