@@ -5,6 +5,9 @@ create a csv or excel file output
 
 import sys
 
+# Redirect all printing and exceptions to the snakemake log of this rule
+sys.stdout = sys.stderr = open(snakemake.log[0], "w")  # type: ignore
+
 import pandas as pd
 from pathlib import Path
 from functools import reduce
@@ -18,21 +21,20 @@ output_dir = (
 )
 
 
-def get_metadata(species: str) -> pd.DataFrame:
+def get_genus(species_csv: str) -> pd.DataFrame:
     """
     Get the metadata file and create a pandas dataframe
     """
-    filepath = Path(f"{species}")
-    df = pd.read_csv(filepath, usecols=["sample", "genus"])
+    df = pd.read_csv(species_csv, usecols=["sample", "genus"])
     df["sample"] = df["sample"].astype(str)
     return df
 
 
-def get_phred_score(phred: str) -> pd.DataFrame:
+def get_phred_score(phred_json: str) -> pd.DataFrame:
     """
     Parses multiqc_data json file to get phred quality scores for each sample into a pandas dataframe
     """
-    with open(f"{phred}") as f:
+    with open(phred_json) as f:
         phred_data = json.load(f)
 
     phred = phred_data["report_plot_data"]["fastqc_per_sequence_quality_scores_plot"][
@@ -51,105 +53,85 @@ def get_phred_score(phred: str) -> pd.DataFrame:
 
     parsed2_df = parsed_df.drop("level_1", axis=1)
     parsed2_df.rename(columns={0: "phred", 1: "Sequences"}, inplace=True)
-    parsed3_df = parsed2_df[
-        parsed2_df["name"].str.contains("_pR") == False
-    ]  # Remove reads containing _pR
+    # Remove reads containing _pR
+    parsed3_df = parsed2_df[parsed2_df["name"].str.contains("_pR") == False]
 
-    parsed4_df = (
-        parsed3_df.groupby("name")["Sequences"].max().reset_index()
-    )  # get phred score by taking the score associated with the highest number of sequences per read
+    # get phred score by taking the score associated with the highest number of sequences per read
+    parsed4_df = parsed3_df.groupby("name")["Sequences"].max().reset_index()
     parsed5_df = parsed3_df.merge(parsed4_df)
-    parsed5_df["name"] = parsed5_df["name"].apply(
-        lambda x: x.split("_")[0]
-    )  # name to match metadata
+    parsed5_df["name"] = parsed5_df["name"].astype(str).apply(lambda x: x.split("_")[0])  # type: ignore
 
-    parsed6_df = (
-        parsed5_df.groupby("name")["phred"].mean().reset_index()
-    )  # mean phred score of R1 and R2
-    parsed6_df.rename(
-        columns={"name": "sample"}, inplace=True
-    )  # rename name to sample to match rest of outputs
+    # set mean phred score of R1 and R2
+    parsed6_df = parsed5_df.groupby("name")["phred"].mean().reset_index()
+    # rename name to sample to match rest of outputs
+    parsed6_df.rename(columns={"name": "sample"}, inplace=True)
     parsed6_df["sample"] = parsed6_df["sample"].astype(str)
 
     return parsed6_df
 
 
-def get_sequence_len(seq_len: str) -> pd.DataFrame:
+def get_sequence_len(seq_len_tsv: str) -> pd.DataFrame:
     """
     Get the average sequence length from multiqc_fastqc.txt
     """
+    df = pd.read_csv(seq_len_tsv, sep="\t", usecols=["Sample", "avg_sequence_length"])
+    df.rename(columns={"Sample": "sample"}, inplace=True)
+    # remove reads containing _pR
+    df = df[df["sample"].str.contains("_pR") == False]
 
-    seq_len_filepath = Path(f"{seq_len}")
-    seq_len_df = pd.read_csv(
-        seq_len_filepath, sep="\t", usecols=["Sample", "avg_sequence_length"]
-    )
-    seq_len_df.rename(columns={"Sample": "sample"}, inplace=True)
-    seq_len_df = seq_len_df[
-        seq_len_df["sample"].str.contains("_pR") == False
-    ]  # remove reads containing _pR
+    # sample name to match metadata
+    df["sample"] = df["sample"].apply(lambda x: x.split("_")[0])  # type: ignore
 
-    seq_len_df["sample"] = seq_len_df["sample"].apply(
-        lambda x: x.split("_")[0]
-    )  # sample name to match metadata
+    # average sequence length of R1 and R2
+    df = df.groupby("sample")["avg_sequence_length"].mean().reset_index()
+    df["avg_sequence_length"] = df["avg_sequence_length"].round(decimals=0)
+    df["sample"] = df["sample"].astype(str)
 
-    seq_len_df = (
-        seq_len_df.groupby("sample")["avg_sequence_length"].mean().reset_index()
-    )  # average sequence length of R1 and R2
-    seq_len_df["avg_sequence_length"] = seq_len_df["avg_sequence_length"].round(
-        decimals=0
-    )
-    seq_len_df["sample"] = seq_len_df["sample"].astype(str)
-
-    return seq_len_df
+    return df
 
 
-def get_transposed_report(quast: str) -> pd.DataFrame:
+def get_transposed_report(quast_tsv: str) -> pd.DataFrame:
     """
     Creates a dataframe with necessary columns from the quast transposed report
     """
-    trans_filepath = Path(f"{quast}")
-    trans_report_df = pd.read_csv(
-        trans_filepath,
+    df = pd.read_csv(
+        quast_tsv,
         sep="\t",
         usecols=["Assembly", "Total length", "# contigs", "N50", "GC (%)"],
     )
-    trans_report_df.rename(columns={"Assembly": "sample"}, inplace=True)
-    trans_report_df["sample"] = trans_report_df["sample"].astype(str)
+    df.rename(columns={"Assembly": "sample"}, inplace=True)
+    df["sample"] = df["sample"].astype(str)
 
-    return trans_report_df
+    return df
 
 
-def get_checkm_report(checkm: str) -> pd.DataFrame:
+def get_checkm_report(checkm_tsv: str) -> pd.DataFrame:
     """
     Creates a dataframe with necessary parameters from the checkm report
     """
-
-    checkm_filepath = Path(checkm)
-    checkm_report_df = pd.read_csv(
-        checkm_filepath,
+    df = pd.read_csv(
+        checkm_tsv,
         sep="\t",
         index_col=False,
         usecols=["sample", "completeness", "contamination"],
     )
-    checkm_report_df["sample"] = checkm_report_df["sample"].str[:-1]
-    checkm_report_df["sample"] = checkm_report_df["sample"].astype(str)
+    df["sample"] = df["sample"].str[:-1]
+    df["sample"] = df["sample"].astype(str)
 
-    return checkm_report_df
+    return df
 
 
-def get_bbtools_report(bbtools: str) -> pd.DataFrame:
+def get_bbtools_report(bbtools_tsv: str) -> pd.DataFrame:
     """
     Creates a dataframe with necessary parameters from the bbtools report
     """
-
-    bbtools_filepath = Path(f"{bbtools}")
-    bbtools_report_df = pd.read_csv(
-        bbtools_filepath, sep="\t", usecols=["Sample", "Reads", "Average coverage"]
+    df = pd.read_csv(
+        bbtools_tsv, sep="\t", usecols=["Sample", "Reads", "Average coverage"]
     )
-    bbtools_report_df.rename(columns={"Sample": "sample"}, inplace=True)
-    bbtools_report_df["sample"] = bbtools_report_df["sample"].astype(str)
+    df.rename(columns={"Sample": "sample"}, inplace=True)
+    df["sample"] = df["sample"].astype(str)
 
-    return bbtools_report_df
+    return df
 
 
 def exceed_max(threshold: int, actual: int) -> str:
@@ -237,26 +219,25 @@ def get_range(min: int, max: int, actual: int) -> str:
 #     return styler
 
 
-def bp_mbp(dataframe: pd.DataFrame, col: str) -> pd.DataFrame:
-    """
-    Convert base pairs to mega base pairs
-    """
-    dataframe[col] = dataframe[col] / 1000000
-    return dataframe
-
-
-def compile_report(species, phred, seq_len, quast, bbtools, checkm) -> pd.DataFrame:
+def compile_report(
+    species_csv: str,
+    phred_json: str,
+    seq_len_tsv: str,
+    quast_tsv: str,
+    bbtools_tsv: str,
+    checkm_tsv: str,
+) -> pd.DataFrame:
     """
     Creates dataframe of required QC parameters from metadata, multiqc, quast, checkm and bbtools reports
     """
 
     # gather dataframes
-    df_meta = get_metadata(species)
-    df_phred = get_phred_score(phred)
-    df_seq_length = get_sequence_len(seq_len)
-    df_quast = get_transposed_report(quast)
-    df_bbtools = get_bbtools_report(bbtools)
-    df_checkm = get_checkm_report(checkm)
+    df_meta = get_genus(species_csv)
+    df_phred = get_phred_score(phred_json)
+    df_seq_length = get_sequence_len(seq_len_tsv)
+    df_quast = get_transposed_report(quast_tsv)
+    df_bbtools = get_bbtools_report(bbtools_tsv)
+    df_checkm = get_checkm_report(checkm_tsv)
 
     # make list of dataframes
     dfs = [df_meta, df_phred, df_seq_length, df_quast, df_bbtools, df_checkm]
@@ -267,31 +248,30 @@ def compile_report(species, phred, seq_len, quast, bbtools, checkm) -> pd.DataFr
         lambda left, right: pd.merge(left, right, on=["sample"], how="outer"), dfs
     )
 
-    # apply function to convert base pairs to mega base pairs
-    final_df = bp_mbp(final_df, "Total length")
+    # Convert base pairs to mega base pairs
+    final_df["Total length"] = final_df["Total length"] / 1_000_000
     # final_df2 = highlight_dataframe(final_df)
 
     return final_df
 
 
-def get_csv_report(dataframe: pd.DataFrame) -> None:
-    """
-    Create csv format report from dataframe
-    """
-
-    dataframe.to_csv("juno_out.csv", index=False)
-
-
-def get_excel_report(dataframe: pd.DataFrame) -> None:
+def write_excel_report(dataframe: pd.DataFrame, outfile: str) -> None:
     """
     Creates an excel format report with conditional formatting
     """
-    with pd.ExcelWriter(sys.argv[-1], engine="openpyxl") as writer:
+    with pd.ExcelWriter(outfile, engine="openpyxl") as writer:
         for genus in dataframe["genus"].unique():
             newdf = dataframe[dataframe["genus"] == genus]
             # newdf = highlight_dataframe(newdf)
             newdf.to_excel(writer, sheet_name=genus, index=False)
 
 
-report_df = compile_report(snakemake.input.species, snakemake.input.phred, snakemake.input.seq_len, snakemake.input.quast, snakemake.input.bbtools, snakemake.input.checkm)  # type: ignore
-get_excel_report(report_df)
+report_df = compile_report(
+    snakemake.input.species,  # type: ignore
+    snakemake.input.phred,  # type: ignore
+    snakemake.input.seq_len,  # type: ignore
+    snakemake.input.quast,  # type: ignore
+    snakemake.input.bbtools,  # type: ignore
+    snakemake.input.checkm,  # type: ignore
+)
+write_excel_report(report_df, snakemake.output[0])  # type: ignore

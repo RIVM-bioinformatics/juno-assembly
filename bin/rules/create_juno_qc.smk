@@ -21,5 +21,5 @@ rule create_juno_QC_report:
         mem_gb=config["mem_gb"]["parsing"],
     log:
         OUT + "/log/create_juno_QC_report.log",
-    shell:
-        "python bin/create_juno_qc_report.py {input} {output} > {log} 2>&1"
+    script:
+        "../create_juno_qc_report.py"
