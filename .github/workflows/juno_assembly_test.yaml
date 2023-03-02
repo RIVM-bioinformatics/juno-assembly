@@ -22,12 +22,11 @@ jobs:
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.7
-      - name: Setting up conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          mamba-version: "0.27"
-          environment-file: envs/master_env.yaml 
-          activate-environment: juno_assembly
+          cache-downloads: true
+          environment-file: envs/master_env.yaml
       - name: Conda list
         shell: bash -l {0}
         run: conda list
