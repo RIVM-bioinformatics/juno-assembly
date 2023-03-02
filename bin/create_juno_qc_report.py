@@ -126,91 +126,6 @@ def get_bbtools_report(bbtools_tsv: str) -> pd.DataFrame:
     return df
 
 
-def exceed_max(threshold: int, actual: int) -> str:
-    """
-    Highlight cell if actual value exceeds the threshold value
-    """
-    if actual > threshold:
-        return "color:black; background-color:palegreen"
-    return ""
-
-
-def too_low(threshold: int, actual: int) -> str:
-    """
-    Highlight cell if actual value is less than the threshold
-    """
-
-    if actual < threshold:
-        return "color:black; background-color:palegreen"
-    return ""
-
-
-def get_range(min: int, max: int, actual: int) -> str:
-    """
-    Highlight cell if value falls outside of a range
-    """
-
-    if actual < min or actual > max:
-        return "color:black; background-color:palegreen"
-    return ""
-
-
-# def bacteria_colour(row: pd.Series) -> list(str):
-
-#     """
-#     Tolerance values for each parameter and bacterial species
-#     """
-
-#     genus = str(row['genus']).lower().strip()
-#     # print(genus)
-#     if genus == 'salmonella':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']),
-#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     elif genus == 'escherichia':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']),
-#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     elif genus == 'streptococcus':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']),
-#         get_range(4.4, 5.8, row['Total length']), get_range(51.6, 52.3, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     elif genus == 'shigella':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(762, row['# contigs']),
-#         get_range(4.21, 5.03, row['Total length']), get_range(50.3, 51, row['GC (%)']), too_low(17500, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-
-#     elif genus == 'listeria':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(300, row['# contigs']),
-#         get_range(2.7, 3.23, row['Total length']), get_range(37.6, 38.2, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     elif genus == 'campylobacter':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(100, row['# contigs']),
-#         get_range(1.5, 1.9, row['Total length']), get_range(29.5, 31.5, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     elif genus == 'yersinia':
-#         return ["", "", too_low(30, row['phred']), too_low(150, row['avg_sequence_length']), exceed_max(250, row['# contigs']),
-#         get_range(3.9, 5.2, row['Total length']), get_range(46.2, 48.8, row['GC (%)']), too_low(30000, row['N50']),
-#         "", too_low(30, row['Average coverage']), too_low(96, row['completeness']), exceed_max(4, row['contamination'])]
-
-#     return ["", "", "", "", "", "", "", "", "", "", "", ""]
-
-
-# def highlight_dataframe(dataframe: pd.DataFrame):
-#     """
-#     Apply conditional formatting to dataframe
-#     """
-#     styler = dataframe.style.apply(bacteria_colour, axis=1)
-
-#     return styler
-
-
 def compile_report(
     species_csv: str,
     phred_json: str,
@@ -242,7 +157,6 @@ def compile_report(
 
     # Convert base pairs to mega base pairs
     final_df["Total length"] = final_df["Total length"] / 1_000_000
-    # final_df2 = highlight_dataframe(final_df)
 
     return final_df
 
@@ -254,7 +168,6 @@ def write_excel_report(df: pd.DataFrame, outfile: str) -> None:
     with pd.ExcelWriter(outfile, engine="openpyxl") as writer:
         for genus, genus_df in df.groupby("genus"):
             genus_df["genus"] = str(genus)
-            # genus_df = highlight_dataframe(genus_df)
             genus_df.to_excel(writer, sheet_name=str(genus), index=False)
 
 
