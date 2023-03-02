@@ -1,10 +1,9 @@
 name: juno_assembly
 channels:
-  - anaconda
-  - bioconda
-  - biocore
   - conda-forge
-  - defaults
+  - bioconda
+  - anaconda
+  - biocore
 dependencies:
   - git
   - mamba>0.19
