@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.0...v2.1.1) (2023-03-02)
+
+
+### Dependencies
+
+* Remove defaults channel ([b54fc55](https://github.com/RIVM-bioinformatics/juno-assembly/commit/b54fc555730825adac2040f2f83c3eeba110c5e7))
+
 ## [2.1.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.0.8...v2.1.0) (2023-03-02)
 
 
