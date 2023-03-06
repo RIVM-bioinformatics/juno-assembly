@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.0...v2.1.1) (2023-03-06)
+
+
+### Bug Fixes
+
+* Fix singularity prefix to be str in stead of Path ([3949e4d](https://github.com/RIVM-bioinformatics/juno-assembly/commit/3949e4d28a9a8d5a8f6c1130c0b750f24a4cae52))
+* Unset prefix if not using containers ([9907dd4](https://github.com/RIVM-bioinformatics/juno-assembly/commit/9907dd460e377b39911ed4b89061ba1eea67634e))
+
+
+### Dependencies
+
+* Remove defaults channel ([b54fc55](https://github.com/RIVM-bioinformatics/juno-assembly/commit/b54fc555730825adac2040f2f83c3eeba110c5e7))
+
 ## [2.1.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.0.8...v2.1.0) (2023-03-02)
 
 
