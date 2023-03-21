@@ -67,7 +67,10 @@ def get_sequence_len(seq_len_tsv: str) -> pd.DataFrame:
     Get the average sequence length from multiqc_fastqc.txt
     """
     df = pd.read_csv(seq_len_tsv, sep="\t", usecols=["Sample", "avg_sequence_length"])
-    df.rename(columns={"Sample": "sample", "avg_sequence_length": "avg_sequence_length (bp)"}, inplace=True)
+    df.rename(
+        columns={"Sample": "sample", "avg_sequence_length": "avg_sequence_length (bp)"},
+        inplace=True,
+    )
     # remove reads containing _pR
     df = df[~df["sample"].str.contains("_pR")]
 
@@ -91,7 +94,10 @@ def get_transposed_report(quast_tsv: str) -> pd.DataFrame:
         sep="\t",
         usecols=["Assembly", "Total length", "# contigs", "N50", "GC (%)"],
     )
-    df.rename(columns={"Assembly": "sample", "Total length": "Total length (Mbp)"}, inplace=True)
+    df.rename(
+        columns={"Assembly": "sample", "Total length": "Total length (Mbp)"},
+        inplace=True,
+    )
     df["sample"] = df["sample"].astype(str)
 
     return df
@@ -109,7 +115,13 @@ def get_checkm_report(checkm_tsv: str) -> pd.DataFrame:
     )
     df["sample"] = df["sample"].str[:-1]
     df["sample"] = df["sample"].astype(str)
-    df.rename(columns={"completeness": "completeness (%)", "contamination": "contamination (%)"}, inplace=True)
+    df.rename(
+        columns={
+            "completeness": "completeness (%)",
+            "contamination": "contamination (%)",
+        },
+        inplace=True,
+    )
     return df
 
 

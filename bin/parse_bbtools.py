@@ -2,7 +2,6 @@ import pandas
 
 
 def parse_bbtools_perScaffold(input_bbtools, output_bbtools):
-
     # create an empty dataframe with the right headers
     bbtools_headers_file = open(input_bbtools[0], "r")
     bbtools_headers = bbtools_headers_file.readline().strip().split("\t")

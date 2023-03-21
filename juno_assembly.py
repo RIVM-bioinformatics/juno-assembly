@@ -164,7 +164,12 @@ class JunoAssembly(Pipeline):
     def setup(self) -> None:
         super().setup()
         if self.snakemake_args["use_singularity"]:
-            self.snakemake_args["singularity_args"] = " ".join([self.snakemake_args["singularity_args"], f"--bind {self.db_dir}:{self.db_dir}"])
+            self.snakemake_args["singularity_args"] = " ".join(
+                [
+                    self.snakemake_args["singularity_args"],
+                    f"--bind {self.db_dir}:{self.db_dir}",
+                ]
+            )
 
         self.update_sample_dict_with_metadata()
         with open(
