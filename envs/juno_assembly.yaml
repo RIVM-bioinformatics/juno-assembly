@@ -14,5 +14,6 @@ dependencies:
   - numpy=1.23.*
   - git=2.38.*
   - pip=22.3.*
+  - openpyxl=3.1.*
   - pip:
-    - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@juno_assembly_compatibility#egg=juno_library"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@juno_assembly_compatibility#egg=juno_library" #TODO: set to new juno_library version

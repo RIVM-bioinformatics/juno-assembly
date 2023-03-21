@@ -13,7 +13,7 @@ rule clean_fastq:
         "../../envs/qc_and_clean.yaml"
     container:
         "docker://biocontainers/fastp:v0.20.1_cv1"
-    threads: config["threads"]["trimmomatic"]
+    threads: int(config["threads"]["trimmomatic"])
     resources:
         mem_gb=config["mem_gb"]["trimmomatic"],
     log:

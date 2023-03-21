@@ -30,6 +30,10 @@ with open(sample_sheet) as sample_sheet_file:
 OUT = config["out"]
 IN = config["input_dir"]
 
+for param in ["threads", "mem_gb"]:
+    for k in config[param]:
+        config[param][k] = int(config[param][k])
+
 # @################################################################################
 # @#### 				Processes                                    #####
 # @################################################################################

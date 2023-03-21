@@ -411,7 +411,7 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         )
         self.assertTrue(output_dir.joinpath("audit_trail", "log_conda.txt").exists())
         self.assertTrue(
-            output_dir.joinpath("audit_trail", "juno_assembly_report.html").exists()
+            output_dir.joinpath("audit_trail", "snakemake_report.html").exists()
         )
         self.assertTrue(
             output_dir.joinpath("audit_trail", "sample_sheet.yaml").exists()
@@ -433,7 +433,6 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
                 input_dir,
                 "-o",
                 str(output_dir),
-                "-m",
             ]
         )
         pipeline.run()
@@ -478,7 +477,7 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         )
         self.assertTrue(output_dir.joinpath("audit_trail", "log_conda.txt").exists())
         self.assertTrue(
-            output_dir.joinpath("audit_trail", "juno_assembly_report.html").exists()
+            output_dir.joinpath("audit_trail", "snakemake_report.html").exists()
         )
         self.assertTrue(
             output_dir.joinpath("audit_trail", "sample_sheet.yaml").exists()
@@ -500,7 +499,6 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
                 input_dir,
                 "-o",
                 str(output_dir),
-                "-m",
                 "--prefix",
                 "sing_containers",
             ]
@@ -547,7 +545,7 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
         )
         self.assertTrue(output_dir.joinpath("audit_trail", "log_conda.txt").exists())
         self.assertTrue(
-            output_dir.joinpath("audit_trail", "juno_assembly_report.html").exists()
+            output_dir.joinpath("audit_trail", "snakemake_report.html").exists()
         )
         self.assertTrue(
             output_dir.joinpath("audit_trail", "sample_sheet.yaml").exists()
@@ -569,7 +567,6 @@ class TestJunoAssemblyPipeline(unittest.TestCase):
                 input_dir,
                 "-o",
                 str(output_dir),
-                "-m",
                 "--prefix",
                 "sing_containers",
                 "--kmer-size",
