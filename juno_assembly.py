@@ -115,6 +115,14 @@ class JunoAssembly(Pipeline):
             help="Kmersizes to be used for the de novo assembly.",
         )
         self.add_argument(
+            "-cc",
+            "--cov-cutoff",
+            type=str,
+            metavar="STR/INT",
+            default="auto",
+            help="SPAdes k-mer coverage cut-off to use. Can be auto, off, or a specified integer",
+        )
+        self.add_argument(
             "-cl",
             "--contig-length-threshold",
             type=str,
@@ -134,6 +142,7 @@ class JunoAssembly(Pipeline):
         self.window_size = args.window_size
         self.min_read_length = args.min_read_length
         self.kmer_size = args.kmer_size
+        self.cov_cutoff = args.cov_cutoff
         self.contig_length_threshold = args.contig_length_threshold
 
         return args
@@ -187,6 +196,7 @@ class JunoAssembly(Pipeline):
             "window_size": self.window_size,
             "min_read_length": self.min_read_length,
             "kmer_size": self.kmer_size,
+            "cov_cutoff": self.cov_cutoff,
             "contig_length_threshold": self.contig_length_threshold,
             "run_in_container": self.snakemake_args["use_singularity"],
             "db_dir": str(self.db_dir),

@@ -46,6 +46,7 @@ rule de_novo_assembly:
     params:
         output_dir=OUT + "/de_novo_assembly/{sample}",
         kmersizes=config["kmer_size"],
+        cov_cutoff=config["cov_cutoff"]
     log:
         OUT + "/log/de_novo_assembly/{sample}_de_novo_assembly.log",
     shell:
@@ -60,6 +61,7 @@ rule de_novo_assembly:
                 -s {input.fastq_unpaired} \
                 -o {params.output_dir} \
                 -k {params.kmersizes} \
+                --cov-cutoff {params.cov_cutoff} \
                 -m {resources.mem_gb} \
                 -t {threads} >> {log}
         else
@@ -69,6 +71,7 @@ rule de_novo_assembly:
                 -2 {input.r2} \
                 -o {params.output_dir} \
                 -k {params.kmersizes} \
+                --cov-cutoff {params.cov_cutoff} \
                 -m {resources.mem_gb} \
                 -t {threads} >> {log}
         fi
