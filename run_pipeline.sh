@@ -57,31 +57,31 @@ source activate "${MASTER_NAME}"
 
 case $PROJECT_NAME in
   adhoc|rogas|svgasuit|bsr_rvp)
-    GENUS_ALL="NotProvided"
+    GENUS_COMMAND=""
     ;;
   dsshig|svshig)
-    GENUS_ALL="Shigella"
+    GENUS_COMMAND="--genus Shigella"
     ;;
   salm|svsalent|svsaltyp|vdl_salm)
-    GENUS_ALL="Salmonella"
+    GENUS_COMMAND="--genus Salmonella"
     ;;
   svlismon|vdl_list)
-    GENUS_ALL="Listeria"
+    GENUS_COMMAND="--genus Listeria"
     ;;
   svstec|vdl_ecoli|vdl_stec)
-    GENUS_ALL="Escherichia"
+    GENUS_COMMAND="--genus Escherichia"
     ;;
   campy|vdl_campy)
-    GENUS_ALL="Campylobacter"
+    GENUS_COMMAND="--genus Campylobacter"
+    ;;
+  refsamp)
+    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
+    GENUS_COMMAND="--metadata $GENUS_FILE"
     ;;
   *)
-    GENUS_ALL="NotProvided"
+    GENUS_COMMAND=""
     ;;
 esac
-if [ GENUS_ALL == NotProvided ]; then
-  GENUS_COMMAND=""
-else
-  GENUS_COMMAND="--genus $GENUS_ALL"
 
 echo -e "\nRun pipeline..."
 
@@ -98,33 +98,15 @@ set -x
 # Containers will use it for storing tmp files when building a container
 export SINGULARITY_TMPDIR="$(pwd)"
 
-if [ "${irods_input_projectID}" == "refsamp" ]; then
-  
-  GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-  
-  python juno_assembly.py \
-    --queue $QUEUE \
-    -i $input_dir \
-    -o $output_dir \
-    $EXCLUSION_FILE_COMMAND \
-    --metadata $GENUS_FILE \
-    --prefix /mnt/db/juno/sing_containers
-  
-  result=$?
+python juno_assembly.py \
+  --queue $QUEUE \
+  -i $input_dir \
+  -o $output_dir \
+  $EXCLUSION_FILE_COMMAND \
+  $GENUS_COMMAND \
+  --prefix /mnt/db/juno/sing_containers
 
-else
-
-    python juno_assembly.py 
-      --queue $QUEUE \
-      -i $input_dir \
-      -o $output_dir \
-      $EXCLUSION_FILE_COMMAND \
-      $GENUS_COMMAND \
-      --prefix /mnt/db/juno/sing_containers
-    
-    result=$?
-
-fi 
+result=$?
 
 # Propagate metadata
 

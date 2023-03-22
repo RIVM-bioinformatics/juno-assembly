@@ -6,4 +6,4 @@ cd "$workdir"
 
 # Delete previous installations
 rm -rf envs/src/
-mamba env create -f envs/juno_assembly.yaml
+mamba env update -f envs/juno_assembly.yaml
