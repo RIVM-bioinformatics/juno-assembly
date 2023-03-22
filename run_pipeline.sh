@@ -9,7 +9,6 @@ set -euo pipefail
 input_dir="${1%/}"
 output_dir="${2%/}"
 PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
-EXCLUSION_FILE=""
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 cd ${DIR}
@@ -20,7 +19,6 @@ then
   INPUTDIR="${1}"
   OUTPUTDIR="${2}"
   PROJECT_NAME="${irods_input_projectID}"
-  EXCLUSION_FILE=""
 else
   echo "No inputdir, outputdir or project name (param 1, 2, irods_input_projectID or irods_input_sequencing__run_id)"
   exit 1
@@ -29,7 +27,9 @@ fi
 #check if there is an exclusion file, if so change the parameter
 if [ ! -z "${irods_input_sequencing__run_id}" ] && [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude" ]
 then
-  EXCLUSION_FILE="/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
+  EXCLUSION_FILE_COMMAND="-ex /data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
+else
+  EXCLUSION_FILE_COMMAND=""
 fi
 
 if [ ! -d "${INPUTDIR}" ] || [ ! -d "${OUTPUTDIR}" ]
@@ -40,9 +40,7 @@ fi
 
 #----------------------------------------------#
 # Create/update necessary environments
-PATH_MAMBA_YAML="envs/mamba.yaml"
 PATH_MASTER_YAML="envs/juno_assembly.yaml"
-MAMBA_NAME=$(head -n 1 ${PATH_MAMBA_YAML} | cut -f2 -d ' ')
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')
 
 echo -e "\nUpdating necessary environments to run the pipeline..."
@@ -52,7 +50,6 @@ echo -e "\nUpdating necessary environments to run the pipeline..."
 # are set or not
 set +euo pipefail 
 bash install_juno_assembly.sh
-source activate "${MAMBA_NAME}"
 source activate "${MASTER_NAME}"
 
 #----------------------------------------------#
@@ -81,7 +78,10 @@ case $PROJECT_NAME in
     GENUS_ALL="NotProvided"
     ;;
 esac
-
+if [ GENUS_ALL == NotProvided ]; then
+  GENUS_COMMAND=""
+else
+  GENUS_COMMAND="--genus $GENUS_ALL"
 
 echo -e "\nRun pipeline..."
 
@@ -98,79 +98,33 @@ set -x
 # Containers will use it for storing tmp files when building a container
 export SINGULARITY_TMPDIR="$(pwd)"
 
-#without exclusion file
-if [ "${EXCLUSION_FILE}" == "" ]; then
-  if [ "${irods_input_projectID}" == "refsamp" ]; then
-    
-    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-    
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      --metadata "${GENUS_FILE}" \
-      --prefix "/mnt/db/juno/sing_containers"
-    
-    result=$?
+if [ "${irods_input_projectID}" == "refsamp" ]; then
+  
+  GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
+  
+  python juno_assembly.py \
+    --queue $QUEUE \
+    -i $input_dir \
+    -o $output_dir \
+    $EXCLUSION_FILE_COMMAND \
+    --metadata $GENUS_FILE \
+    --prefix /mnt/db/juno/sing_containers
+  
+  result=$?
 
-  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        --prefix "/mnt/db/juno/sing_containers"
-
-      result=$?
-
-  else
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        --genus "${GENUS_ALL}" \
-        --prefix "/mnt/db/juno/sing_containers"
-      
-      result=$?
-
-  fi 
-#with exclusion file
 else
-  if [ "${irods_input_projectID}" == "refsamp" ]; then
-    
-    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-    
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      -ex "${EXCLUSION_FILE}" \
-      --metadata "${GENUS_FILE}" \
-      --prefix "/mnt/db/juno/sing_containers"
+
+    python juno_assembly.py 
+      --queue $QUEUE \
+      -i $input_dir \
+      -o $output_dir \
+      $EXCLUSION_FILE_COMMAND \
+      $GENUS_COMMAND \
+      --prefix /mnt/db/juno/sing_containers
     
     result=$?
 
-  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        -ex "${EXCLUSION_FILE}" \
-        --prefix "/mnt/db/juno/sing_containers"
-
-      result=$?
-
-  else
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        -ex "${EXCLUSION_FILE}" \
-        --genus "${GENUS_ALL}" \
-        --prefix "/mnt/db/juno/sing_containers"
-      
-      result=$?
-
-  fi 
-
-fi
+fi 
 
 # Propagate metadata
 
@@ -194,9 +148,3 @@ do
 done
 
 exit ${result}
-
-# Produce svg with rules
-# snakemake --config sample_sheet=config/sample_sheet.yaml \
-#             --configfiles config/pipeline_parameters.yaml config/user_parameters.yaml \
-#             -j 1 --use-conda \
-#             --rulegraph | dot -Tsvg > files/DAG.svg
