@@ -1,12 +1,12 @@
 import argparse
-
+import re
 
 def parse_bbtools_summary(input_bbtools, output_bbtools):
     summary_dict = {}
 
     for input_file in input_bbtools:
         # get the sample name from the file name
-        sample_name = input_file.split("sample/")[1].split("_")[0]
+        sample_name = re.sub("_MinLenFiltSummary.tsv", "", str(input_file).split("sample/")[1])
         variable_name_list = []
         value_list = []
 
