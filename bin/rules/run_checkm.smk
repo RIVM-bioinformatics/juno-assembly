@@ -7,7 +7,7 @@ rule checkm:
     input:
         assembly=OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
         genus_bracken=OUT
-        + "/identify_species/{sample}/{sample}_bracken_species.kreport2",
+        + "/identify_species/contigs/{sample}/{sample}_bracken_species.kreport2",
     output:
         result=OUT
         + "/qc_de_novo_assembly/checkm/per_sample/{sample}/checkm_{sample}.tsv",
