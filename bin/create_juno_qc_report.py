@@ -11,6 +11,7 @@ sys.stdout = sys.stderr = open(snakemake.log[0], "w")  # type: ignore
 import pandas as pd
 from functools import reduce
 import json
+import openpyxl
 
 
 def get_genus(species_csv: str) -> pd.DataFrame:

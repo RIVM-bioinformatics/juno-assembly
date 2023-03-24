@@ -21,5 +21,7 @@ dependencies:
   - snakefmt=0.8.*
   - pip=23.*
   - mypy=1.1.*
+  - cryptography<39
+  - openpyxl
   - pip:
     - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@juno_assembly_compatibility#egg=juno_library" #TODO: set to new juno_library version
