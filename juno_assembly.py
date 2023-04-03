@@ -49,6 +49,8 @@ class JunoAssembly(Pipeline):
                 print("\n".join([f"The accepted genera are:"] + supported_genera))
                 exit(0)
 
+        self.parser.description = "Juno_assembly pipeline. Automated pipeline for pre-processing, QC and assembly of bacterial NGS sequencing data."
+
         self.add_argument(
             "--help-genera",
             action=HelpGeneraAction,
