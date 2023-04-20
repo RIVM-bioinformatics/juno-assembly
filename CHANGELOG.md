@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.1...v2.1.2) (2023-04-20)
+
+
+### Miscellaneous Chores
+
+* release 2.1.2 ([e8e2a73](https://github.com/RIVM-bioinformatics/juno-assembly/commit/e8e2a73b86f8dbd2b7736e68f71c820e0bf9f2e6))
+
 ## [2.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.0...v2.1.1) (2023-03-06)
 
 
