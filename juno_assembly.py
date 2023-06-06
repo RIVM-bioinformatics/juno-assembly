@@ -121,7 +121,7 @@ class JunoAssembly(Pipeline):
             "--cov-cutoff",
             type=str,
             metavar="STR/INT",
-            default="auto",
+            default="calculate",
             help="SPAdes k-mer coverage cut-off to use. Can be auto, off, or a specified integer",
         )
         self.add_argument(
