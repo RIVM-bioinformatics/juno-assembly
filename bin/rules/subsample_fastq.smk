@@ -23,7 +23,7 @@ rule subsample_fastq:
     shell:
         """
 python bin/subsample_reads.py --input {input.r1} {input.r2} \
-    --output {params.r1_tmp} {params.r2_tmp} \
+    --output {output.r1} {output.r2} \
     --depth {params.target_depth} \
     --cov-cutoff-in {params.cov_cutoff} \
     --cov-cutoff-out {output.cov_cutoff_file} \
