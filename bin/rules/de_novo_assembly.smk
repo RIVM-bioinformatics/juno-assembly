@@ -10,8 +10,8 @@ expected_assembly_folders = [
 
 rule de_novo_assembly:
     input:
-        r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
-        r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
+        r1=OUT + "/subsampled_fastq/{sample}_pR1.fastq.gz",
+        r2=OUT + "/subsampled_fastq/{sample}_pR2.fastq.gz",
         fastq_unpaired=OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz",
     output:
         scaffolds=OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
