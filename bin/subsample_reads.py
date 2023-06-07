@@ -12,11 +12,11 @@ def estimate_depth(input: list) -> float:
     """
     logging.info(f"Estimating genome size for {[str(x) for x in input]}")
     with tempfile.TemporaryDirectory() as tmpdir:
-        cmd_string = f"mash sketch -o {tmpdir}/tmpfile.msh -k 32 -r -m 3 {input[0]} {input[1]}"
+        cmd_string = f"mash sketch -o {tmpdir}/tmpfile.msh -k 21 -r -m 3 {input[0]}"
         result = subprocess.run(cmd_string, capture_output=True, shell=True, check=True)
     decoded_result = result.stderr.decode('utf-8')
     genome_size = int(float(decoded_result.split('\n')[0].split(' ')[-1]))
-    coverage = float(decoded_result.split('\n')[1].split(' ')[-1])
+    coverage = float(decoded_result.split('\n')[1].split(' ')[-1]) * 2
     logging.info(f"Genome size is estimated to be {genome_size}")
     logging.info(f"Depth of coverage is estimated to be {coverage}")
     return coverage
@@ -27,7 +27,7 @@ def calculate_fraction(estimated_depth: float, target_depth: int) -> float:
     """
     logging.info(f"Target depth is {target_depth}")
     subsample_fraction = target_depth / estimated_depth
-    if subsample_fraction < 1.1:
+    if subsample_fraction < 1:
         logging.info(f"Estimated depth is higher than target depth, will subsample")
         logging.info(f"Subsampling using fraction {subsample_fraction}")
     else:
@@ -38,7 +38,7 @@ def subsample_reads(input: list, output: list, fraction: float, n_threads: int):
     """
     Subsample reads based on calculated fraction.
     """
-    if fraction < 1.1: # can overestimate depth a bit
+    if fraction < 1:
         cmd_string_r1 = f"seqtk seq -f {fraction} -s 1704 {input[0]} | pigz -p {n_threads} > {output[0]}"
         cmd_string_r2 = f"seqtk seq -f {fraction} -s 1704 {input[1]} | pigz -p {n_threads} > {output[1]}"
         logging.info(f"Subsampling files {[str(x) for x in input]} to {[str(x) for x in output]}, resp.")
@@ -54,12 +54,12 @@ def subsample_reads(input: list, output: list, fraction: float, n_threads: int):
         logging.info(f"Finished copying files")
 
 def calculate_coverage_cutoff(estimated_depth: float, target_depth: int):
-    if (target_depth / estimated_depth) < 1.1:
+    if (target_depth / estimated_depth) < 1:
         logging.info(f"Basing coverage cutoff on target depth ({target_depth})")
-        cov_cutoff = math.ceil(target_depth / 30)
+        cov_cutoff = math.ceil(target_depth / 5)
     else:
         logging.info(f"Basing coverage cutoff on estimated depth ({estimated_depth})")
-        cov_cutoff = math.ceil(estimated_depth / 30)
+        cov_cutoff = math.ceil(estimated_depth / 5)
     logging.info(f"Coverage cutoff set to {cov_cutoff}")
     return cov_cutoff
 
