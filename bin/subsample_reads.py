@@ -6,9 +6,9 @@ import logging
 from pathlib import Path
 import math
 
-def estimate_depth(input: list) -> float:
+def estimate_genome_size(input: list) -> float:
     """
-    Estimate depth of paired-end reads using mash sketch.
+    Estimate genome size of paired-end read set using mash sketch.
     """
     logging.info(f"Estimating genome size for {[str(x) for x in input]}")
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -16,8 +16,22 @@ def estimate_depth(input: list) -> float:
         result = subprocess.run(cmd_string, capture_output=True, shell=True, check=True)
     decoded_result = result.stderr.decode('utf-8')
     genome_size = int(float(decoded_result.split('\n')[0].split(' ')[-1]))
-    coverage = float(decoded_result.split('\n')[1].split(' ')[-1]) * 2
+    # mash depth estimation underestimates actual cov often
+    # coverage = float(decoded_result.split('\n')[1].split(' ')[-1]) * 2
     logging.info(f"Genome size is estimated to be {genome_size}")
+    return genome_size
+
+def estimate_depth(input: list, genome_size) -> float:
+    """
+    Estimate depth of paired-end reads using seqtk size and genome size.
+    """
+    logging.info(f"Estimating depth for {[str(x) for x in input]}")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        cmd_string = f"seqtk size {input[0]}"
+        result = subprocess.run(cmd_string, capture_output=True, shell=True, check=True)
+    decoded_result = result.stdout.decode('utf-8')
+    total_nt_fw = int(decoded_result.split('\t')[1].rstrip('\n'))
+    coverage = (total_nt_fw * 2) / genome_size
     logging.info(f"Depth of coverage is estimated to be {coverage}")
     return coverage
 
@@ -68,7 +82,8 @@ def output_cov_cutoff(cov_cutoff, cov_cutoff_out):
         file.write(str(cov_cutoff))
 
 def main(args):
-    coverage = estimate_depth(args.input)
+    genome_size = estimate_genome_size(args.input)
+    coverage = estimate_depth(args.input, genome_size)
     fraction = calculate_fraction(coverage, args.depth)
     subsample_reads(args.input, args.output, fraction, args.threads)
     if args.cov_cutoff_in == "calculate":
