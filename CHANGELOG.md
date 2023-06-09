@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.2...v2.1.3) (2023-06-09)
+
+
+### Bug Fixes
+
+* update run pipeline to circumvent a bug in mamba installation procedure within irods ([d97d625](https://github.com/RIVM-bioinformatics/juno-assembly/commit/d97d625eca859ebe734df9e1c85a5e244b3b2804))
+
 ## [2.1.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.1...v2.1.2) (2023-04-20)
 
 
