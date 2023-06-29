@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--genus",
-                        type=str,
+                        type=str.capitalize,
                         help="Genus supplied through metadata, overwriting Kraken2 analysis",
                         default="None")
     parser.add_argument("--bracken-output",
