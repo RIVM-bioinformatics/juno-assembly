@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.3...v2.2.0) (2023-06-30)
+
+
+### Features
+
+* select checkm genus ([53d7f2b](https://github.com/RIVM-bioinformatics/juno-assembly/commit/53d7f2b257e9da013b83567ecfff747b5805ccd2))
+
+
+### Bug Fixes
+
+* capitalise input genus ([6a3f78b](https://github.com/RIVM-bioinformatics/juno-assembly/commit/6a3f78b651e950a2a7bd9af7c6ffcca6670e0a96))
+
 ## [2.1.3](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.2...v2.1.3) (2023-06-09)
 
 
