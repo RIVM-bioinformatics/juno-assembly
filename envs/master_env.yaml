@@ -14,4 +14,4 @@ dependencies:
   - openpyxl=3.1.*
   - pip:
     - numpy
-    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2.9#egg=base_juno"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@check_lsf_status#egg=base_juno"
