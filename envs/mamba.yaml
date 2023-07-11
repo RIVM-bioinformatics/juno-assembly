@@ -1,5 +1,6 @@
 name: mamba
 channels:
-      - conda-forge
+  - conda-forge
+  - nodefaults
 dependencies:
-      - mamba
+  - mamba

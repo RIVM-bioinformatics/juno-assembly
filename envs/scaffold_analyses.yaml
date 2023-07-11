@@ -2,7 +2,7 @@ name: scaffold_analyses
 channels:
   - bioconda
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
     - samtools==1.9
     - bbmap==38.86

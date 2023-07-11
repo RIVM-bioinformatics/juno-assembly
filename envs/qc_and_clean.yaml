@@ -2,7 +2,7 @@ name: QC_and_clean
 channels:
   - bioconda
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
     - fastqc==0.11.9
     - fastp==0.20.1
