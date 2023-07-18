@@ -1,8 +1,8 @@
 #!/bin/bash
+set -x
+# use set -x for extra logging
 
 # Wrapper for juno assembly pipeline
-
-set -euo pipefail
 
 #----------------------------------------------#
 # User parameters
@@ -14,13 +14,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 cd ${DIR}
 
 # Sanity checks
-if [ ! -z "${1}" ] || [ ! -z "${2}" ] || [ ! -z "${irods_input_projectID}" ] || [ ! -z "${irods_input_sequencing__run_id}" ]
+if [ ! -z "${1}" ] || [ ! -z "${2}" ] || [ ! -z "${irods_input_projectID}" ]
 then
   INPUTDIR="${1}"
   OUTPUTDIR="${2}"
   PROJECT_NAME="${irods_input_projectID}"
 else
-  echo "No inputdir, outputdir or project name (param 1, 2, irods_input_projectID or irods_input_sequencing__run_id)"
+  echo "No inputdir, outputdir or project name (param 1, 2, irods_input_projectID)"
   exit 1
 fi
 
@@ -38,19 +38,40 @@ then
   exit 1
 fi
 
+set -euo pipefail
+
+#----------------------------------------------#
+## make sure conda works
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/mnt/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/mnt/miniconda/etc/profile.d/conda.sh" ]; then
+        . "/mnt/miniconda/etc/profile.d/conda.sh"
+    else
+        export PATH="/mnt/miniconda/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<export -f conda
+export -f __conda_activate
+export -f __conda_reactivate
+export -f __conda_hashr
+
+
 #----------------------------------------------#
 # Create/update necessary environments
 PATH_MASTER_YAML="envs/juno_assembly.yaml"
 MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')
 
-echo -e "\nUpdating necessary environments to run the pipeline..."
+# we can use the base installation of mamba to create the environment. 
+# Swapping to a parent env is not necessary anymore.
+mamba env create -f envs/master_env.yaml --name pipeline_env
+conda activate pipeline_env
 
-# Removing strict mode because it sometimes breaks the code for 
-# activating an environment and for testing whether some variables
-# are set or not
-set +euo pipefail 
-bash install_juno_assembly.sh
-source activate "${MASTER_NAME}"
 
 #----------------------------------------------#
 # Run the pipeline

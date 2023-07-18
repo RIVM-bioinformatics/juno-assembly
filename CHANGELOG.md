@@ -1,5 +1,44 @@
 # Changelog
 
+## [2.2.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.3...v2.2.0) (2023-06-30)
+
+
+### Features
+
+* select checkm genus ([53d7f2b](https://github.com/RIVM-bioinformatics/juno-assembly/commit/53d7f2b257e9da013b83567ecfff747b5805ccd2))
+
+
+### Bug Fixes
+
+* capitalise input genus ([6a3f78b](https://github.com/RIVM-bioinformatics/juno-assembly/commit/6a3f78b651e950a2a7bd9af7c6ffcca6670e0a96))
+
+## [2.1.3](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.2...v2.1.3) (2023-06-09)
+
+
+### Bug Fixes
+
+* update run pipeline to circumvent a bug in mamba installation procedure within irods ([d97d625](https://github.com/RIVM-bioinformatics/juno-assembly/commit/d97d625eca859ebe734df9e1c85a5e244b3b2804))
+
+## [2.1.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.1...v2.1.2) (2023-04-20)
+
+
+### Miscellaneous Chores
+
+* release 2.1.2 ([e8e2a73](https://github.com/RIVM-bioinformatics/juno-assembly/commit/e8e2a73b86f8dbd2b7736e68f71c820e0bf9f2e6))
+
+## [2.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.0...v2.1.1) (2023-03-06)
+
+
+### Bug Fixes
+
+* Fix singularity prefix to be str in stead of Path ([3949e4d](https://github.com/RIVM-bioinformatics/juno-assembly/commit/3949e4d28a9a8d5a8f6c1130c0b750f24a4cae52))
+* Unset prefix if not using containers ([9907dd4](https://github.com/RIVM-bioinformatics/juno-assembly/commit/9907dd460e377b39911ed4b89061ba1eea67634e))
+
+
+### Dependencies
+
+* Remove defaults channel ([b54fc55](https://github.com/RIVM-bioinformatics/juno-assembly/commit/b54fc555730825adac2040f2f83c3eeba110c5e7))
+
 ## [2.1.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.0.8...v2.1.0) (2023-03-02)
 
 

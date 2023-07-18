@@ -93,6 +93,7 @@ onstart:
 
 localrules:
     all,
+    select_genus_checkm,
 
 
 rule all:
