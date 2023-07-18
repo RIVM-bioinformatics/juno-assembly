@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.2.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.2.1...v2.2.2) (2023-07-18)
+
+
+### Bug Fixes
+
+* fix path to k2 results ([811e86f](https://github.com/RIVM-bioinformatics/juno-assembly/commit/811e86fb1d1b78ec9031251a29ba167e55475bfe))
+
+
+### Documentation
+
+* update option description ([27d1f89](https://github.com/RIVM-bioinformatics/juno-assembly/commit/27d1f89d7b0b6a1bd5a2095a31221c9848db6e10))
+
+
+### Dependencies
+
+* fix smk version to 7.24 ([8b5b9bf](https://github.com/RIVM-bioinformatics/juno-assembly/commit/8b5b9bfa352db11b848267653bbc03af3181861d))
+
 ## [2.2.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.3...v2.2.0) (2023-06-30)
 
 
