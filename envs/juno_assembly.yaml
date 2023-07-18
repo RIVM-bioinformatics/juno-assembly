@@ -10,7 +10,7 @@ dependencies:
   - pandas=1.5.*
   - pandas-stubs=1.5.*
   - drmaa==0.7.9
-  - snakemake=7.18.*
+  - snakemake=7.24.*
   - xlrd=2.0.*
   - pyyaml=6.0
   - types-PyYaml=6.*
