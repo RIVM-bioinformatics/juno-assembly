@@ -4,15 +4,16 @@
 
 expected_assembly_folders = [
     temp(directory(OUT + "/de_novo_assembly/{sample}/" + f"K{kmer_size}"))
-    for kmer_size in config["kmer_size"].split(",")
+    for kmer_size in config["kmer_size"]
 ]
 
 
 rule de_novo_assembly:
     input:
-        r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
-        r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
+        r1=OUT + "/subsampled_fastq/{sample}_pR1.fastq.gz",
+        r2=OUT + "/subsampled_fastq/{sample}_pR2.fastq.gz",
         fastq_unpaired=OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz",
+        cov_cutoff_file = OUT + "/subsampling/{sample}.txt",
     output:
         scaffolds=OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
         contigs=temp(OUT + "/de_novo_assembly/{sample}/contigs.fasta"),
@@ -60,6 +61,7 @@ rule de_novo_assembly:
                 -s {input.fastq_unpaired} \
                 -o {params.output_dir} \
                 -k {params.kmersizes} \
+                --cov-cutoff $(<{input.cov_cutoff_file}) \
                 -m {resources.mem_gb} \
                 -t {threads} >> {log}
         else
@@ -69,6 +71,7 @@ rule de_novo_assembly:
                 -2 {input.r2} \
                 -o {params.output_dir} \
                 -k {params.kmersizes} \
+                --cov-cutoff $(<{input.cov_cutoff_file}) \
                 -m {resources.mem_gb} \
                 -t {threads} >> {log}
         fi

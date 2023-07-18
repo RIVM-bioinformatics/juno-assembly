@@ -8,7 +8,7 @@ set -x
 # User parameters
 input_dir="${1%/}"
 output_dir="${2%/}"
-EXCLUSION_FILE=""
+PROJECT_NAME="${irods_input_projectID}" # This should be an environment variable
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 cd ${DIR}
@@ -27,7 +27,9 @@ fi
 #check if there is an exclusion file, if so change the parameter
 if [ ! -z "${irods_input_sequencing__run_id}" ] && [ -f "/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude" ]
 then
-  EXCLUSION_FILE="/data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
+  EXCLUSION_FILE_COMMAND="-ex /data/BioGrid/NGSlab/sample_sheets/${irods_input_sequencing__run_id}.exclude"
+else
+  EXCLUSION_FILE_COMMAND=""
 fi
 
 if [ ! -d "${INPUTDIR}" ] || [ ! -d "${OUTPUTDIR}" ]
@@ -61,7 +63,9 @@ export -f __conda_hashr
 
 
 #----------------------------------------------#
-# Create the environment
+# Create/update necessary environments
+PATH_MASTER_YAML="envs/juno_assembly.yaml"
+MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')
 
 # we can use the base installation of mamba to create the environment. 
 # Swapping to a parent env is not necessary anymore.
@@ -74,28 +78,31 @@ conda activate pipeline_env
 
 case $PROJECT_NAME in
   adhoc|rogas|svgasuit|bsr_rvp)
-    GENUS_ALL="NotProvided"
+    GENUS_COMMAND=""
     ;;
   dsshig|svshig)
-    GENUS_ALL="Shigella"
+    GENUS_COMMAND="--genus Shigella"
     ;;
   salm|svsalent|svsaltyp|vdl_salm)
-    GENUS_ALL="Salmonella"
+    GENUS_COMMAND="--genus Salmonella"
     ;;
   svlismon|vdl_list)
-    GENUS_ALL="Listeria"
+    GENUS_COMMAND="--genus Listeria"
     ;;
   svstec|vdl_ecoli|vdl_stec)
-    GENUS_ALL="Escherichia"
+    GENUS_COMMAND="--genus Escherichia"
     ;;
   campy|vdl_campy)
-    GENUS_ALL="Campylobacter"
+    GENUS_COMMAND="--genus Campylobacter"
+    ;;
+  refsamp)
+    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
+    GENUS_COMMAND="--metadata $GENUS_FILE"
     ;;
   *)
-    GENUS_ALL="NotProvided"
+    GENUS_COMMAND=""
     ;;
 esac
-
 
 echo -e "\nRun pipeline..."
 
@@ -112,79 +119,15 @@ set -x
 # Containers will use it for storing tmp files when building a container
 export SINGULARITY_TMPDIR="$(pwd)"
 
-#without exclusion file
-if [ "${EXCLUSION_FILE}" == "" ]; then
-  if [ "${irods_input_projectID}" == "refsamp" ]; then
-    
-    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-    
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      --metadata "${GENUS_FILE}" \
-      --prefix "/mnt/db/juno/sing_containers"
-    
-    result=$?
+python juno_assembly.py \
+  --queue $QUEUE \
+  -i $input_dir \
+  -o $output_dir \
+  $EXCLUSION_FILE_COMMAND \
+  $GENUS_COMMAND \
+  --prefix /mnt/db/juno/sing_containers
 
-  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        --prefix "/mnt/db/juno/sing_containers"
-
-      result=$?
-
-  else
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        --genus "${GENUS_ALL}" \
-        --prefix "/mnt/db/juno/sing_containers"
-      
-      result=$?
-
-  fi 
-#with exclusion file
-else
-  if [ "${irods_input_projectID}" == "refsamp" ]; then
-    
-    GENUS_FILE=`realpath $(find ../ -type f -name genus_sheet_refsamp.csv)`
-    
-    python juno_assembly.py --queue "${QUEUE}" \
-      -i "${input_dir}" \
-      -o "${output_dir}" \
-      -ex "${EXCLUSION_FILE}" \
-      --metadata "${GENUS_FILE}" \
-      --prefix "/mnt/db/juno/sing_containers"
-    
-    result=$?
-
-  elif [ "${GENUS_ALL}" == "NotProvided" ]; then
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        -ex "${EXCLUSION_FILE}" \
-        --prefix "/mnt/db/juno/sing_containers"
-
-      result=$?
-
-  else
-
-      python juno_assembly.py --queue "${QUEUE}" \
-        -i "${input_dir}" \
-        -o "${output_dir}" \
-        -ex "${EXCLUSION_FILE}" \
-        --genus "${GENUS_ALL}" \
-        --prefix "/mnt/db/juno/sing_containers"
-      
-      result=$?
-
-  fi 
-
-fi
+result=$?
 
 # Propagate metadata
 
@@ -208,9 +151,3 @@ do
 done
 
 exit ${result}
-
-# Produce svg with rules
-# snakemake --config sample_sheet=config/sample_sheet.yaml \
-#             --configfiles config/pipeline_parameters.yaml config/user_parameters.yaml \
-#             -j 1 --use-conda \
-#             --rulegraph | dot -Tsvg > files/DAG.svg

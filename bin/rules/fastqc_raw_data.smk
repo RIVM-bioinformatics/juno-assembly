@@ -15,7 +15,7 @@ rule qc_raw_fastq:
         "../../envs/qc_and_clean.yaml"
     container:
         "docker://biocontainers/fastqc:v0.11.9_cv8"
-    threads: config["threads"]["fastqc"]
+    threads: int(config["threads"]["fastqc"])
     resources:
         mem_gb=config["mem_gb"]["fastqc"],
     params:

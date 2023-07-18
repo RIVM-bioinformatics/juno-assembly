@@ -5,7 +5,7 @@
 rule select_genus_checkm:
     input:
         genus_bracken=OUT
-        + "/identify_species/{sample}/{sample}_bracken_species.kreport2",
+        + "/identify_species/contigs/{sample}/{sample}_bracken_species.kreport2",
         list_accepted_genera="files/accepted_genera_checkm.txt",
     output:
         selected_genus=OUT

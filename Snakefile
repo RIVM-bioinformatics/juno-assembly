@@ -30,6 +30,10 @@ with open(sample_sheet) as sample_sheet_file:
 OUT = config["out"]
 IN = config["input_dir"]
 
+for param in ["threads", "mem_gb"]:
+    for k in config[param]:
+        config[param][k] = int(config[param][k])
+
 # @################################################################################
 # @#### 				Processes                                    #####
 # @################################################################################
@@ -41,6 +45,7 @@ IN = config["input_dir"]
 include: "bin/rules/fastqc_raw_data.smk"
 include: "bin/rules/clean_fastq.smk"
 include: "bin/rules/fastqc_clean_data.smk"
+include: "bin/rules/subsample_fastq.smk"
 #############################################################################
 ##### De novo assembly                                                  #####
 #############################################################################
@@ -123,11 +128,11 @@ rule all:
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_scaffolds.tsv",
         OUT + "/qc_de_novo_assembly/bbtools_scaffolds/bbtools_summary_report.tsv",
         expand(
-            OUT + "/identify_species/{sample}/{sample}_species_content.txt",
+            OUT + "/identify_species/reads/{sample}/{sample}_species_content.txt",
             sample=SAMPLES,
         ),
         expand(
-            OUT + "/identify_species/{sample}/{sample}_bracken_species.kreport2",
+            OUT + "/identify_species/reads/{sample}/{sample}_bracken_species.kreport2",
             sample=SAMPLES,
         ),
         OUT + "/identify_species/top1_species_multireport.csv",
