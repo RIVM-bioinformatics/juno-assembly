@@ -45,6 +45,7 @@ for param in ["threads", "mem_gb"]:
 include: "bin/rules/fastqc_raw_data.smk"
 include: "bin/rules/clean_fastq.smk"
 include: "bin/rules/fastqc_clean_data.smk"
+include: "bin/rules/subsample_fastq.smk"
 #############################################################################
 ##### De novo assembly                                                  #####
 #############################################################################
