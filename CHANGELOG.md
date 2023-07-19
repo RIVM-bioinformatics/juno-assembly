@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.0...v3.0.1) (2023-07-19)
+
+
+### Bug Fixes
+
+* conda env file path ([6b03b3c](https://github.com/RIVM-bioinformatics/juno-assembly/commit/6b03b3c39c1a3a6c0283a9cc5dd11133a98db1d1))
+
+
+### Dependencies
+
+* remove anaconda ([c9440f8](https://github.com/RIVM-bioinformatics/juno-assembly/commit/c9440f8de666bd88ac9e89b41c002b20a2462561))
+
 ## [2.2.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v2.1.3...v2.2.0) (2023-06-30)
 
 
