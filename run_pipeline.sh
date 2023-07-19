@@ -63,13 +63,9 @@ export -f __conda_hashr
 
 
 #----------------------------------------------#
-# Create/update necessary environments
-PATH_MASTER_YAML="envs/juno_assembly.yaml"
-MASTER_NAME=$(head -n 1 ${PATH_MASTER_YAML} | cut -f2 -d ' ')
-
 # we can use the base installation of mamba to create the environment. 
 # Swapping to a parent env is not necessary anymore.
-mamba env create -f envs/master_env.yaml --name pipeline_env
+mamba env create -f envs/juno_assembly.yaml --name pipeline_env
 conda activate pipeline_env
 
 
