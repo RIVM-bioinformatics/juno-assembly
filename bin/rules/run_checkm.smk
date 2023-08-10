@@ -2,6 +2,7 @@
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
 
+
 rule select_genus_checkm:
     input:
         genus_bracken=OUT
@@ -23,6 +24,7 @@ rule select_genus_checkm:
         --bracken-output {input.genus_bracken} \
         --output {output.selected_genus} 2>&1>{log}
         """
+
 
 rule checkm:
     input:

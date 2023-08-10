@@ -42,6 +42,7 @@ rule clean_fastq:
             --length_required {params.min_length} > {log} 2>&1
         """
 
+
 rule sort_paired_fastq:
     input:
         r1=OUT + "/clean_unsorted_fastq/{sample}_pR1.fastq.gz",

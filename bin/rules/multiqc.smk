@@ -24,7 +24,8 @@ rule multiqc:
             sample=SAMPLES,
         ),
         expand(
-            OUT + "/identify_species/contigs/{sample}/{sample}_bracken_species.kreport2",
+            OUT
+            + "/identify_species/contigs/{sample}/{sample}_bracken_species.kreport2",
             sample=SAMPLES,
         ),
     output:
