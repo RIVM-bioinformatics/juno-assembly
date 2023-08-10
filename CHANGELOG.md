@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.1...v3.0.2) (2023-08-10)
+
+
+### Bug Fixes
+
+* sort reads before subsample for repeatability ([c14a50f](https://github.com/RIVM-bioinformatics/juno-assembly/commit/c14a50f3d286bc3f2e4410ba3208b96337cc8211))
+
 ## [3.0.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.0...v3.0.1) (2023-07-19)
 
 
