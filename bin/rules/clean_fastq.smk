@@ -2,8 +2,8 @@ rule clean_fastq:
     input:
         lambda wildcards: (SAMPLES[wildcards.sample][i] for i in ["R1", "R2"]),
     output:
-        r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
-        r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
+        r1=temp(OUT + "/clean_unsorted_fastq/{sample}_pR1.fastq.gz"),
+        r2=temp(OUT + "/clean_unsorted_fastq/{sample}_pR2.fastq.gz"),
         unpaired=OUT + "/clean_fastq/{sample}_unpaired_joined.fastq.gz",
         html=OUT + "/clean_fastq/{sample}_fastp.html",
         json=OUT + "/clean_fastq/{sample}_fastp.json",
@@ -40,4 +40,29 @@ rule clean_fastq:
             --cut_mean_quality {params.mean_quality} \
             --correction \
             --length_required {params.min_length} > {log} 2>&1
+        """
+
+
+rule sort_paired_fastq:
+    input:
+        r1=OUT + "/clean_unsorted_fastq/{sample}_pR1.fastq.gz",
+        r2=OUT + "/clean_unsorted_fastq/{sample}_pR2.fastq.gz",
+    output:
+        r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
+        r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
+    message:
+        "Sorting cleaned paired reads to increase repeatability"
+    conda:
+        "../../envs/scaffold_analyses.yaml"
+    container:
+        "docker://staphb/bbtools:38.86"
+    threads: int(config["threads"]["pileup"])
+    resources:
+        mem_gb=config["mem_gb"]["pileup"],
+    log:
+        OUT + "/log/sort_paired_fastq/sort_paired_fastq_{sample}.log",
+    shell:
+        """
+sortbyname.sh in={input.r1} out={output.r1}
+sortbyname.sh in={input.r2} out={output.r2}
         """

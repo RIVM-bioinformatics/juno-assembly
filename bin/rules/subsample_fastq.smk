@@ -3,9 +3,9 @@ rule subsample_fastq:
         r1=OUT + "/clean_fastq/{sample}_pR1.fastq.gz",
         r2=OUT + "/clean_fastq/{sample}_pR2.fastq.gz",
     output:
-        r1 = OUT + "/subsampled_fastq/{sample}_pR1.fastq.gz",
-        r2 = OUT + "/subsampled_fastq/{sample}_pR2.fastq.gz",
-        cov_cutoff_file = OUT + "/subsampling/{sample}.txt"
+        r1=OUT + "/subsampled_fastq/{sample}_pR1.fastq.gz",
+        r2=OUT + "/subsampled_fastq/{sample}_pR2.fastq.gz",
+        cov_cutoff_file=OUT + "/subsampling/{sample}.txt",
     message:
         "Subsampling reads for {wildcards.sample}."
     conda:

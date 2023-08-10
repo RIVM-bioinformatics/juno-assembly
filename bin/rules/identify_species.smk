@@ -40,12 +40,16 @@ rule identify_species_reads:
 
         """
 
+
 rule identify_species:
     input:
         OUT + "/de_novo_assembly_filtered/{sample}.fasta",
     output:
-        kraken2_kreport=temp(OUT + "/identify_species/contigs/{sample}/{sample}.kreport2"),
-        bracken_s=OUT + "/identify_species/contigs/{sample}/{sample}_species_content.txt",
+        kraken2_kreport=temp(
+            OUT + "/identify_species/contigs/{sample}/{sample}.kreport2"
+        ),
+        bracken_s=OUT
+        + "/identify_species/contigs/{sample}/{sample}_species_content.txt",
         bracken_kreport=OUT
         + "/identify_species/contigs/{sample}/{sample}_bracken_species.kreport2",
     message:

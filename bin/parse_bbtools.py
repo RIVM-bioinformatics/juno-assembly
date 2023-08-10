@@ -1,6 +1,7 @@
 import pandas
 import re
 
+
 def parse_bbtools_perScaffold(input_bbtools, output_bbtools):
     # create an empty dataframe with the right headers
     bbtools_headers_file = open(input_bbtools[0], "r")
@@ -11,7 +12,9 @@ def parse_bbtools_perScaffold(input_bbtools, output_bbtools):
     # loop over the bbtools files (perscaffold) and add them to the dataframe
     for input_file in str(input_bbtools).split():
         # get the sample name from the file name
-        sample_name = re.sub("_perMinLenFiltScaffold.tsv", "", str(input_file).split("sample/")[1])
+        sample_name = re.sub(
+            "_perMinLenFiltScaffold.tsv", "", str(input_file).split("sample/")[1]
+        )
 
         # read the data into a pandas dataframe
         sample_dataframe = pandas.read_csv(input_file, sep="\t")

@@ -123,7 +123,7 @@ class JunoAssembly(Pipeline):
             metavar="STR/INT",
             default="calculate",
             help="SPAdes k-mer coverage cut-off to use. Can be calculate, off, or a specified integer. "
-            "\"Calculate\" lets the script calculate a sample-specific value that works for most use cases.",
+            '"Calculate" lets the script calculate a sample-specific value that works for most use cases.',
         )
         self.add_argument(
             "-cl",
