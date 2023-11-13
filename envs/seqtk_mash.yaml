@@ -4,3 +4,5 @@ channels:
 dependencies:
 - seqtk=1.4
 - mash=2.3
+- python=3.*
+- pigz=2.6
