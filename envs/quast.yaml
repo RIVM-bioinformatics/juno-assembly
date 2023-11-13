@@ -1,6 +1,7 @@
 name: quast
 channels:
   - bioconda
+  - conda-forge
   - nodefaults
 dependencies:
     - quast==5.0.2
