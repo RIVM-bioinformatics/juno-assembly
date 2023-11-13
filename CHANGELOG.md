@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.3](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.2...v3.0.3) (2023-11-13)
+
+
+### Bug Fixes
+
+* update conda envs ([094d0f1](https://github.com/RIVM-bioinformatics/juno-assembly/commit/094d0f17329d20ee8991d6d235bdc77508961c10))
+
 ## [3.0.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.1...v3.0.2) (2023-08-10)
 
 
