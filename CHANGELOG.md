@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.4](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.3...v3.0.4) (2024-05-15)
+
+
+### Bug Fixes
+
+* dont save k2 classification per read ([e7f3733](https://github.com/RIVM-bioinformatics/juno-assembly/commit/e7f373388b55c9e0026c35e80afcac9abcdee751))
+* increase max mem for bbmap ([2137cd0](https://github.com/RIVM-bioinformatics/juno-assembly/commit/2137cd0eccb2fc7a09a1d90f594b5004c3c98d67))
+
+
+### Dependencies
+
+* prevent installation of python 1.6 in env ([023ebaf](https://github.com/RIVM-bioinformatics/juno-assembly/commit/023ebaf9988624ac10dc47e540b8bb44aa134455))
+
 ## [3.0.3](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.2...v3.0.3) (2023-11-13)
 
 
