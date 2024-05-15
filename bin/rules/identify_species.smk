@@ -29,6 +29,7 @@ rule identify_species_reads:
             --report {output.kraken2_kreport} \
             --gzip-compressed \
             --paired \
+            --output - \
             {input.r1} {input.r2}  &> {log} 
 
         bracken -d {params.kraken_db} \
