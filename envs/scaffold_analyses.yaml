@@ -1,7 +1,7 @@
 name: scaffold_analyses
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - nodefaults
 dependencies:
     - samtools==1.9
@@ -10,4 +10,5 @@ dependencies:
     - picard==2.26.0
     - r-base # r-base is sometimes required for picard to run. this isn't listed in the picard dependency list.
     - openjdk
+    - python=3 # without this, the recipe resolves to python 1.6 which might lead to strange bugs
 
