@@ -22,6 +22,7 @@ dependencies:
   - pip=23.*
   - mypy=1.1.*
   - cryptography<39
+  - pulp==2.7.0
   - openpyxl
   - pip:
     - "--editable=git+https://github.com/RIVM-bioinformatics/juno-library.git@v2.0.0#egg=juno_library"
