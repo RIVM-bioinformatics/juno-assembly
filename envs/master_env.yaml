@@ -12,6 +12,7 @@ dependencies:
   - python==3.9.0
   - snakemake==7.18.2
   - openpyxl=3.1.*
+  - pulp<2.8.0
   - pip:
     - numpy
     - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2.9#egg=base_juno"
