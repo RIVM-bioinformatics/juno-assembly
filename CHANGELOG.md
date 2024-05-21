@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.5](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.4...v3.0.5) (2024-05-21)
+
+
+### Dependencies
+
+* fix pulp version ([0669908](https://github.com/RIVM-bioinformatics/juno-assembly/commit/066990861d48e0ec511361aa1924eb1201747c0a))
+
 ## [3.0.4](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.3...v3.0.4) (2024-05-15)
 
 
