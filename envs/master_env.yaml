@@ -15,4 +15,4 @@ dependencies:
   - pulp<2.8.0
   - pip:
     - numpy
-    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2.9#egg=base_juno"
+    - "--editable=git+https://github.com/RIVM-bioinformatics/base_juno_pipeline.git@v0.2.10#egg=base_juno"
