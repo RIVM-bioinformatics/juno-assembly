@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.6](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.5...v3.0.6) (2024-06-24)
+
+
+### Bug Fixes
+
+* increase sort mem ([f359b22](https://github.com/RIVM-bioinformatics/juno-assembly/commit/f359b228ca7394f41011cb85d21f64bcda5d797d))
+
 ## [3.0.5](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.4...v3.0.5) (2024-05-21)
 
 
