@@ -20,6 +20,8 @@ def get_genus(species_csv: str) -> pd.DataFrame:
     """
     df = pd.read_csv(species_csv, usecols=["sample", "genus"])
     df["sample"] = df["sample"].astype(str)
+    if any(df['sample'].str.contains("_")):
+        df['sample'] = df['sample'].apply(lambda x: x.split('_')[0])
     return df
 
 
@@ -100,6 +102,8 @@ def get_transposed_report(quast_tsv: str) -> pd.DataFrame:
         inplace=True,
     )
     df["sample"] = df["sample"].astype(str)
+    if any(df['sample'].str.contains("_")):
+        df['sample'] = df['sample'].apply(lambda x: x.split('_')[0])
 
     return df
 
@@ -123,6 +127,8 @@ def get_checkm_report(checkm_tsv: str) -> pd.DataFrame:
         },
         inplace=True,
     )
+    if any(df['sample'].str.contains("_")):
+        df['sample'] = df['sample'].apply(lambda x: x.split('_')[0])
     return df
 
 
@@ -135,6 +141,8 @@ def get_bbtools_report(bbtools_tsv: str) -> pd.DataFrame:
     )
     df.rename(columns={"Sample": "sample"}, inplace=True)
     df["sample"] = df["sample"].astype(str)
+    if any(df['sample'].str.contains("_")):
+        df['sample'] = df['sample'].apply(lambda x: x.split('_')[0])
 
     return df
 
