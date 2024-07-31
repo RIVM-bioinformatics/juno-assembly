@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.7](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.6...v3.0.7) (2024-07-12)
+
+
+### Bug Fixes
+
+* added fix for bug that caused some samples with results missing in qc report ([e0d5685](https://github.com/RIVM-bioinformatics/juno-assembly/commit/e0d568550757ab859611ed1927ae03dca3c817a3))
+
 ## [3.0.6](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.5...v3.0.6) (2024-06-24)
 
 
