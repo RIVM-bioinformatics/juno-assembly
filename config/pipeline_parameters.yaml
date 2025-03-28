@@ -8,7 +8,7 @@ threads:
     checkm: 4 
     quast: 4
     fastqc: 1
-    kraken2: 8
+    kraken2: 24
 
 mem_gb:
     parsing: 4
@@ -20,4 +20,4 @@ mem_gb:
     checkm: 12
     quast: 8
     fastqc: 8
-    kraken2: 32
+    kraken2: 84
