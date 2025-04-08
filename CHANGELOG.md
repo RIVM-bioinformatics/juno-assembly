@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.8](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.7...v3.0.8) (2025-04-08)
+
+
+### Bug Fixes
+
+* increase memory limit for kraken in order to run properly on cluster ([5c34d5c](https://github.com/RIVM-bioinformatics/juno-assembly/commit/5c34d5ca6a210f9551c9be4964e698dfa2357988))
+
 ## [3.0.7](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.6...v3.0.7) (2024-07-12)
 
 
