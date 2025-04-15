@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.9](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.8...v3.0.9) (2025-04-15)
+
+
+### Bug Fixes
+
+* updated juno library version to latest ([8307927](https://github.com/RIVM-bioinformatics/juno-assembly/commit/8307927f1d44b999b930b354a4ce2ad1d140fd93))
+
 ## [3.0.8](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.7...v3.0.8) (2025-04-08)
 
 
