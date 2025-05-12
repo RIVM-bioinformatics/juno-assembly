@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.10](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.9...v3.0.10) (2025-05-12)
+
+
+### Bug Fixes
+
+* Add flag to pileup rule to increase memory usage ([0ea1c91](https://github.com/RIVM-bioinformatics/juno-assembly/commit/0ea1c9133c74c5df7c63ee37615691254ffcb953))
+
 ## [3.0.9](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.8...v3.0.9) (2025-04-15)
 
 
