@@ -1,8 +1,9 @@
 import argparse
-import pandas as pd
 import pathlib
 import sys
 from typing import Tuple
+
+import pandas as pd
 
 argument_parser = argparse.ArgumentParser(
     description="Make bracken results multireport with top 1 species (species with higher score per sample)."
@@ -12,7 +13,7 @@ argument_parser.add_argument(
     "--input-dir",
     type=pathlib.Path,
     default=None,
-    required=not "-f" in sys.argv and not "--input-files" in sys.argv,
+    required="-f" not in sys.argv and "--input-files" not in sys.argv,
     help="Directory where to find the individual bracken results (<sample>_species_content.txt files).",
 )
 argument_parser.add_argument(
@@ -21,7 +22,7 @@ argument_parser.add_argument(
     type=pathlib.Path,
     default=[],
     nargs="+",
-    required=not "-i" in sys.argv and not "--input-dir" in sys.argv,
+    required="-i" not in sys.argv and "--input-dir" not in sys.argv,
     help="List of bracken results files (<sample>_species_content.txt files).",
 )
 argument_parser.add_argument(
@@ -79,11 +80,11 @@ if input_dir is not None:
         input_dir.exists()
     ), f"The provided input directory {input_dir} does not exist."
     if len(input_files) == 0:
-        input_files = [file_ for file_ in input_dir.glob("*_species_content.txt")]
+        input_files = list(input_dir.glob("*_species_content.txt"))
 else:
     assert (
         len(input_files) > 0
-    ), f"You need to provide either an input_dir or a list of input_files to make a Bracken multireport."
+    ), "You need to provide either an input_dir or a list of input_files to make a Bracken multireport."
     input_dir = None
 
 assert output_multireport.endswith(
@@ -93,7 +94,7 @@ output_multireport = pathlib.Path(output_multireport)
 
 
 """Read and concatenate the top 'n' result for multiple multireports"""
-print(f"Creating multireport...")
+print("Creating multireport...")
 top1_per_sample = [BrackenResult(file_).find_top_hit() for file_ in input_files]
 report = pd.concat(top1_per_sample)
 
