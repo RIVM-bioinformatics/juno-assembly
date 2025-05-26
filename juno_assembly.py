@@ -149,7 +149,8 @@ class JunoAssembly(Pipeline):
             help="Target depth for subsampling prior to de novo assembly",
         )
         self.add_argument(
-            "-skani-max-no-hits",
+            "-sm",
+            "--skani-max-no-hits",
             type=int,
             metavar="INT",
             default=2,
