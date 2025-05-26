@@ -239,9 +239,9 @@ class JunoAssembly(Pipeline):
             "contig_length_threshold": self.contig_length_threshold,
             "run_in_container": self.snakemake_args["use_singularity"],
             "db_dir": str(self.db_dir),
-            "gtdb_db_dir": str(self.skani_gtdb_db_dir),
+            "skani_gtdb_db_dir": str(self.skani_gtdb_db_dir),
             "target_depth": self.target_depth,
-            "max_no_hits": int(self.skani_max_no_hits),
+            "skani_max_no_hits": int(self.skani_max_no_hits),
         }
 
         if not self.dryrun or self.unlock:
