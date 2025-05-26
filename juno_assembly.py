@@ -2,7 +2,7 @@
 Juno_assembly pipeline
 Authors: Alejandra Hernandez-Segura
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium
+Department: Infectieziekteonderzoek, Diagnostiek en Laboratorium
             Surveillance (IDS), Bacteriologie (BPD)     
 Date: 18-08-2021   
 
@@ -10,15 +10,14 @@ Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-a
 """
 
 import argparse
-from pathlib import Path
-import yaml
 from dataclasses import dataclass, field
-from version import __package_name__, __version__, __description__
+from pathlib import Path
 from typing import Optional
 
+import yaml
 from juno_library import Pipeline
 
-from dataclasses import dataclass
+from version import __description__, __package_name__, __version__
 
 
 def main() -> None:

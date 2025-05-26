@@ -2,7 +2,7 @@
 Juno_assembly pipeline
 Authors: Alejandra Hernandez-Segura, Robert Verhagen, Ernst Hamer, Dennis Schmitz, Diogo Borst, Tom van Wijk, Maaike van der Beld
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
+Department: Infectieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
 Date: 26-08-2021
 
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html
@@ -137,4 +137,5 @@ rule all:
         ),
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
+        OUT + "/skani/skani_results.tsv",
         OUT + "/Juno_assembly_QC_report/QC_report.xlsx",

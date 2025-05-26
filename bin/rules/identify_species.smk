@@ -94,7 +94,7 @@ rule top_species_multireport:
     output:
         OUT + "/identify_species/top1_species_multireport.csv",
     message:
-        "Generating multireport for spcies identification."
+        "Generating multireport for species identification."
     log:
         OUT + "/log/identify_species/multireport.log",
     threads: config["threads"]["parsing"]
