@@ -54,7 +54,10 @@ include: "bin/rules/de_novo_assembly.smk"
 ##### Species identification (kraken/bracken & skani)                   #####
 #############################################################################
 include: "bin/rules/identify_species.smk"
-include: "bin/rules/skani.smk"
+#############################################################################
+##### Generate species summary                                          #####
+#############################################################################
+include: "bin/rules/create_juno_species_summary.smk"
 #############################################################################
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
@@ -136,8 +139,8 @@ rule all:
             OUT + "/identify_species/reads/{sample}/{sample}_bracken_species.kreport2",
             sample=SAMPLES,
         ),
+        OUT + "/identify_species/skani_results.tsv",
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
         OUT + "/skani/skani_results.tsv",
         OUT + "/Juno_assembly_QC_report/QC_report.xlsx",
-        OUT + "/skani/skani_results.tsv",
