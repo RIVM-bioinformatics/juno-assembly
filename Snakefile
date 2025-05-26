@@ -142,5 +142,4 @@ rule all:
         OUT + "/identify_species/skani_results.tsv",
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
-        OUT + "/skani/skani_results.tsv",
         OUT + "/Juno_assembly_QC_report/QC_report.xlsx",
