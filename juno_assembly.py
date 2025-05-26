@@ -45,7 +45,7 @@ class JunoAssembly(Pipeline):
 
         class HelpGeneraAction(argparse.BooleanOptionalAction):
             def __call__(self, *args, **kwargs) -> None:  # type: ignore
-                print("\n".join([f"The accepted genera are:"] + supported_genera))
+                print("\n".join(["The accepted genera are:"] + supported_genera))
                 exit(0)
 
         self.parser.description = "Juno_assembly pipeline. Automated pipeline for pre-processing, QC and assembly of bacterial NGS sequencing data."
@@ -80,6 +80,14 @@ class JunoAssembly(Pipeline):
             metavar="DIR",
             default="/mnt/db/juno/kraken2_db",
             help="Relative or absolute path to the Kraken2 database. Default: /mnt/db/juno/kraken2_db.",
+        )
+        self.add_argument(
+            "-sdb",
+            "--skani-gtdb-db-dir",
+            type=Path,
+            metavar="DIR",
+            default="/mnt/db/skani_gtdb-r226/gtdb_skani_database_ani-version-r226",
+            help="Relative or absolute path to the Skani GTDB database. Default: /mnt/db/skani_gtdb-r226/gtdb_skani_database_ani-version-r226.",
         )
         self.add_argument(
             "-mpt",
@@ -140,6 +148,14 @@ class JunoAssembly(Pipeline):
             default=150,
             help="Target depth for subsampling prior to de novo assembly",
         )
+        self.add_argument(
+            "-skani-max-no-hits",
+            type=int,
+            metavar="INT",
+            default=2,
+            dest="skani_max_no_hits",
+            help="Maximum number of hits to report for each contig in the Skani step. Default is 2, change value for debugging or development only.",
+        )
 
     def _parse_args(self) -> argparse.Namespace:
         args = super()._parse_args()
@@ -155,6 +171,8 @@ class JunoAssembly(Pipeline):
         self.cov_cutoff = args.cov_cutoff
         self.contig_length_threshold = args.contig_length_threshold
         self.target_depth = args.target_depth
+        self.skani_max_no_hits = args.skani_max_no_hits
+        self.skani_gtdb_db_dir = args.skani_gtdb_db_dir.resolve()
 
         return args
 
@@ -168,6 +186,15 @@ class JunoAssembly(Pipeline):
             raise ValueError(
                 f"The provided path to the database for Kraken2 ({str(self.db_dir)}) does not contain the expected files. Please download it again!"
             )
+
+    def __validate_skani_gtdb_db_dir(self) -> bool:
+        skani_db_dir = self.skani_gtdb_db_dir
+        if not skani_db_dir.exists() or not skani_db_dir.is_dir():
+            raise ValueError(
+                f"The provided path for skani GTDB database ({str(skani_db_dir)}) does not exist or is not a directory. Please check the path and try again!"
+            )
+        else:
+            return True
 
     def update_sample_dict_with_metadata(self) -> None:
         self.get_metadata_from_csv_file(
@@ -216,6 +243,7 @@ class JunoAssembly(Pipeline):
 
         if not self.dryrun or self.unlock:
             self.__validate_kraken2_db_dir()
+            self.__validate_skani_gtdb_db_dir()
 
 
 if __name__ == "__main__":

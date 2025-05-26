@@ -51,9 +51,10 @@ include: "bin/rules/subsample_fastq.smk"
 #############################################################################
 include: "bin/rules/de_novo_assembly.smk"
 #############################################################################
-##### Species identification                                            #####
+##### Species identification (kraken/bracken & skani)                   #####
 #############################################################################
 include: "bin/rules/identify_species.smk"
+include: "bin/rules/skani.smk"
 #############################################################################
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
@@ -139,3 +140,4 @@ rule all:
         OUT + "/multiqc/multiqc.html",
         OUT + "/skani/skani_results.tsv",
         OUT + "/Juno_assembly_QC_report/QC_report.xlsx",
+        OUT + "/skani/skani_results.tsv",
