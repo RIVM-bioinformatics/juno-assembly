@@ -109,9 +109,9 @@ rule identify_species_skani:
         gtdb_db_dir=config["skani_gtdb_db_dir"],
     shell:
         """
-skani {input} \
-    --output {output} \
+skani search {input} \
+    -o {output} \
     -d {params.gtdb_db_dir} \
     --ci \
-    -n {params.max_no_hits} 2>&1>{log}
+    -n {params.max_no_hits} >> {log} 2>&1
         """

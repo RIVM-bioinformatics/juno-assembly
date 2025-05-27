@@ -216,6 +216,7 @@ class JunoAssembly(Pipeline):
                 [
                     self.snakemake_args["singularity_args"],
                     f"--bind {self.db_dir}:{self.db_dir}",
+                    f"--bind {self.skani_gtdb_db_dir}:{self.skani_gtdb_db_dir}",
                 ]
             )
 
