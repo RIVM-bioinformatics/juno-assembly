@@ -90,6 +90,21 @@ onstart:
             raise FileNotFoundError(filename)
 
 
+# @################################################################################
+# @#### The `onsucces` and `onerror` checker codeblock                        #####
+# @################################################################################
+
+
+onsuccess:
+    print(f"Pipeline finished successfully. Check the output directory '{OUT}' for results.")
+    possible_new_species_table = OUT + "/identify_species/top1_species_multireport_possible_new_species.csv"
+    if os.path.exists(possible_new_species_table):
+        print(f"Species identification results are available in '{possible_new_species_table}'."
+        )
+
+onerror:
+    print("Pipeline encountered an error. Please check the logs for details.")
+
 #################################################################################
 ##### Specify final output:                                                 #####
 #################################################################################
@@ -98,6 +113,7 @@ onstart:
 localrules:
     all,
     select_genus_checkm,
+    top_species_multireport,
 
 
 rule all:
