@@ -17,14 +17,15 @@ def estimate_genome_size(input: list) -> float:
         result = subprocess.run(cmd_string, capture_output=True, shell=True, check=True)
     decoded_result = result.stderr.decode("utf-8")
     for line in decoded_result.split("\n"):
-        try:
-            genome_size = int(float(line.split(" ")[-1]))
-            # mash depth estimation underestimates actual cov often
-            # coverage = float(line.split(' ')[-1]) * 2
-            logging.info(f"Genome size is estimated to be {genome_size}")
-            return genome_size
-        except ValueError:
-            continue
+        if line.startswith("Estimated genome size:"):
+            try:
+                genome_size = int(float(line.split(" ")[-1]))
+                # mash depth estimation underestimates actual cov often
+                # coverage = float(line.split(' ')[-1]) * 2
+                logging.info(f"Genome size is estimated to be {genome_size}")
+                return genome_size
+            except ValueError:
+                continue
     raise ValueError(" Could not find a valid genome size in mash output.")
 
 
