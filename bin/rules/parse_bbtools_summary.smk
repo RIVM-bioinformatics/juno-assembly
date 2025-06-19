@@ -20,4 +20,4 @@ rule parse_bbtools_summary:
     log:
         OUT + "/log/qc_de_novo_assembly/pileup_contig_metrics_combined.log",
     shell:
-        "python bin/parse_bbtools_summary.py -i {input} -o {output} > {log}"
+        "python bin/parse_bbtools_summary.py -i {input} -o {output} > {log} 2>&1"

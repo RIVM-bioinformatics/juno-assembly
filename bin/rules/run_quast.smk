@@ -24,5 +24,5 @@ rule run_quast_combined:
         OUT + "/log/qc_de_novo_assembly/quast.log",
     shell:
         """
-        quast.py --threads {threads} {input} --output-dir {params.output_dir} > {log}
+        quast.py --threads {threads} {input} --output-dir {params.output_dir} > {log} 2>&1
         """

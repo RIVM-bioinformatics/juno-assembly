@@ -5,10 +5,11 @@ threads:
     spades: 12
     pileup: 1 # Generate contig metrics
     multiqc: 1
-    checkm: 4 
+    checkm: 4
     quast: 4
     fastqc: 1
     kraken2: 24
+    skani: 1
 
 mem_gb:
     parsing: 4
@@ -21,3 +22,4 @@ mem_gb:
     quast: 8
     fastqc: 8
     kraken2: 84
+    skani: 12

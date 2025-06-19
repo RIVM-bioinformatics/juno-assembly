@@ -2,7 +2,7 @@
 Juno_assembly pipeline
 Authors: Alejandra Hernandez-Segura, Robert Verhagen, Ernst Hamer, Dennis Schmitz, Diogo Borst, Tom van Wijk, Maaike van der Beld
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
+Department: Infectieziekteonderzoek, Diagnostiek en Laboratorium Surveillance (IDS), Bacteriologie (BPD)
 Date: 26-08-2021
 
 Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html
@@ -51,9 +51,13 @@ include: "bin/rules/subsample_fastq.smk"
 #############################################################################
 include: "bin/rules/de_novo_assembly.smk"
 #############################################################################
-##### Species identification                                            #####
+##### Species identification (kraken/bracken & skani)                   #####
 #############################################################################
 include: "bin/rules/identify_species.smk"
+#############################################################################
+##### Generate species summary                                          #####
+#############################################################################
+include: "bin/rules/create_juno_species_summary.smk"
 #############################################################################
 ##### Scaffold analyses: QUAST, CheckM, picard, bbmap and QC-metrics    #####
 #############################################################################
@@ -86,6 +90,21 @@ onstart:
             raise FileNotFoundError(filename)
 
 
+# @################################################################################
+# @#### The `onsucces` and `onerror` checker codeblock                        #####
+# @################################################################################
+
+
+onsuccess:
+    print(f"Pipeline finished successfully. Check the output directory '{OUT}' for results.")
+    possible_new_species_table = OUT + "/identify_species/top1_species_multireport_possible_new_species.csv"
+    if os.path.exists(possible_new_species_table):
+        print(f"Species identification results are available in '{possible_new_species_table}'."
+        )
+
+onerror:
+    print("Pipeline encountered an error. Please check the logs for details.")
+
 #################################################################################
 ##### Specify final output:                                                 #####
 #################################################################################
@@ -94,6 +113,7 @@ onstart:
 localrules:
     all,
     select_genus_checkm,
+    top_species_multireport,
 
 
 rule all:
@@ -135,6 +155,7 @@ rule all:
             OUT + "/identify_species/reads/{sample}/{sample}_bracken_species.kreport2",
             sample=SAMPLES,
         ),
+        OUT + "/identify_species/skani_results.tsv",
         OUT + "/identify_species/top1_species_multireport.csv",
         OUT + "/multiqc/multiqc.html",
         OUT + "/Juno_assembly_QC_report/QC_report.xlsx",

@@ -22,7 +22,7 @@ rule select_genus_checkm:
         python bin/select_genus_checkm.py \
         --genus {params.genus} \
         --bracken-output {input.genus_bracken} \
-        --output {output.selected_genus} 2>&1>{log}
+        --output {output.selected_genus} > {log} 2>&1
         """
 
 

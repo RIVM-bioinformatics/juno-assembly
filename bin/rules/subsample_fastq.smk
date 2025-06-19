@@ -27,5 +27,5 @@ python bin/subsample_reads.py --input {input.r1} {input.r2} \
     --depth {params.target_depth} \
     --cov-cutoff-in {params.cov_cutoff} \
     --cov-cutoff-out {output.cov_cutoff_file} \
-    --threads {threads} 2>&1>{log}
+    --threads {threads} > {log} 2>&1
         """
