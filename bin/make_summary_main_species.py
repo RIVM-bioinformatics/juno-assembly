@@ -88,7 +88,7 @@ def parse_skani_results(skani_output_path: pathlib.Path) -> pd.DataFrame:
     Then it returns a wide format DataFrame with the top two hits for each sample (as
     requested by the Yersinia group). NB., the sample names are parsed from the query
     file as reported in the skani output file, so this assumes a pathing format as
-    specified in the current smk: "*/[SAMPLE_NAME]/scaffolds.fasta".
+    specified in the current smk: "*/[SAMPLE_NAME].fasta".
     """
 
     column_format = {
@@ -111,11 +111,11 @@ def parse_skani_results(skani_output_path: pathlib.Path) -> pd.DataFrame:
         dtype=column_format,
     )
 
-    #! parse the query_name from the query_file. NB., below assumes the suffix looks like */[SAMPLE_NAME]/scaffolds.fasta
-    df["query_name"] = df["query_file"].apply(lambda x: x.split("/")[-2] if x.endswith("scaffolds.fasta") else None)  # type: ignore
+    #! parse the query_name from the query_file. NB., below assumes the suffix looks like */foo/bar/[SAMPLE_NAME].fasta
+    df["query_name"] = df["query_file"].apply(lambda x: x.split("/")[-1] if x.endswith(".fasta") else None)  # type: ignore
     if df["query_name"].isnull().all():
-        raise ValueError("The query_file does not have the expected format. It should end with 'scaffolds.fasta'.")
-
+        raise ValueError("The query_file does not have the expected format. It should end with '.fasta'.")
+    df["query_name"] = df["query_name"].str.replace(".fasta", "", regex=False)  # ? remove the .fasta suffix
     df_sorted = df.sort_values(by=["query_name", "ani_value"], ascending=[True, False])
     top_hits = df_sorted.groupby("query_name").head(2).copy()  # ? get top two hits per sample only; as requested by Yersinia group
     top_hits["rank"] = top_hits.groupby("query_name").cumcount() + 1  # ? set rank 1 or 2 (0-based, so +1)

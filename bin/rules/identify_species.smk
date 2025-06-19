@@ -88,7 +88,7 @@ rule identify_species_kraken:
 rule identify_species_skani:
     input:
         expand(
-            OUT + "/de_novo_assembly/{sample}/scaffolds.fasta",
+            OUT + "/de_novo_assembly_filtered/{sample}.fasta",
             sample=SAMPLES,
         ),
     output:

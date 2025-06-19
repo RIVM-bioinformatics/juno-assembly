@@ -3,10 +3,10 @@ Juno_assembly pipeline
 Authors: Alejandra Hernandez-Segura
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
 Department: Infectieziekteonderzoek, Diagnostiek en Laboratorium
-            Surveillance (IDS), Bacteriologie (BPD)     
-Date: 18-08-2021   
+            Surveillance (IDS), Bacteriologie (BPD)
+Date: 18-08-2021
 
-Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
+Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html
 """
 
 import argparse
@@ -26,9 +26,7 @@ def main() -> None:
 
 
 def get_suppported_checkm_genera() -> list[str]:
-    with open(
-        Path(__file__).parent.joinpath("files", "accepted_genera_checkm.txt"), mode="r"
-    ) as f:
+    with open(Path(__file__).parent.joinpath("files", "accepted_genera_checkm.txt"), mode="r") as f:
         return [g.strip().lower() for g in f.readlines()]
 
 
@@ -79,15 +77,15 @@ class JunoAssembly(Pipeline):
             type=Path,
             metavar="DIR",
             default="/mnt/db/juno/kraken2_db",
-            help="Relative or absolute path to the Kraken2 database. Default: /mnt/db/juno/kraken2_db.",
+            help="Relative or absolute path to the Kraken2 database. Default: '%(default)s'.",
         )
         self.add_argument(
             "-sdb",
             "--skani-gtdb-db-dir",
             type=Path,
             metavar="DIR",
-            default="/mnt/db/skani_gtdb-r226/gtdb_skani_database_ani-version-r226",
-            help="Relative or absolute path to the Skani GTDB database. Default: /mnt/db/skani_gtdb-r226/gtdb_skani_database_ani-version-r226.",
+            default="/mnt/db/juno/skani/gtdb_skani_database_ani-version-r226",
+            help="Relative or absolute path to the Skani GTDB database. Default: '%(default)s'.",
         )
         self.add_argument(
             "-mpt",
@@ -198,14 +196,10 @@ class JunoAssembly(Pipeline):
             return True
 
     def update_sample_dict_with_metadata(self) -> None:
-        self.get_metadata_from_csv_file(
-            filepath=self.metadata_file, expected_colnames=["sample", "genus"]
-        )
+        self.get_metadata_from_csv_file(filepath=self.metadata_file, expected_colnames=["sample", "genus"])
         for sample, properties in self.sample_dict.items():
             try:
-                properties["genus"] = (
-                    self.juno_metadata[sample]["genus"].strip().lower()
-                )
+                properties["genus"] = self.juno_metadata[sample]["genus"].strip().lower()
             except (KeyError, TypeError, AttributeError):
                 properties["genus"] = self.genus  # type: ignore
 
@@ -221,9 +215,7 @@ class JunoAssembly(Pipeline):
             )
 
         self.update_sample_dict_with_metadata()
-        with open(
-            Path(__file__).parent.joinpath("config/pipeline_parameters.yaml")
-        ) as f:
+        with open(Path(__file__).parent.joinpath("config/pipeline_parameters.yaml")) as f:
             parameters_dict = yaml.safe_load(f)
         self.snakemake_config.update(parameters_dict)
 
