@@ -10,6 +10,7 @@ def parse_bbtools_summary(input_bbtools, output_bbtools):
         sample_name = re.sub(
             "_MinLenFiltSummary.tsv", "", str(input_file).split("sample/")[1]
         )
+        sample_name = sample_name.split("_")[0]   # remove species code in sample name
         variable_name_list = []
         value_list = []
 
