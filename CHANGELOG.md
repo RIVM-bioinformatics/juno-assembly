@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.11](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.10...v3.0.11) (2025-07-01)
+
+
+### Bug Fixes
+
+* Add -Xmx100g flag to sort_paired_fastq rule ([ff7e42b](https://github.com/RIVM-bioinformatics/juno-assembly/commit/ff7e42b3924b23fdb12e38a7c4116447e09baaa9))
+
 ## [3.0.10](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.9...v3.0.10) (2025-05-12)
 
 
