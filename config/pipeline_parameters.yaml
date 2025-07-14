@@ -22,4 +22,4 @@ mem_gb:
     quast: 8
     fastqc: 8
     kraken2: 84
-    skani: 12
+    skani: 100
