@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.12](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.11...v3.0.12) (2025-09-11)
+
+
+### Bug Fixes
+
+* Increase multiqc memory to handle large datasets ([280ff94](https://github.com/RIVM-bioinformatics/juno-assembly/commit/280ff94a05ec14a8cd105b9e74ebf616d0dc905b))
+
 ## [3.0.11](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.10...v3.0.11) (2025-07-01)
 
 
