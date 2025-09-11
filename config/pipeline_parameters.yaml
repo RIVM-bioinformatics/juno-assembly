@@ -16,7 +16,7 @@ mem_gb:
     picard: 12
     spades: 100
     pileup: 100
-    multiqc: 8
+    multiqc: 12
     checkm: 12
     quast: 8
     fastqc: 8
