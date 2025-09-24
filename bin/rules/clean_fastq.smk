@@ -63,6 +63,6 @@ rule sort_paired_fastq:
         OUT + "/log/sort_paired_fastq/sort_paired_fastq_{sample}.log",
     shell:
         """
-sortbyname.sh in={input.r1} out={output.r1} > {log} 2>&1
-sortbyname.sh in={input.r2} out={output.r2} >> {log} 2>&1
+sortbyname.sh in={input.r1} out={output.r1} -Xmx100g > {log} 2>&1
+sortbyname.sh in={input.r2} out={output.r2} -Xmx100g >> {log} 2>&1
         """
