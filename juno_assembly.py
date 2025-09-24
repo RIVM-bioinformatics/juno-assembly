@@ -2,23 +2,22 @@
 Juno_assembly pipeline
 Authors: Alejandra Hernandez-Segura
 Organization: Rijksinstituut voor Volksgezondheid en Milieu (RIVM)
-Department: Infektieziekteonderzoek, Diagnostiek en Laboratorium
-            Surveillance (IDS), Bacteriologie (BPD)     
-Date: 18-08-2021   
+Department: Infectieziekteonderzoek, Diagnostiek en Laboratorium
+            Surveillance (IDS), Bacteriologie (BPD)
+Date: 18-08-2021
 
-Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html 
+Documentation: https://rivm-bioinformatics.github.io/ids_bacteriology_man/juno-assembly.html
 """
 
 import argparse
-from pathlib import Path
-import yaml
 from dataclasses import dataclass, field
-from version import __package_name__, __version__, __description__
+from pathlib import Path
 from typing import Optional
 
+import yaml
 from juno_library import Pipeline
 
-from dataclasses import dataclass
+from version import __description__, __package_name__, __version__
 
 
 def main() -> None:
@@ -27,9 +26,7 @@ def main() -> None:
 
 
 def get_suppported_checkm_genera() -> list[str]:
-    with open(
-        Path(__file__).parent.joinpath("files", "accepted_genera_checkm.txt"), mode="r"
-    ) as f:
+    with open(Path(__file__).parent.joinpath("files", "accepted_genera_checkm.txt"), mode="r") as f:
         return [g.strip().lower() for g in f.readlines()]
 
 
@@ -46,7 +43,7 @@ class JunoAssembly(Pipeline):
 
         class HelpGeneraAction(argparse.BooleanOptionalAction):
             def __call__(self, *args, **kwargs) -> None:  # type: ignore
-                print("\n".join([f"The accepted genera are:"] + supported_genera))
+                print("\n".join(["The accepted genera are:"] + supported_genera))
                 exit(0)
 
         self.parser.description = "Juno_assembly pipeline. Automated pipeline for pre-processing, QC and assembly of bacterial NGS sequencing data."
@@ -80,7 +77,15 @@ class JunoAssembly(Pipeline):
             type=Path,
             metavar="DIR",
             default="/mnt/db/juno/kraken2_db",
-            help="Relative or absolute path to the Kraken2 database. Default: /mnt/db/juno/kraken2_db.",
+            help="Relative or absolute path to the Kraken2 database. Default: '%(default)s'.",
+        )
+        self.add_argument(
+            "-sdb",
+            "--skani-gtdb-db-dir",
+            type=Path,
+            metavar="DIR",
+            default="/mnt/db/juno/skani/gtdb_skani_database_ani-version-r226",
+            help="Relative or absolute path to the Skani GTDB database. Default: '%(default)s'.",
         )
         self.add_argument(
             "-mpt",
@@ -141,6 +146,15 @@ class JunoAssembly(Pipeline):
             default=150,
             help="Target depth for subsampling prior to de novo assembly",
         )
+        self.add_argument(
+            "-sm",
+            "--skani-max-no-hits",
+            type=int,
+            metavar="INT",
+            default=2,
+            dest="skani_max_no_hits",
+            help="Maximum number of hits to report for each contig in the Skani step. Default is 2, change value for debugging or development only.",
+        )
 
     def _parse_args(self) -> argparse.Namespace:
         args = super()._parse_args()
@@ -156,6 +170,8 @@ class JunoAssembly(Pipeline):
         self.cov_cutoff = args.cov_cutoff
         self.contig_length_threshold = args.contig_length_threshold
         self.target_depth = args.target_depth
+        self.skani_max_no_hits = args.skani_max_no_hits
+        self.skani_gtdb_db_dir = args.skani_gtdb_db_dir.resolve()
 
         return args
 
@@ -170,15 +186,20 @@ class JunoAssembly(Pipeline):
                 f"The provided path to the database for Kraken2 ({str(self.db_dir)}) does not contain the expected files. Please download it again!"
             )
 
+    def __validate_skani_gtdb_db_dir(self) -> bool:
+        skani_db_dir = self.skani_gtdb_db_dir
+        if not skani_db_dir.exists() or not skani_db_dir.is_dir():
+            raise ValueError(
+                f"The provided path for skani GTDB database ({str(skani_db_dir)}) does not exist or is not a directory. Please check the path and try again!"
+            )
+        else:
+            return True
+
     def update_sample_dict_with_metadata(self) -> None:
-        self.get_metadata_from_csv_file(
-            filepath=self.metadata_file, expected_colnames=["sample", "genus"]
-        )
+        self.get_metadata_from_csv_file(filepath=self.metadata_file, expected_colnames=["sample", "genus"])
         for sample, properties in self.sample_dict.items():
             try:
-                properties["genus"] = (
-                    self.juno_metadata[sample]["genus"].strip().lower()
-                )
+                properties["genus"] = self.juno_metadata[sample]["genus"].strip().lower()
             except (KeyError, TypeError, AttributeError):
                 properties["genus"] = self.genus  # type: ignore
 
@@ -189,13 +210,12 @@ class JunoAssembly(Pipeline):
                 [
                     self.snakemake_args["singularity_args"],
                     f"--bind {self.db_dir}:{self.db_dir}",
+                    f"--bind {self.skani_gtdb_db_dir}:{self.skani_gtdb_db_dir}",
                 ]
             )
 
         self.update_sample_dict_with_metadata()
-        with open(
-            Path(__file__).parent.joinpath("config/pipeline_parameters.yaml")
-        ) as f:
+        with open(Path(__file__).parent.joinpath("config/pipeline_parameters.yaml")) as f:
             parameters_dict = yaml.safe_load(f)
         self.snakemake_config.update(parameters_dict)
 
@@ -212,11 +232,14 @@ class JunoAssembly(Pipeline):
             "contig_length_threshold": self.contig_length_threshold,
             "run_in_container": self.snakemake_args["use_singularity"],
             "db_dir": str(self.db_dir),
+            "skani_gtdb_db_dir": str(self.skani_gtdb_db_dir),
             "target_depth": self.target_depth,
+            "skani_max_no_hits": int(self.skani_max_no_hits),
         }
 
         if not self.dryrun or self.unlock:
             self.__validate_kraken2_db_dir()
+            self.__validate_skani_gtdb_db_dir()
 
 
 if __name__ == "__main__":
