@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.1.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.12...v3.1.0) (2025-09-24)
+
+
+### Features
+
+* added skani species labelling and new species warnings for ANI &lt;95% ([#50](https://github.com/RIVM-bioinformatics/juno-assembly/issues/50)) ([5b66f70](https://github.com/RIVM-bioinformatics/juno-assembly/commit/5b66f70cd20269061f3beaa931e80745b4991f4d))
+
+
+### Bug Fixes
+
+* Ensured log files are generated for all processes (see [#48](https://github.com/RIVM-bioinformatics/juno-assembly/issues/48)) ([434727e](https://github.com/RIVM-bioinformatics/juno-assembly/commit/434727ef64ddbca0b77f4353eb3799cf34eecc57))
+* Made `subsample.py` more robust to errors (see [#49](https://github.com/RIVM-bioinformatics/juno-assembly/issues/49)) ([434727e](https://github.com/RIVM-bioinformatics/juno-assembly/commit/434727ef64ddbca0b77f4353eb3799cf34eecc57))
+
 ## [3.0.12](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.11...v3.0.12) (2025-09-11)
 
 
