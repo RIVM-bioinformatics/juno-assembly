@@ -141,7 +141,7 @@ def parse_skani_results(skani_output_path: pathlib.Path) -> pd.DataFrame:
         "skani_2_align_frac_query",
         "skani_2_ref_name",
     ]
-    top_hits_wide = top_hits_wide[column_order].reset_index()  # ? reorder to match the expected output
+    top_hits_wide = top_hits_wide.reindex(columns=column_order).reset_index()  # ? reorder to match the expected output
     top_hits_wide = top_hits_wide.drop(columns=["skani_1_ref_file", "skani_1_query_file", "skani_2_ref_file", "skani_2_query_file"])
 
     return top_hits_wide
