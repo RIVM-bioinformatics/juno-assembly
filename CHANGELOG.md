@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.1.0...v3.1.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* when all samples in an analysis had no 2nd skani species hit, it would fail, now handles this gracefully with empty cols. ([6e79375](https://github.com/RIVM-bioinformatics/juno-assembly/commit/6e793759617a837131d2dcd2c0fb8ae55e5e0bcc))
+
 ## [3.1.0](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.0.12...v3.1.0) (2025-09-24)
 
 
