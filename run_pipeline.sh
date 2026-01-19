@@ -69,7 +69,7 @@ module load 2024
 module load Mamba/24.9.0-0
 
 mamba env create -f envs/juno_assembly.yaml --name pipeline_env
-conda activate pipeline_env
+source activate pipeline_env
 
 
 #----------------------------------------------#
