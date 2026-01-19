@@ -43,28 +43,31 @@ set -euo pipefail
 #----------------------------------------------#
 ## make sure conda works
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/mnt/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/mnt/miniconda/etc/profile.d/conda.sh" ]; then
-        . "/mnt/miniconda/etc/profile.d/conda.sh"
-    else
-        export PATH="/mnt/miniconda/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<export -f conda
-export -f __conda_activate
-export -f __conda_reactivate
-export -f __conda_hashr
+# # >>> conda initialize >>>
+# # !! Contents within this block are managed by 'conda init' !!
+# __conda_setup="$('/mnt/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+# if [ $? -eq 0 ]; then
+    # eval "$__conda_setup"
+# else
+    # if [ -f "/mnt/miniconda/etc/profile.d/conda.sh" ]; then
+        # . "/mnt/miniconda/etc/profile.d/conda.sh"
+    # else
+        # export PATH="/mnt/miniconda/bin:$PATH"
+    # fi
+# fi
+# unset __conda_setup
+# # <<< conda initialize <<<export -f conda
+# export -f __conda_activate
+# export -f __conda_reactivate
+# export -f __conda_hashr
 
 
 #----------------------------------------------#
 # we can use the base installation of mamba to create the environment. 
 # Swapping to a parent env is not necessary anymore.
+module load 2024
+module load Mamba/24.9.0-0
+
 mamba env create -f envs/juno_assembly.yaml --name pipeline_env
 conda activate pipeline_env
 
@@ -115,13 +118,11 @@ set -x
 # Containers will use it for storing tmp files when building a container
 export SINGULARITY_TMPDIR="$(pwd)"
 
-python juno_assembly.py \
-  --queue $QUEUE \
+python juno_assembly.py --no-containers -l -c 16 \
   -i $input_dir \
   -o $output_dir \
   $EXCLUSION_FILE_COMMAND \
-  $GENUS_COMMAND \
-  --prefix /mnt/db/juno/sing_containers
+  $GENUS_COMMAND
 
 result=$?
 
