@@ -4,5 +4,5 @@ channels:
   - conda-forge # Needed for dependencies of multiqc
   - nodefaults
 dependencies:
-    - multiqc==1.11
+    - multiqc==1.33
     - python<3.12
