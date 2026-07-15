@@ -33,17 +33,12 @@ def get_phred_score(phred_json: str) -> pd.DataFrame:
         phred_data = json.load(f)
 
     phred = phred_data["report_plot_data"]["fastqc_per_sequence_quality_scores_plot"][
-        "datasets"
+        "datasets"][0]["lines"
     ]
 
-    phred2 = []
-    for val in phred:
-        for i in val:
-            phred2.append(i)
-
-    df = pd.DataFrame(phred2)
+    df = pd.DataFrame(phred)
     parsed_df = (
-        df.groupby("name").data.apply(lambda x: pd.DataFrame(x.values[0])).reset_index()
+        df.groupby("name").pairs.apply(lambda x: pd.DataFrame(x.values[0])).reset_index()
     )
 
     parsed2_df = parsed_df.drop("level_1", axis=1)
