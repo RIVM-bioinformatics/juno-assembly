@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.2](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.1.1...v3.1.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* bump multiqc version to v1.33 ([3f288d5](https://github.com/RIVM-bioinformatics/juno-assembly/commit/3f288d5f59149614fae781df4ecae1605d3d326c))
+* change phred parsing function to fit mulitqc v1.33 output ([bdf8d9f](https://github.com/RIVM-bioinformatics/juno-assembly/commit/bdf8d9fc71dd1072eb2a0a0633f2df443712bbe8))
+
 ## [3.1.1](https://github.com/RIVM-bioinformatics/juno-assembly/compare/v3.1.0...v3.1.1) (2025-10-29)
 
 
